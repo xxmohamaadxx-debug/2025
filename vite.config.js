@@ -285,9 +285,6 @@ export default defineConfig({
 						if (id.includes('@supabase')) {
 							return 'supabase';
 						}
-						if (id.includes('framer-motion')) {
-							return 'animations';
-						}
 						return 'vendor';
 					}
 				},
