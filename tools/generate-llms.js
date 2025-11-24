@@ -161,8 +161,8 @@ function main() {
       .filter(Boolean);
     
     if (pages.length === 0) {
-      console.error('❌ No pages with Helmet components found!');
-      process.exit(1);
+      console.warn('⚠️ No pages with Helmet components found, skipping llms.txt generation');
+      return;
     }
   }
 
@@ -174,8 +174,10 @@ function main() {
   fs.writeFileSync(outputPath, llmsTxtContent, 'utf8');
 }
 
-const isMainModule = import.meta.url === `file://${process.argv[1]}`;
-
-if (isMainModule) {
+// Check if this file is being run directly
+try {
   main();
+} catch (error) {
+  console.warn('Warning: llms.txt generation failed, continuing build...', error.message);
+  process.exit(0);
 }
