@@ -5,8 +5,9 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Loader2, AlertCircle, PlayCircle } from 'lucide-react';
+import { Loader2, AlertCircle } from 'lucide-react';
 import { Helmet } from 'react-helmet';
+import Logo from '@/components/Logo';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -37,11 +38,6 @@ const LoginPage = () => {
     }
   };
 
-  const handleDemoLogin = () => {
-    setEmail('test@ibrahim.com');
-    setPassword('Test@123456');
-    setError(''); 
-  };
 
   return (
     <>
@@ -53,9 +49,9 @@ const LoginPage = () => {
           <motion.div
             initial={{ scale: 0.5, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="mx-auto h-16 w-16 rounded-full bg-gradient-to-tr from-orange-500 to-pink-500 flex items-center justify-center text-white font-bold text-2xl mb-4 shadow-lg"
+            className="flex justify-center mb-6"
           >
-            I
+            <Logo size="xl" showText={false} />
           </motion.div>
           <h2 className="mt-2 text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
             {t('auth.welcomeBack')}
@@ -128,16 +124,6 @@ const LoginPage = () => {
             >
               {isLoading ? <Loader2 className="h-5 w-5 animate-spin ml-2 rtl:mr-2 rtl:ml-0" /> : null}
               {isLoading ? t('auth.signingIn') : t('auth.loginButton')}
-            </Button>
-            
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleDemoLogin}
-              className="w-full border-orange-200 text-orange-700 hover:bg-orange-50 hover:text-orange-800 transition-colors"
-            >
-              <PlayCircle className="h-4 w-4 ml-2 rtl:mr-2 rtl:ml-0" />
-              {t('auth.demoButton')}
             </Button>
           </div>
 

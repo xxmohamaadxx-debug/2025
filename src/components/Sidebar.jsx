@@ -33,7 +33,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
       transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0
       ${isOpen ? 'translate-x-0' : 'ltr:-translate-x-full rtl:translate-x-full lg:rtl:translate-x-0'}
     `}>
-      <div className="p-6 flex justify-between items-center">
+      <div className="p-6 flex justify-between items-center border-b border-gray-200 dark:border-gray-800">
         <Link to="/dashboard" className="flex items-center gap-2" onClick={handleLinkClick}>
           <div className="relative w-10 h-10 rounded-lg bg-gradient-to-tr from-orange-500 to-pink-500 flex items-center justify-center text-white font-bold shadow-lg overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-orange-400 to-pink-500 opacity-90"></div>
@@ -41,12 +41,16 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           </div>
           <div className="flex flex-col">
             <span className="text-lg font-bold bg-gradient-to-r from-orange-600 to-pink-600 bg-clip-text text-transparent leading-tight">
-              {t('common.systemName')}
+              {t('common.systemName') || 'إبراهيم'}
             </span>
             <span className="text-xs text-gray-500 dark:text-gray-400 hidden lg:block">نظام محاسبة متكامل</span>
           </div>
         </Link>
-        <button onClick={() => setIsOpen(false)} className="lg:hidden text-gray-500 hover:text-gray-700">
+        <button 
+          onClick={() => setIsOpen(false)} 
+          className="lg:hidden text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          aria-label="إغلاق القائمة"
+        >
           <X className="h-6 w-6" />
         </button>
       </div>

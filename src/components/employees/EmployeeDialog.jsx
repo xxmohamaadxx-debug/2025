@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { CURRENCIES, EMPLOYEE_STATUS } from '@/lib/constants';
+import { formatDateForInput, getCurrentDateInput } from '@/lib/dateUtils';
 
 const EmployeeDialog = ({ open, onOpenChange, employee, onSave }) => {
   const { t } = useLanguage();
@@ -13,7 +14,7 @@ const EmployeeDialog = ({ open, onOpenChange, employee, onSave }) => {
     salary: '',
     currency: 'TRY',
     status: 'Active',
-    hireDate: new Date().toISOString().split('T')[0],
+    hireDate: getCurrentDateInput(),
   });
 
   useEffect(() => {
@@ -24,7 +25,7 @@ const EmployeeDialog = ({ open, onOpenChange, employee, onSave }) => {
         salary: employee.salary || '',
         currency: employee.currency || 'TRY',
         status: employee.status || 'Active',
-        hireDate: employee.hireDate || new Date().toISOString().split('T')[0],
+        hireDate: employee.hireDate ? formatDateForInput(employee.hireDate) : getCurrentDateInput(),
       });
     } else {
       setFormData({
@@ -33,7 +34,7 @@ const EmployeeDialog = ({ open, onOpenChange, employee, onSave }) => {
         salary: '',
         currency: 'TRY',
         status: 'Active',
-        hireDate: new Date().toISOString().split('T')[0],
+        hireDate: getCurrentDateInput(),
       });
     }
   }, [employee, open]);

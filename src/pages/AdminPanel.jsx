@@ -8,6 +8,8 @@ import { Loader2, Plus, Store, Calendar, AlertTriangle, Phone, MessageCircle } f
 import { toast } from '@/components/ui/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { SUBSCRIPTION_PLANS, CONTACT_INFO, ROLES } from '@/lib/constants';
+import Logo from '@/components/Logo';
+import { formatDateAR } from '@/lib/dateUtils';
 
 const AdminPanel = () => {
   const { user } = useAuth();
@@ -22,7 +24,8 @@ const AdminPanel = () => {
     ownerName: '',
     email: '',
     password: '',
-    plan: 'monthly'
+    plan: 'trial', // Default to trial
+    isTrial: true
   });
 
   useEffect(() => {
@@ -75,21 +78,31 @@ const AdminPanel = () => {
       });
 
       // 2. إنشاء المتجر (Tenant)
-      const planMap = {
-        'monthly': SUBSCRIPTION_PLANS.MONTHLY,
-        '6months': SUBSCRIPTION_PLANS.SIX_MONTHS,
-        'yearly': SUBSCRIPTION_PLANS.YEARLY
-      };
-      const plan = planMap[formData.plan] || SUBSCRIPTION_PLANS.MONTHLY;
-      const expiryDate = new Date();
-      expiryDate.setDate(expiryDate.getDate() + plan.durationDays);
+      let expiryDate = new Date();
+      let subscriptionPlan = formData.plan;
+      let subscriptionStatus = 'active';
+      
+      if (formData.isTrial || formData.plan === 'trial') {
+        // حساب تجريبي 15 يوم
+        expiryDate.setDate(expiryDate.getDate() + 15);
+        subscriptionPlan = 'trial';
+        subscriptionStatus = 'trial';
+      } else {
+        const planMap = {
+          'monthly': SUBSCRIPTION_PLANS.MONTHLY,
+          '6months': SUBSCRIPTION_PLANS.SIX_MONTHS,
+          'yearly': SUBSCRIPTION_PLANS.YEARLY
+        };
+        const plan = planMap[formData.plan] || SUBSCRIPTION_PLANS.MONTHLY;
+        expiryDate.setDate(expiryDate.getDate() + plan.durationDays);
+      }
 
       const newTenant = await neonService.createTenant(formData.storeName, newUser.id);
       
       // 3. تحديث Tenant ببيانات الاشتراك
       await neonService.updateTenant(newTenant.id, {
-        subscription_plan: formData.plan,
-        subscription_status: 'active',
+        subscription_plan: subscriptionPlan,
+        subscription_status: subscriptionStatus,
         subscription_expires_at: expiryDate.toISOString()
       });
 
@@ -110,7 +123,8 @@ const AdminPanel = () => {
         ownerName: '',
         email: '',
         password: '',
-        plan: 'monthly'
+        plan: 'trial',
+        isTrial: true
       });
       
       setDialogOpen(false);
@@ -155,9 +169,14 @@ const AdminPanel = () => {
       <Helmet><title>{t('adminPanel.title')} - {t('common.systemName')}</title></Helmet>
       
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
+        <div className="flex items-center gap-3">
+          <div className="hidden md:block">
+            <Logo size="md" showText={true} />
+          </div>
+          <div>
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">{t('adminPanel.title')}</h1>
             <p className="text-gray-500 dark:text-gray-400 mt-1">{t('adminPanel.subtitle')}</p>
+          </div>
         </div>
         <Button onClick={() => setDialogOpen(true)} className="bg-purple-600 hover:bg-purple-700 text-white">
           <Plus className="ml-2 rtl:mr-2 rtl:ml-0 h-4 w-4" /> {t('adminPanel.createNewStore')}
@@ -227,7 +246,7 @@ const AdminPanel = () => {
                                    store.subscription_plan || '-'}
                                 </td>
                                 <td className="p-4 text-sm text-gray-700 dark:text-gray-300">
-                                    {store.subscription_expires_at ? new Date(store.subscription_expires_at).toLocaleDateString('ar-SA') : '-'}
+                                    {store.subscription_expires_at ? formatDateAR(store.subscription_expires_at) : '-'}
                                 </td>
                                 <td className="p-4">
                                     <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
@@ -330,12 +349,17 @@ const AdminPanel = () => {
                     <label className="block text-sm font-medium mb-1 rtl:text-right">خطة الاشتراك</label>
                     <select
                         value={formData.plan}
-                        onChange={(e) => setFormData({ ...formData, plan: e.target.value })}
+                        onChange={(e) => setFormData({ 
+                          ...formData, 
+                          plan: e.target.value,
+                          isTrial: e.target.value === 'trial'
+                        })}
                         className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
                     >
-                        <option value="monthly">شهري (30 يوم)</option>
-                        <option value="6months">6 أشهر (180 يوم)</option>
-                        <option value="yearly">سنوي (365 يوم)</option>
+                        <option value="trial">حساب تجريبي (15 يوم) - مجاني</option>
+                        <option value="monthly">شهري (30 يوم) - $5</option>
+                        <option value="6months">6 أشهر (180 يوم) - $30</option>
+                        <option value="yearly">سنوي (365 يوم) - $40</option>
                     </select>
                 </div>
 

@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Bell, Search, User, Menu, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
+import Logo from '@/components/Logo';
 
 const TopNav = ({ onMenuClick }) => {
   const { user } = useAuth();
@@ -16,9 +17,15 @@ const TopNav = ({ onMenuClick }) => {
         <button 
           onClick={onMenuClick}
           className="lg:hidden p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+          aria-label="قائمة التنقل"
         >
           <Menu className="h-6 w-6" />
         </button>
+        
+        {/* Logo visible on mobile and desktop */}
+        <div className="lg:hidden">
+          <Logo size="sm" showText={false} />
+        </div>
         
         <div className="relative w-full max-w-md hidden md:block">
           <Search className="absolute left-3 rtl:right-3 rtl:left-auto top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />

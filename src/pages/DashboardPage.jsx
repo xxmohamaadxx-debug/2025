@@ -8,6 +8,8 @@ import { TrendingUp, TrendingDown, Wallet, Users, AlertTriangle, Activity } from
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, ArcElement } from 'chart.js';
 import { Line } from 'react-chartjs-2';
 import { motion } from 'framer-motion';
+import { formatDateAR } from '@/lib/dateUtils';
+import Logo from '@/components/Logo';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, ArcElement);
 
@@ -123,12 +125,17 @@ const DashboardPage = () => {
       <Helmet><title>{t('common.dashboard')} - Ibrahim System</title></Helmet>
 
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('dashboard.welcome')} {user?.name} 👋</h1>
-          <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">{t('dashboard.subtitle')}</p>
+        <div className="flex items-center gap-3">
+          <div className="hidden md:block">
+            <Logo size="md" showText={true} />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('dashboard.welcome')} {user?.name} 👋</h1>
+            <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">{t('dashboard.subtitle')}</p>
+          </div>
         </div>
-        <div className="text-sm text-gray-500 bg-white dark:bg-gray-800 px-4 py-2 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700">
-          {new Date().toLocaleDateString(locale, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+        <div className="text-sm text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 px-4 py-2 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700">
+          {formatDateAR(new Date(), { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
         </div>
       </div>
 

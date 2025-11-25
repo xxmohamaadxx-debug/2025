@@ -10,7 +10,7 @@ const InventoryTable = ({ items, onEdit, onDelete }) => {
   if (items.length === 0) {
     return (
       <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-        No inventory items found. Add your first product!
+        {t('inventory.noItems') || 'لا توجد منتجات في المخزون. أضف منتجك الأول!'}
       </div>
     );
   }
@@ -20,11 +20,11 @@ const InventoryTable = ({ items, onEdit, onDelete }) => {
       <table className="w-full">
         <thead className="bg-gray-50 dark:bg-gray-700/50">
           <tr>
-            <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600 dark:text-gray-300">SKU</th>
-            <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600 dark:text-gray-300">Name</th>
-            <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600 dark:text-gray-300">Price</th>
-            <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600 dark:text-gray-300">Min Stock</th>
-            <th className="text-right py-3 px-4 text-sm font-semibold text-gray-600 dark:text-gray-300">Actions</th>
+            <th className="text-right rtl:text-right ltr:text-left py-3 px-4 text-sm font-semibold text-gray-600 dark:text-gray-300">{t('inventory.sku') || 'الرمز'}</th>
+            <th className="text-right rtl:text-right ltr:text-left py-3 px-4 text-sm font-semibold text-gray-600 dark:text-gray-300">{t('inventory.productName') || 'اسم المنتج'}</th>
+            <th className="text-right rtl:text-right ltr:text-left py-3 px-4 text-sm font-semibold text-gray-600 dark:text-gray-300">{t('common.price') || 'السعر'}</th>
+            <th className="text-right rtl:text-right ltr:text-left py-3 px-4 text-sm font-semibold text-gray-600 dark:text-gray-300">{t('inventory.minStock') || 'الحد الأدنى'}</th>
+            <th className="text-right py-3 px-4 text-sm font-semibold text-gray-600 dark:text-gray-300">{t('common.actions') || 'الإجراءات'}</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-200 dark:divide-gray-700">

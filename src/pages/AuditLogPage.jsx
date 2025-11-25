@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { neonService } from '@/lib/neonService';
 import { Loader2 } from 'lucide-react';
+import { formatDateAR } from '@/lib/dateUtils';
 
 const AuditLogPage = () => {
   const { user } = useAuth();
@@ -59,7 +60,7 @@ const AuditLogPage = () => {
                               <div className="text-sm text-gray-500">{typeof log.details === 'object' ? JSON.stringify(log.details) : log.details}</div>
                           </div>
                           <div className="text-sm text-gray-400">
-                              {new Date(log.created_at).toLocaleString('ar-SA')}
+                              {formatDateAR(log.created_at, { hour: '2-digit', minute: '2-digit' })}
                           </div>
                       </div>
                   ))}

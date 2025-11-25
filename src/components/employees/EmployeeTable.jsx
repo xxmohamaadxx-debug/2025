@@ -9,8 +9,8 @@ const EmployeeTable = ({ employees, onEdit, onDelete }) => {
 
   if (employees.length === 0) {
     return (
-      <div className="text-center py-12 text-gray-500">
-        No employees found.
+      <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+        {t('employees.noEmployees') || 'لا يوجد موظفون'}
       </div>
     );
   }
@@ -20,11 +20,11 @@ const EmployeeTable = ({ employees, onEdit, onDelete }) => {
       <table className="w-full">
         <thead className="bg-gray-50 dark:bg-gray-700/50">
           <tr>
-            <th className="text-left py-3 px-4 text-sm font-semibold">Name</th>
-            <th className="text-left py-3 px-4 text-sm font-semibold">Position</th>
-            <th className="text-left py-3 px-4 text-sm font-semibold">Salary</th>
-            <th className="text-left py-3 px-4 text-sm font-semibold">Status</th>
-            <th className="text-right py-3 px-4 text-sm font-semibold">Actions</th>
+            <th className="text-right rtl:text-right ltr:text-left py-3 px-4 text-sm font-semibold text-gray-600 dark:text-gray-300">{t('employees.fullName') || 'الاسم'}</th>
+            <th className="text-right rtl:text-right ltr:text-left py-3 px-4 text-sm font-semibold text-gray-600 dark:text-gray-300">{t('employees.position') || 'المنصب'}</th>
+            <th className="text-right rtl:text-right ltr:text-left py-3 px-4 text-sm font-semibold text-gray-600 dark:text-gray-300">{t('employees.salary') || 'الراتب'}</th>
+            <th className="text-right rtl:text-right ltr:text-left py-3 px-4 text-sm font-semibold text-gray-600 dark:text-gray-300">{t('common.status') || 'الحالة'}</th>
+            <th className="text-right py-3 px-4 text-sm font-semibold text-gray-600 dark:text-gray-300">{t('common.actions') || 'الإجراءات'}</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -42,9 +42,9 @@ const EmployeeTable = ({ employees, onEdit, onDelete }) => {
               </td>
               <td className="py-3 px-4 text-sm">
                 <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                    emp.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                    emp.status === 'Active' ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400' : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400'
                 }`}>
-                    {emp.status}
+                    {emp.status === 'Active' ? (t('status.active') || 'نشط') : (t('status.inactive') || 'غير نشط')}
                 </span>
               </td>
               <td className="py-3 px-4 text-right">

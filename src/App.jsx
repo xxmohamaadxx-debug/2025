@@ -7,6 +7,7 @@ import AuthLayout from '@/layouts/AuthLayout';
 import MainLayout from '@/layouts/MainLayout';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
+import { useLocation } from 'react-router-dom';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { LanguageProvider } from '@/contexts/LanguageContext';
 import SubscriptionWarning from '@/components/SubscriptionWarning';
@@ -39,9 +40,19 @@ const LoadingSpinner = () => (
 );
 
 function PrivateRoute({ children, roles = [] }) {
-  const { user, loading } = useAuth();
+  const { user, tenant, loading } = useAuth();
+  const location = useLocation();
+  
   if (loading) return <LoadingSpinner />;
   if (!user) return <Navigate to="/login" replace />;
+  
+  // حماية من الوصول عند انتهاء الاشتراك (ماعدا المدير والصفحات المسموحة)
+  const allowedPathsWhenExpired = ['/subscription', '/settings'];
+  const isPathAllowed = allowedPathsWhenExpired.some(path => location.pathname.startsWith(path));
+  
+  if (!user.isSuperAdmin && tenant?.isExpired && !isPathAllowed) {
+    return <Navigate to="/subscription" replace />;
+  }
   
   if (roles.length > 0) {
       const hasRole = roles.includes('ANY') || 

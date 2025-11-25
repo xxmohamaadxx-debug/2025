@@ -3,6 +3,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Edit, Trash2 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { formatDateShort } from '@/lib/dateUtils';
 
 const InvoiceTable = ({ invoices, onEdit, onDelete }) => {
   const { t } = useLanguage();
@@ -47,7 +48,7 @@ const InvoiceTable = ({ invoices, onEdit, onDelete }) => {
               className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
             >
               <td className="py-3 px-4 text-sm text-gray-800 dark:text-gray-100">
-                {new Date(invoice.date).toLocaleDateString()}
+                {invoice.date ? formatDateShort(invoice.date) : '-'}
               </td>
               <td className="py-3 px-4 text-sm text-gray-800 dark:text-gray-100">
                 {invoice.description}

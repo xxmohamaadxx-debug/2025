@@ -7,6 +7,9 @@ import { Button } from '@/components/ui/button';
 import { CheckCircle, MessageCircle } from 'lucide-react';
 import { SUBSCRIPTION_PLANS, CONTACT_INFO } from '@/lib/constants';
 import { motion } from 'framer-motion';
+import Logo from '@/components/Logo';
+import { formatDateAR } from '@/lib/dateUtils';
+import { formatDateAR } from '@/lib/dateUtils';
 
 const SubscriptionPage = () => {
   const { tenant, user } = useAuth();
@@ -32,8 +35,11 @@ const SubscriptionPage = () => {
         animate={{ opacity: 1, y: 0 }}
         className="text-center max-w-2xl mx-auto"
       >
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">{t('subscription.title')}</h1>
-        <p className="text-gray-500">{t('subscription.subtitle')}</p>
+        <div className="flex justify-center mb-4">
+          <Logo size="lg" showText={true} />
+        </div>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">الاشتراكات</h1>
+        <p className="text-gray-500 dark:text-gray-400">اختر الخطة المناسبة لمتجرك</p>
       </motion.div>
 
       {tenant && (
@@ -41,13 +47,14 @@ const SubscriptionPage = () => {
             <div>
                 <h3 className="text-lg font-semibold opacity-90">{t('subscription.currentPlan')}</h3>
                 <p className="text-2xl font-bold">
-                  {tenant.subscription_plan === 'monthly' ? t('subscription.monthly') :
+                  {tenant.subscription_plan === 'trial' ? 'حساب تجريبي (15 يوم)' :
+                   tenant.subscription_plan === 'monthly' ? t('subscription.monthly') :
                    tenant.subscription_plan === '6months' ? t('subscription.sixMonths') :
                    tenant.subscription_plan === 'yearly' ? t('subscription.yearly') :
                    tenant.subscription_plan || t('subscription.monthly')}
                 </p>
                 <p className="text-sm opacity-80 mt-1">
-                    {t('common.status')}: {tenant.subscription_status === 'active' ? t('status.active') : t('status.expired')} • {t('adminPanel.expiresAt')}: {tenant.subscription_expires_at ? new Date(tenant.subscription_expires_at).toLocaleDateString('ar-SA') : '-'}
+                    {t('common.status')}: {tenant.subscription_status === 'active' || tenant.subscription_status === 'trial' ? t('status.active') : t('status.expired')} • {t('adminPanel.expiresAt')}: {tenant.subscription_expires_at ? formatDateAR(tenant.subscription_expires_at) : '-'}
                 </p>
             </div>
             <div className="mt-4 md:mt-0">

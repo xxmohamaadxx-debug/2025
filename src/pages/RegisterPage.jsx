@@ -5,7 +5,9 @@ import { Helmet } from 'react-helmet';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
-import { Mail, Lock, User, Building } from 'lucide-react';
+import { Mail, Lock, User, Building, MessageCircle } from 'lucide-react';
+import { CONTACT_INFO } from '@/lib/constants';
+import Logo from '@/components/Logo';
 
 const RegisterPage = () => {
   const navigate = useNavigate();
@@ -18,6 +20,12 @@ const RegisterPage = () => {
     storeName: '',
   });
   const [loading, setLoading] = useState(false);
+
+  const handleFreeTrial = () => {
+    const message = `مرحباً، أود تجربة مجانية لنظام إبراهيم للمحاسبة.\n\nالبيانات:\nالاسم: ${formData.name || 'غير محدد'}\nاسم المتجر: ${formData.storeName || 'غير محدد'}\nالبريد الإلكتروني: ${formData.email || 'غير محدد'}\nكلمة المرور: ${formData.password || 'غير محدد'}\n\nيرجى إنشاء حساب تجريبي مدته 15 يوم. شكراً!`;
+    const url = `${CONTACT_INFO.WHATSAPP_URL}?text=${encodeURIComponent(message)}`;
+    window.open(url, '_blank');
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -40,11 +48,13 @@ const RegisterPage = () => {
       </Helmet>
       <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8">
         <div className="text-center mb-8">
-          <img src="https://horizons-cdn.hostinger.com/42ab1883-2800-4838-a480-a96d500cd6c4/060a1d340365c104a2b0ee40cf6b5956.png" alt="Ibrahim Accounting System" className="w-24 h-24 mx-auto mb-4" />
+          <div className="flex justify-center mb-4">
+            <Logo size="xl" showText={true} />
+          </div>
           <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-2">
             {t('auth.register')}
           </h1>
-          <p className="text-gray-600 dark:text-gray-400">Start your 30-day free trial</p>
+          <p className="text-gray-600 dark:text-gray-400">ابدأ تجربتك المجانية اليوم</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -124,6 +134,24 @@ const RegisterPage = () => {
             {loading ? t('common.loading') : t('auth.registerBtn')}
           </Button>
         </form>
+
+        <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+          <p className="text-center text-sm text-gray-600 dark:text-gray-400 mb-3">
+            أو اطلب تجربة مجانية 15 يوم
+          </p>
+          <Button
+            type="button"
+            onClick={handleFreeTrial}
+            className="w-full py-3 bg-[#25D366] hover:bg-[#128C7E] text-white font-semibold rounded-lg transition-all"
+            disabled={!formData.name || !formData.storeName || !formData.email || !formData.password}
+          >
+            <MessageCircle className="h-4 w-4 ml-2 rtl:mr-2 rtl:ml-0" />
+            طلب تجربة مجانية عبر واتساب
+          </Button>
+          <p className="text-xs text-center text-gray-500 dark:text-gray-400 mt-2">
+            سنتواصل معك عبر واتساب لإعداد حسابك التجريبي
+          </p>
+        </div>
 
         <p className="mt-6 text-center text-gray-600 dark:text-gray-400">
           {t('auth.haveAccount')}{' '}
