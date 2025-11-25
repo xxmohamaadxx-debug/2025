@@ -377,6 +377,98 @@ export const neonService = {
     }
   },
 
+  deleteTenant: async (tenantId) => {
+    try {
+      // حذف جميع البيانات المرتبطة بالمتجر
+      // الحذف التلقائي بسبب ON DELETE CASCADE في قاعدة البيانات
+      await sql`DELETE FROM tenants WHERE id = ${tenantId}`;
+      
+      // حذف جميع المستخدمين المرتبطين بالمتجر
+      await sql`DELETE FROM users WHERE tenant_id = ${tenantId}`;
+      
+      return true;
+    } catch (error) {
+      console.error('deleteTenant error:', error);
+      throw error;
+    }
+  },
+
+  // Super Admin Management
+  getAllSuperAdmins: async () => {
+    try {
+      // البحث عن Super Admins (بما في ذلك admin@ibrahim.com)
+      const result = await sql`
+        SELECT id, email, name, role, is_active, created_at
+        FROM users
+        WHERE role = 'SUPER_ADMIN' OR email = 'admin@ibrahim.com'
+        ORDER BY created_at DESC
+      `;
+      return result || [];
+    } catch (error) {
+      console.error('getAllSuperAdmins error:', error);
+      return [];
+    }
+  },
+
+  createSuperAdmin: async (adminData) => {
+    try {
+      const passwordHash = await hashPassword(adminData.password);
+      const result = await sql`
+        INSERT INTO users (
+          email, password_hash, name, role,
+          can_delete_data, can_edit_data, can_create_users, is_active
+        )
+        VALUES (
+          ${adminData.email}, ${passwordHash}, ${adminData.name}, 'SUPER_ADMIN',
+          true, true, true, true
+        )
+        RETURNING id, email, name, role, is_active, created_at
+      `;
+      return result[0];
+    } catch (error) {
+      console.error('createSuperAdmin error:', error);
+      throw error;
+    }
+  },
+
+  deleteSuperAdmin: async (adminId) => {
+    try {
+      // التأكد من عدم حذف آخر Super Admin
+      const admins = await sql`
+        SELECT COUNT(*) as count 
+        FROM users 
+        WHERE (role = 'SUPER_ADMIN' OR email = 'admin@ibrahim.com') AND is_active = true
+      `;
+      if (parseInt(admins[0]?.count || 0) <= 1) {
+        throw new Error('لا يمكن حذف آخر مدير في النظام');
+      }
+      
+      await sql`
+        DELETE FROM users 
+        WHERE id = ${adminId} AND (role = 'SUPER_ADMIN' OR email = 'admin@ibrahim.com')
+      `;
+      return true;
+    } catch (error) {
+      console.error('deleteSuperAdmin error:', error);
+      throw error;
+    }
+  },
+
+  updateSuperAdminPassword: async (adminId, newPassword) => {
+    try {
+      const passwordHash = await hashPassword(newPassword);
+      await sql`
+        UPDATE users 
+        SET password_hash = ${passwordHash}, updated_at = NOW()
+        WHERE id = ${adminId} AND role = 'SUPER_ADMIN'
+      `;
+      return true;
+    } catch (error) {
+      console.error('updateSuperAdminPassword error:', error);
+      throw error;
+    }
+  },
+
   // Logs
   getAuditLogs: (tenantId) => getByTenant('audit_logs', tenantId),
   log: auditLog,

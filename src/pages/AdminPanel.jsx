@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { neonService } from '@/lib/neonService';
 import { Button } from '@/components/ui/button';
-import { Loader2, Plus, Store, Calendar, AlertTriangle, Phone, MessageCircle } from 'lucide-react';
+import { Loader2, Plus, Store, Calendar, AlertTriangle, Phone, MessageCircle, Trash2 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { SUBSCRIPTION_PLANS, CONTACT_INFO, ROLES } from '@/lib/constants';
@@ -160,6 +160,36 @@ const AdminPanel = () => {
     }
   };
 
+  const handleDeleteStore = async (storeId, storeName) => {
+    if (!window.confirm(`⚠️ تحذير: هل أنت متأكد من حذف المتجر "${storeName}"؟\n\nسيتم حذف:\n- جميع بيانات المتجر\n- جميع المستخدمين المرتبطين\n- جميع الفواتير والمخزون والموظفين\n\nهذا الإجراء لا يمكن التراجع عنه!`)) {
+      return;
+    }
+
+    // تأكيد إضافي
+    const confirmText = prompt(`للتأكيد، يرجى كتابة اسم المتجر بالكامل:\n"${storeName}"`);
+    if (confirmText !== storeName) {
+      toast({ title: 'لم يتم التأكيد. تم إلغاء العملية.', variant: 'destructive' });
+      return;
+    }
+
+    try {
+      await neonService.deleteTenant(storeId);
+      toast({ 
+        title: 'تم حذف المتجر بنجاح', 
+        description: `تم حذف "${storeName}" وجميع بياناته`,
+        variant: 'default'
+      });
+      fetchStores();
+    } catch (error) {
+      console.error('Delete store error:', error);
+      toast({ 
+        title: 'خطأ في حذف المتجر', 
+        description: error.message || 'حدث خطأ أثناء حذف المتجر',
+        variant: 'destructive' 
+      });
+    }
+  };
+
   if (!user?.isSuperAdmin) {
     return <div className="p-8 text-center text-red-500">{t('adminPanel.errors.accessDenied')}</div>;
   }
@@ -258,7 +288,7 @@ const AdminPanel = () => {
                                     </span>
                                 </td>
                                 <td className="p-4">
-                                    <div className="flex gap-2">
+                                    <div className="flex gap-2 flex-wrap">
                                         <Button 
                                             size="sm" 
                                             variant="outline" 
@@ -277,6 +307,14 @@ const AdminPanel = () => {
                                             }}
                                         >
                                             <MessageCircle className="h-3 w-3" />
+                                        </Button>
+                                        <Button 
+                                            size="sm" 
+                                            variant="outline"
+                                            className="text-red-600 border-red-200 hover:bg-red-50 dark:text-red-400 dark:border-red-800 dark:hover:bg-red-900/20"
+                                            onClick={() => handleDeleteStore(store.id, store.name)}
+                                        >
+                                            <Trash2 className="h-3 w-3" />
                                         </Button>
                                     </div>
                                 </td>
