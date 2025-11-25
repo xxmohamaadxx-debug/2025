@@ -291,7 +291,14 @@ export const neonService = {
   getInvoicesIn: async (tenantId) => {
     if (!tenantId) return [];
     try {
-      return await getByTenant('invoices_in', tenantId);
+      const result = await sql`
+        SELECT i.*, p.name as partner_name, p.type as partner_type
+        FROM invoices_in i
+        LEFT JOIN partners p ON i.partner_id = p.id
+        WHERE i.tenant_id = ${tenantId}
+        ORDER BY i.date DESC, i.created_at DESC
+      `;
+      return result || [];
     } catch (error) {
       console.error('getInvoicesIn error:', error);
       return [];
@@ -304,7 +311,14 @@ export const neonService = {
   getInvoicesOut: async (tenantId) => {
     if (!tenantId) return [];
     try {
-      return await getByTenant('invoices_out', tenantId);
+      const result = await sql`
+        SELECT o.*, p.name as partner_name, p.type as partner_type
+        FROM invoices_out o
+        LEFT JOIN partners p ON o.partner_id = p.id
+        WHERE o.tenant_id = ${tenantId}
+        ORDER BY o.date DESC, o.created_at DESC
+      `;
+      return result || [];
     } catch (error) {
       console.error('getInvoicesOut error:', error);
       return [];

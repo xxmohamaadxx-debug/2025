@@ -7,7 +7,8 @@ import { useLanguage } from '@/contexts/LanguageContext';
 const InventoryDialog = ({ open, onOpenChange, item, onSave }) => {
   const { t } = useLanguage();
   const [formData, setFormData] = useState({
-    sku: '',
+    sku: '', // كود المنتج
+    code: '', // كود إضافي
     name: '',
     unit: 'piece',
     price: '',
@@ -20,6 +21,7 @@ const InventoryDialog = ({ open, onOpenChange, item, onSave }) => {
     if (item) {
       setFormData({
         sku: item.sku || '',
+        code: item.code || item.sku || '', // استخدام code أو sku
         name: item.name || '',
         unit: item.unit || 'piece',
         price: item.price || '',
@@ -30,6 +32,7 @@ const InventoryDialog = ({ open, onOpenChange, item, onSave }) => {
     } else {
       setFormData({
         sku: '',
+        code: '',
         name: '',
         unit: 'piece',
         price: '',
@@ -54,27 +57,29 @@ const InventoryDialog = ({ open, onOpenChange, item, onSave }) => {
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-1 rtl:text-right">{t('inventory.sku')}</label>
-            <input
-              type="text"
-              required
-              value={formData.sku}
-              onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
-              placeholder={t('inventory.skuPlaceholder')}
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1 rtl:text-right">{t('inventory.productName')}</label>
-            <input
-              type="text"
-              required
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
-              placeholder={t('inventory.productName')}
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1 rtl:text-right">{t('inventory.sku')} / كود المنتج</label>
+              <input
+                type="text"
+                required
+                value={formData.code || formData.sku}
+                onChange={(e) => setFormData({ ...formData, code: e.target.value, sku: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
+                placeholder={t('inventory.skuPlaceholder')}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1 rtl:text-right">{t('inventory.productName')}</label>
+              <input
+                type="text"
+                required
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
+                placeholder={t('inventory.productName')}
+              />
+            </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
