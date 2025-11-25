@@ -411,22 +411,6 @@ export const translations = {
       deleteError: "فشل حذف المنتج",
       loadError: "فشل تحميل المخزون"
     },
-    subscription: {
-      title: "الاشتراكات",
-      currentPlan: "خطتك الحالية",
-      monthly: "شهري",
-      sixMonths: "ستة أشهر",
-      yearly: "سنوي",
-      perMonth: "شهر",
-      fullAccess: "وصول كامل لمدة {days} يوم",
-      unlimitedInvoices: "واردات وصادرات غير محدودة",
-      inventoryManagement: "إدارة المخزون الكاملة",
-      multiUserAccess: "وصول متعدد المستخدمين",
-      prioritySupport: "دعم ذو أولوية",
-      upgradeViaWhatsApp: "الترقية عبر واتساب",
-      instantActivation: "تفعيل فوري",
-      bestValue: "الأفضل"
-    },
     users: {
       user: "مستخدم",
       addUser: "إضافة مستخدم",
