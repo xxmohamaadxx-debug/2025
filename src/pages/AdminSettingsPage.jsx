@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { Phone, MessageCircle, Mail, Lock, Save, UserPlus, Trash2, Shield } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import Logo from '@/components/Logo';
 
 const AdminSettingsPage = () => {
   const { user } = useAuth();
@@ -196,9 +195,6 @@ const AdminSettingsPage = () => {
       </Helmet>
 
       <div className="flex items-center gap-3 mb-6">
-        <div className="hidden md:block">
-          <Logo size="lg" showText={false} />
-        </div>
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">إعدادات المدير</h1>
           <p className="text-gray-500 dark:text-gray-400 mt-1">إدارة إعدادات النظام العامة</p>

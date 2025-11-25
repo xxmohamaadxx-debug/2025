@@ -9,7 +9,6 @@ import { toast } from '@/components/ui/use-toast';
 import { storage } from '@/lib/storage';
 import UserDialog from '@/components/users/UserDialog';
 import UserTable from '@/components/users/UserTable';
-import Logo from '@/components/Logo';
 
 const UsersPage = () => {
   const { user } = useAuth();
@@ -66,9 +65,6 @@ const UsersPage = () => {
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <div className="hidden md:block">
-              <Logo size="lg" showText={false} />
-            </div>
             <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100">
               {t('nav.users')}
             </h1>

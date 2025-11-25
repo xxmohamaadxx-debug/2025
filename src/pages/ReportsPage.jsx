@@ -6,7 +6,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { neonService } from '@/lib/neonService';
 import { Bar } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
-import Logo from '@/components/Logo';
 import { Button } from '@/components/ui/button';
 import { Download, FileText, FileSpreadsheet, Filter, Calendar } from 'lucide-react';
 import { exportToPDF, exportToExcel, generateReport, getPeriodDates } from '@/lib/exportUtils';
@@ -173,9 +172,6 @@ const ReportsPage = () => {
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div className="flex items-center gap-3">
-            <div className="hidden md:block">
-              <Logo size="lg" showText={true} />
-            </div>
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-gray-100">
               {t('common.reports')}
             </h1>

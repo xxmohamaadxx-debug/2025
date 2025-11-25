@@ -37,7 +37,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     `}>
       <div className="p-4 md:p-6 flex justify-between items-center border-b border-gray-200 dark:border-gray-800">
         <Link to="/dashboard" className="flex items-center gap-2" onClick={handleLinkClick}>
-          <Logo size="lg" showText={true} className="flex-shrink-0" />
+          <Logo size="md" showText={true} className="flex-shrink-0" />
         </Link>
         <button 
           onClick={() => setIsOpen(false)} 

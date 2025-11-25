@@ -3,10 +3,10 @@ import { Link } from 'react-router-dom';
 
 const Logo = ({ size = 'md', showText = true, className = '' }) => {
   const sizeClasses = {
-    sm: 'w-12 h-12',
-    md: 'w-16 h-16',
-    lg: 'w-20 h-20',
-    xl: 'w-24 h-24'
+    sm: 'w-8 h-8',
+    md: 'w-10 h-10',
+    lg: 'w-12 h-12',
+    xl: 'w-16 h-16'
   };
 
   const textSizes = {
@@ -22,7 +22,7 @@ const Logo = ({ size = 'md', showText = true, className = '' }) => {
         src="/logo.png" 
         alt="نظام إبراهيم للمحاسبة" 
         className={`${sizeClasses[size]} object-contain flex-shrink-0`}
-        style={{ maxWidth: 'none', width: '100%', height: '100%', objectFit: 'contain' }}
+        style={{ maxWidth: '100%', height: 'auto', objectFit: 'contain' }}
         onError={(e) => {
           // Fallback to SVG logo if PNG not found
           e.target.style.display = 'none';

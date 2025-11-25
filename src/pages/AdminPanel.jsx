@@ -8,7 +8,6 @@ import { Loader2, Plus, Store, Calendar, AlertTriangle, Phone, MessageCircle, Tr
 import { toast } from '@/components/ui/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { SUBSCRIPTION_PLANS, CONTACT_INFO, ROLES } from '@/lib/constants';
-import Logo from '@/components/Logo';
 import { formatDateAR } from '@/lib/dateUtils';
 
 const AdminPanel = () => {
@@ -200,9 +199,6 @@ const AdminPanel = () => {
       
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div className="flex items-center gap-3">
-          <div className="hidden md:block">
-            <Logo size="lg" showText={true} />
-          </div>
           <div>
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">{t('adminPanel.title')}</h1>
             <p className="text-gray-500 dark:text-gray-400 mt-1">{t('adminPanel.subtitle')}</p>

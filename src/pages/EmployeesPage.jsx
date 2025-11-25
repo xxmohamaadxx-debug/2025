@@ -9,7 +9,6 @@ import { Plus, Loader2, Trash2, Edit2 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import EmployeeDialog from '@/components/employees/EmployeeDialog';
 import EmployeeTable from '@/components/employees/EmployeeTable';
-import Logo from '@/components/Logo';
 
 const EmployeesPage = () => {
   const { user } = useAuth();
@@ -72,9 +71,6 @@ const EmployeesPage = () => {
       <Helmet><title>{t('common.employees')}</title></Helmet>
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex items-center gap-3">
-          <div className="hidden md:block">
-            <Logo size="lg" showText={false} />
-          </div>
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">{t('common.employees')}</h1>
         </div>
         <Button onClick={() => { setSelected(null); setDialogOpen(true); }} className="bg-gradient-to-r from-orange-500 to-pink-500 text-white w-full sm:w-auto">

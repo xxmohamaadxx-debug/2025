@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { CheckCircle, MessageCircle } from 'lucide-react';
 import { SUBSCRIPTION_PLANS, CONTACT_INFO } from '@/lib/constants';
 import { motion } from 'framer-motion';
-import Logo from '@/components/Logo';
 import { formatDateAR } from '@/lib/dateUtils';
 
 const SubscriptionPage = () => {
@@ -34,9 +33,6 @@ const SubscriptionPage = () => {
         animate={{ opacity: 1, y: 0 }}
         className="text-center max-w-2xl mx-auto"
       >
-        <div className="flex justify-center mb-4">
-          <Logo size="lg" showText={true} />
-        </div>
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">الاشتراكات</h1>
         <p className="text-gray-500 dark:text-gray-400">اختر الخطة المناسبة لمتجرك</p>
       </motion.div>

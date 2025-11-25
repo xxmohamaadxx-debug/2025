@@ -8,7 +8,6 @@ import { Plus, Loader2 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import PayrollDialog from '@/components/payroll/PayrollDialog';
 import PayrollTable from '@/components/payroll/PayrollTable';
-import Logo from '@/components/Logo';
 
 const PayrollPage = () => {
   const { user } = useAuth();
@@ -102,9 +101,6 @@ const PayrollPage = () => {
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <div className="hidden md:block">
-              <Logo size="lg" showText={false} />
-            </div>
             <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100">
               {t('common.payroll')}
             </h1>

@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import { Plus, Search, Filter, Download, Loader2, Edit, Trash2 } from 'lucide-react';
 import InvoiceDialog from '@/components/invoices/InvoiceDialog';
 import { toast } from '@/components/ui/use-toast';
-import Logo from '@/components/Logo';
 import { formatDateAR, formatDateShort } from '@/lib/dateUtils';
 
 const InvoicesOutPage = () => {
@@ -113,9 +112,6 @@ const InvoicesOutPage = () => {
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <div className="hidden md:block">
-              <Logo size="lg" showText={false} />
-            </div>
             <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100">
               {t('common.invoicesOut')}
             </h1>

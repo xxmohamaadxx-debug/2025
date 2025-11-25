@@ -7,7 +7,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Globe, Moon, Sun, User, Shield, Store } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
-import Logo from '@/components/Logo';
 
 const SettingsPage = () => {
   const { t, locale, setLocale } = useLanguage();
@@ -25,9 +24,6 @@ const SettingsPage = () => {
       </Helmet>
 
       <div className="flex items-center gap-3 mb-6">
-        <div className="hidden md:block">
-          <Logo size="lg" showText={false} />
-        </div>
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('common.settings')}</h1>
       </div>
 
@@ -72,13 +68,22 @@ const SettingsPage = () => {
                 {t('settings.theme')}
               </label>
               <button
-                onClick={toggleTheme}
-                className="flex items-center gap-3 px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 w-full transition-all"
+                onClick={(e) => {
+                  e.preventDefault();
+                  toggleTheme();
+                }}
+                className="flex items-center justify-between gap-3 px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 w-full transition-all cursor-pointer"
+                type="button"
               >
-                {isDark ? <Moon className="h-5 w-5 text-blue-400" /> : <Sun className="h-5 w-5 text-orange-500" />}
-                <span className="text-sm font-medium text-gray-900 dark:text-gray-200">
-                  {isDark ? t('settings.darkMode') : t('settings.lightMode')}
-                </span>
+                <div className="flex items-center gap-3">
+                  {isDark ? <Moon className="h-5 w-5 text-blue-400" /> : <Sun className="h-5 w-5 text-orange-500" />}
+                  <span className="text-sm font-medium text-gray-900 dark:text-gray-200">
+                    {isDark ? t('settings.darkMode') : t('settings.lightMode')}
+                  </span>
+                </div>
+                <div className={`relative w-11 h-6 rounded-full transition-colors ${isDark ? 'bg-blue-600' : 'bg-gray-300'}`}>
+                  <div className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-md transform transition-transform ${isDark ? 'translate-x-5' : 'translate-x-0'}`}></div>
+                </div>
               </button>
             </div>
           </div>

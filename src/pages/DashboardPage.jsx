@@ -9,7 +9,6 @@ import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement
 import { Line } from 'react-chartjs-2';
 import { motion } from 'framer-motion';
 import { formatDateAR } from '@/lib/dateUtils';
-import Logo from '@/components/Logo';
 import { CURRENCIES } from '@/lib/constants';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, ArcElement);
@@ -171,9 +170,6 @@ const DashboardPage = () => {
 
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div className="flex items-center gap-3">
-          <div className="hidden md:block">
-            <Logo size="lg" showText={true} />
-          </div>
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
               {t('dashboard.welcome')} {user?.name || 'المستخدم'} 👋

@@ -8,7 +8,6 @@ import { Plus, UserX, UserCheck, Edit, Shield, Loader2 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ROLES } from '@/lib/constants';
-import Logo from '@/components/Logo';
 
 const StoreUsersPage = () => {
   const { user, permissions } = useAuth();
@@ -134,9 +133,6 @@ const StoreUsersPage = () => {
       
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-3">
-          <div className="hidden md:block">
-            <Logo size="lg" showText={false} />
-          </div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">إدارة الفريق</h1>
         </div>
         {permissions.canCreateUsers && (

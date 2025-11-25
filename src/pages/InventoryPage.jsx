@@ -9,7 +9,6 @@ import { Plus, Loader2 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import InventoryDialog from '@/components/inventory/InventoryDialog';
 import InventoryTable from '@/components/inventory/InventoryTable';
-import Logo from '@/components/Logo';
 
 const InventoryPage = () => {
   const { user } = useAuth();
@@ -88,9 +87,6 @@ const InventoryPage = () => {
       <Helmet><title>{t('common.inventory')} - {t('common.systemName')}</title></Helmet>
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex items-center gap-3">
-          <div className="hidden md:block">
-            <Logo size="lg" showText={false} />
-          </div>
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-gray-100">{t('common.inventory')}</h1>
         </div>
         <Button onClick={() => { setSelectedItem(null); setDialogOpen(true); }} className="bg-gradient-to-r from-orange-500 to-pink-500 text-white w-full sm:w-auto">

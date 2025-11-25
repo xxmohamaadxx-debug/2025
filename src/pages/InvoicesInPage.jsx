@@ -9,7 +9,6 @@ import { Plus, Loader2, Edit, Trash2, Search, Filter, Download } from 'lucide-re
 import { toast } from '@/components/ui/use-toast';
 import InvoiceDialog from '@/components/invoices/InvoiceDialog';
 import { formatDateAR, formatDateShort } from '@/lib/dateUtils';
-import Logo from '@/components/Logo';
 
 const InvoicesInPage = () => {
   const { user } = useAuth();
@@ -109,9 +108,6 @@ const InvoicesInPage = () => {
       <Helmet><title>{t('common.invoicesIn')}</title></Helmet>
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex items-center gap-3">
-          <div className="hidden md:block">
-            <Logo size="lg" showText={false} />
-          </div>
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-gray-100">{t('common.invoicesIn')}</h1>
         </div>
         <Button onClick={handleCreate} className="bg-gradient-to-r from-orange-500 to-pink-500 text-white w-full sm:w-auto">
