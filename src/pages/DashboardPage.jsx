@@ -139,7 +139,7 @@ const DashboardPage = () => {
             <Logo size="md" showText={true} />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('dashboard.welcome')} {user?.name} 👋</h1>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">{t('dashboard.welcome')} {user?.name} 👋</h1>
             <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">{t('dashboard.subtitle')}</p>
           </div>
         </div>
