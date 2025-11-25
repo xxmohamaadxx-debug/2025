@@ -9,6 +9,7 @@ import { Plus, Loader2, Edit, Trash2 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import InvoiceDialog from '@/components/invoices/InvoiceDialog';
 import { formatDateAR, formatDateShort } from '@/lib/dateUtils';
+import Logo from '@/components/Logo';
 
 const InvoicesInPage = () => {
   const { user } = useAuth();
@@ -101,7 +102,12 @@ const InvoicesInPage = () => {
     <div className="space-y-6">
       <Helmet><title>{t('common.invoicesIn')}</title></Helmet>
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-gray-100">{t('common.invoicesIn')}</h1>
+        <div className="flex items-center gap-3">
+          <div className="hidden md:block">
+            <Logo size="md" showText={false} />
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-gray-100">{t('common.invoicesIn')}</h1>
+        </div>
         <Button onClick={handleCreate} className="bg-gradient-to-r from-orange-500 to-pink-500 text-white w-full sm:w-auto">
           <Plus className="h-4 w-4 ltr:mr-2 rtl:ml-2" /> {t('common.add')}
         </Button>

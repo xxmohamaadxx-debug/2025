@@ -8,6 +8,7 @@ import { Plus, UserX, UserCheck, Edit, Shield, Loader2 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ROLES } from '@/lib/constants';
+import Logo from '@/components/Logo';
 
 const StoreUsersPage = () => {
   const { user, permissions } = useAuth();
@@ -132,7 +133,12 @@ const StoreUsersPage = () => {
       <Helmet><title>إدارة الفريق - {t('common.systemName')}</title></Helmet>
       
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">إدارة الفريق</h1>
+        <div className="flex items-center gap-3">
+          <div className="hidden md:block">
+            <Logo size="md" showText={false} />
+          </div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">إدارة الفريق</h1>
+        </div>
         {permissions.canCreateUsers && (
           <Button onClick={() => setDialogOpen(true)} className="bg-gradient-to-r from-orange-500 to-pink-500 text-white">
             <Plus className="ml-2 rtl:mr-2 rtl:ml-0 h-4 w-4" /> إضافة عضو جديد

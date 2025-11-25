@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Globe, Moon, Sun, User, Shield, Store } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
+import Logo from '@/components/Logo';
 
 const SettingsPage = () => {
   const { t, locale, setLocale } = useLanguage();
@@ -23,7 +24,12 @@ const SettingsPage = () => {
         <title>{t('common.settings')} - Ibrahim System</title>
       </Helmet>
 
-      <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('common.settings')}</h1>
+      <div className="flex items-center gap-3 mb-6">
+        <div className="hidden md:block">
+          <Logo size="md" showText={false} />
+        </div>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('common.settings')}</h1>
+      </div>
 
       {/* Appearance Section */}
       <section className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">

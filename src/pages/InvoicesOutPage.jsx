@@ -9,6 +9,7 @@ import { Plus, Search, Filter, Download, Loader2 } from 'lucide-react';
 import InvoiceDialog from '@/components/invoices/InvoiceDialog';
 import InvoiceTable from '@/components/invoices/InvoiceTable';
 import { toast } from '@/components/ui/use-toast';
+import Logo from '@/components/Logo';
 
 const InvoicesOutPage = () => {
   const { user } = useAuth();
@@ -111,9 +112,14 @@ const InvoicesOutPage = () => {
 
       <div className="space-y-6">
         <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100">
-            {t('nav.invoicesOut')}
-          </h1>
+          <div className="flex items-center gap-3">
+            <div className="hidden md:block">
+              <Logo size="md" showText={false} />
+            </div>
+            <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100">
+              {t('nav.invoicesOut')}
+            </h1>
+          </div>
           <Button
             onClick={() => {
               setSelectedInvoice(null);

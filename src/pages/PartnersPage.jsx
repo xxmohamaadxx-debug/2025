@@ -9,6 +9,7 @@ import { Plus, Loader2 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import PartnerDialog from '@/components/partners/PartnerDialog';
 import PartnerTable from '@/components/partners/PartnerTable';
+import Logo from '@/components/Logo';
 
 const PartnersPage = () => {
   const { user } = useAuth();
@@ -96,7 +97,12 @@ const PartnersPage = () => {
     <div className="space-y-6">
       <Helmet><title>{t('common.partners')} - {t('common.systemName')}</title></Helmet>
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-gray-100">{t('common.partners')}</h1>
+        <div className="flex items-center gap-3">
+          <div className="hidden md:block">
+            <Logo size="md" showText={false} />
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-gray-100">{t('common.partners')}</h1>
+        </div>
         <Button onClick={() => { setSelected(null); setDialogOpen(true); }} className="bg-gradient-to-r from-orange-500 to-pink-500 text-white w-full sm:w-auto">
           <Plus className="h-4 w-4 ml-2 rtl:mr-2 rtl:ml-0" /> {t('partners.addPartner')}
         </Button>
