@@ -18,7 +18,17 @@ const Logo = ({ size = 'md', showText = true, className = '' }) => {
 
   return (
     <Link to="/dashboard" className={`flex items-center gap-2 ${className}`}>
-      <div className={`relative ${sizeClasses[size]} rounded-lg bg-gradient-to-tr from-orange-500 to-pink-500 flex items-center justify-center text-white font-bold shadow-lg overflow-hidden`}>
+      <img 
+        src="/logo.png" 
+        alt="نظام إبراهيم للمحاسبة" 
+        className={`${sizeClasses[size]} object-contain`}
+        onError={(e) => {
+          // Fallback to SVG logo if PNG not found
+          e.target.style.display = 'none';
+          e.target.nextSibling.style.display = 'block';
+        }}
+      />
+      <div className={`relative ${sizeClasses[size]} rounded-lg bg-gradient-to-tr from-orange-500 to-pink-500 flex items-center justify-center text-white font-bold shadow-lg overflow-hidden hidden`}>
         <div className="absolute inset-0 bg-gradient-to-br from-orange-400 to-pink-500 opacity-90"></div>
         <span className="relative z-10 text-xl font-bold">I</span>
       </div>

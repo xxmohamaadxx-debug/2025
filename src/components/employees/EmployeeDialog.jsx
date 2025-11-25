@@ -11,10 +11,10 @@ const EmployeeDialog = ({ open, onOpenChange, employee, onSave }) => {
   const [formData, setFormData] = useState({
     name: '',
     position: '',
-    salary: '',
+    base_salary: '',
     currency: 'TRY',
     status: 'Active',
-    hireDate: getCurrentDateInput(),
+    hire_date: getCurrentDateInput(),
   });
 
   useEffect(() => {
@@ -22,19 +22,19 @@ const EmployeeDialog = ({ open, onOpenChange, employee, onSave }) => {
       setFormData({
         name: employee.name || '',
         position: employee.position || '',
-        salary: employee.salary || '',
+        base_salary: employee.base_salary || employee.salary || '',
         currency: employee.currency || 'TRY',
         status: employee.status || 'Active',
-        hireDate: employee.hireDate ? formatDateForInput(employee.hireDate) : getCurrentDateInput(),
+        hire_date: employee.hire_date || employee.hireDate ? formatDateForInput(employee.hire_date || employee.hireDate) : getCurrentDateInput(),
       });
     } else {
       setFormData({
         name: '',
         position: '',
-        salary: '',
+        base_salary: '',
         currency: 'TRY',
         status: 'Active',
-        hireDate: getCurrentDateInput(),
+        hire_date: getCurrentDateInput(),
       });
     }
   }, [employee, open]);
@@ -84,8 +84,8 @@ const EmployeeDialog = ({ open, onOpenChange, employee, onSave }) => {
                 type="number"
                 step="0.01"
                 required
-                value={formData.salary}
-                onChange={(e) => setFormData({ ...formData, salary: e.target.value })}
+                value={formData.base_salary}
+                onChange={(e) => setFormData({ ...formData, base_salary: e.target.value })}
                 className="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
                 placeholder={t('employees.salary')}
               />
@@ -121,8 +121,8 @@ const EmployeeDialog = ({ open, onOpenChange, employee, onSave }) => {
               <input
                 type="date"
                 required
-                value={formData.hireDate}
-                onChange={(e) => setFormData({ ...formData, hireDate: e.target.value })}
+                value={formData.hire_date}
+                onChange={(e) => setFormData({ ...formData, hire_date: e.target.value })}
                 className="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
               />
             </div>

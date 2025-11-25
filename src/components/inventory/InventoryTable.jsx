@@ -43,7 +43,7 @@ const InventoryTable = ({ items, onEdit, onDelete }) => {
                 {parseFloat(item.price).toFixed(2)} {item.currency}
               </td>
               <td className="py-3 px-4 text-sm text-gray-700 dark:text-gray-300">
-                {item.minStock} {item.unit}
+                {item.min_stock || item.minStock} {item.unit}
               </td>
               <td className="py-3 px-4 text-right">
                 <div className="flex justify-end gap-2">

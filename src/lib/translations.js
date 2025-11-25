@@ -301,7 +301,41 @@ export const translations = {
       hireDate: "تاريخ التعيين",
       status: "الحالة",
       active: "نشط",
-      inactive: "غير نشط"
+      inactive: "غير نشط",
+      noEmployees: "لا يوجد موظفون"
+    },
+    inventory: {
+      product: "منتج",
+      addItem: "إضافة منتج",
+      sku: "الرمز",
+      skuPlaceholder: "SKU-001",
+      productName: "اسم المنتج",
+      unit: "الوحدة",
+      unitPcs: "قطعة",
+      unitKg: "كيلوغرام",
+      unitM: "متر",
+      unitL: "لتر",
+      minStock: "الحد الأدنى للمخزون",
+      noItems: "لا توجد منتجات في المخزون. أضف منتجك الأول!",
+      deleted: "تم حذف المنتج بنجاح",
+      deleteError: "فشل حذف المنتج",
+      loadError: "فشل تحميل المخزون"
+    },
+    subscription: {
+      title: "الاشتراكات",
+      currentPlan: "خطتك الحالية",
+      monthly: "شهري",
+      sixMonths: "ستة أشهر",
+      yearly: "سنوي",
+      perMonth: "شهر",
+      fullAccess: "وصول كامل لمدة {days} يوم",
+      unlimitedInvoices: "واردات وصادرات غير محدودة",
+      inventoryManagement: "إدارة المخزون الكاملة",
+      multiUserAccess: "وصول متعدد المستخدمين",
+      prioritySupport: "دعم ذو أولوية",
+      upgradeViaWhatsApp: "الترقية عبر واتساب",
+      instantActivation: "تفعيل فوري",
+      bestValue: "الأفضل"
     },
     users: {
       user: "مستخدم",

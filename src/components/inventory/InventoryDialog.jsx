@@ -9,10 +9,10 @@ const InventoryDialog = ({ open, onOpenChange, item, onSave }) => {
   const [formData, setFormData] = useState({
     sku: '',
     name: '',
-    unit: 'pcs',
+    unit: 'piece',
     price: '',
     currency: 'TRY',
-    minStock: '5',
+    min_stock: '5',
     notes: ''
   });
 
@@ -21,20 +21,20 @@ const InventoryDialog = ({ open, onOpenChange, item, onSave }) => {
       setFormData({
         sku: item.sku || '',
         name: item.name || '',
-        unit: item.unit || 'pcs',
+        unit: item.unit || 'piece',
         price: item.price || '',
         currency: item.currency || 'TRY',
-        minStock: item.minStock || '5',
+        min_stock: item.min_stock || item.minStock || '5',
         notes: item.notes || ''
       });
     } else {
       setFormData({
         sku: '',
         name: '',
-        unit: 'pcs',
+        unit: 'piece',
         price: '',
         currency: 'TRY',
-        minStock: '5',
+        min_stock: '5',
         notes: ''
       });
     }
@@ -84,7 +84,7 @@ const InventoryDialog = ({ open, onOpenChange, item, onSave }) => {
                  onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
               >
-                <option value="pcs">{t('inventory.unitPcs')}</option>
+                <option value="piece">{t('inventory.unitPcs')}</option>
                 <option value="kg">{t('inventory.unitKg')}</option>
                 <option value="m">{t('inventory.unitM')}</option>
                 <option value="l">{t('inventory.unitL')}</option>
@@ -94,8 +94,8 @@ const InventoryDialog = ({ open, onOpenChange, item, onSave }) => {
               <label className="block text-sm font-medium mb-1 rtl:text-right">{t('inventory.minStock')}</label>
               <input
                 type="number"
-                value={formData.minStock}
-                onChange={(e) => setFormData({ ...formData, minStock: e.target.value })}
+                value={formData.min_stock}
+                onChange={(e) => setFormData({ ...formData, min_stock: e.target.value })}
                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
                 placeholder="5"
               />

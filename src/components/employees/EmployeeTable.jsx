@@ -38,7 +38,7 @@ const EmployeeTable = ({ employees, onEdit, onDelete }) => {
               </td>
               <td className="py-3 px-4 text-sm">{emp.position}</td>
               <td className="py-3 px-4 text-sm font-semibold">
-                {parseFloat(emp.salary).toLocaleString()} {emp.currency}
+                {parseFloat(emp.base_salary || emp.salary || 0).toLocaleString()} {emp.currency}
               </td>
               <td className="py-3 px-4 text-sm">
                 <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
