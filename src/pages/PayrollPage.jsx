@@ -51,12 +51,18 @@ const PayrollPage = () => {
 
     try {
       const netSalary = (parseFloat(data.base_salary || 0) + parseFloat(data.bonuses || 0)) - parseFloat(data.deductions || 0);
-      await neonService.createPayroll({
+      
+      // إنشاء سجل الراتب (is_paid = false افتراضياً)
+      const payrollData = {
         ...data,
         net_salary: netSalary,
         month: data.month || new Date().getMonth() + 1,
-        year: data.year || new Date().getFullYear()
-      }, user.tenant_id);
+        year: data.year || new Date().getFullYear(),
+        is_paid: data.is_paid || false,
+        created_by: user.id
+      };
+      
+      await neonService.createPayroll(payrollData, user.tenant_id);
       
       await neonService.log(user.tenant_id, user.id, 'GENERATE_PAYROLL', `تم إنشاء راتب لـ ${data.employee_name}`);
       toast({ title: 'تم إضافة البيانات بنجاح' });
@@ -81,6 +87,33 @@ const PayrollPage = () => {
       loadData();
     } catch (error) {
       toast({ title: 'خطأ في الحذف', variant: 'destructive' });
+    }
+  };
+
+  const handlePaySalary = async (payrollId) => {
+    if (!window.confirm('هل أنت متأكد من تسليم هذا الراتب؟ سيتم خصمه من الصندوق المالي.')) return;
+    
+    try {
+      // تحديث الراتب ليكون مدفوعاً - سيتم خصمه تلقائياً من الصندوق عبر Trigger
+      await neonService.updatePayroll(payrollId, {
+        is_paid: true,
+        paid_at: new Date().toISOString(),
+        updated_by: user.id
+      }, user.tenant_id);
+      
+      await neonService.log(user.tenant_id, user.id, 'PAY_SALARY', `تم تسليم راتب`);
+      toast({ 
+        title: 'تم تسليم الراتب بنجاح', 
+        description: 'تم خصم المبلغ من الصندوق المالي'
+      });
+      loadData();
+    } catch (error) {
+      console.error('Pay salary error:', error);
+      toast({ 
+        title: 'خطأ في تسليم الراتب', 
+        description: error.message || 'حدث خطأ أثناء تسليم الراتب',
+        variant: 'destructive' 
+      });
     }
   };
 
@@ -111,7 +144,7 @@ const PayrollPage = () => {
         </div>
 
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
-          <PayrollTable payrolls={payrolls} onDelete={handleDelete} />
+          <PayrollTable payrolls={payrolls} onDelete={handleDelete} onPay={handlePaySalary} />
         </div>
 
         <PayrollDialog 

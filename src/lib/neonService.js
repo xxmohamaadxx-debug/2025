@@ -401,6 +401,7 @@ export const neonService = {
   // Payroll
   getPayroll: (tenantId) => getByTenant('payroll', tenantId),
   createPayroll: (data, tenantId) => createRecord('payroll', data, tenantId),
+  updatePayroll: (id, data, tenantId) => updateRecord('payroll', id, data, tenantId),
   deletePayroll: (id, tenantId) => deleteRecord('payroll', id, tenantId),
 
   // Tenants (Admin only)
@@ -1082,4 +1083,86 @@ export const neonService = {
 
   updateOfflineQueueItem: (id, data, tenantId) => updateRecord('offline_queue', id, data, tenantId),
   deleteOfflineQueueItem: (id, tenantId) => deleteRecord('offline_queue', id, tenantId),
+
+  // Export Tenant Data (for Admin Panel)
+  exportTenantData: async (tenantId) => {
+    if (!tenantId) return null;
+    try {
+      const result = await sql`
+        SELECT export_tenant_data(${tenantId}) as export_data
+      `;
+      return result[0]?.export_data || null;
+    } catch (error) {
+      console.error('exportTenantData error:', error);
+      throw error;
+    }
+  },
+
+  // Cash Register Functions
+  getCashRegister: async (tenantId, currency = 'TRY') => {
+    if (!tenantId) return null;
+    try {
+      const result = await sql`
+        SELECT * FROM cash_register
+        WHERE tenant_id = ${tenantId} AND currency = ${currency}
+        LIMIT 1
+      `;
+      return result[0] || null;
+    } catch (error) {
+      console.error('getCashRegister error:', error);
+      return null;
+    }
+  },
+
+  getCashTransactions: async (tenantId, startDate = null, endDate = null) => {
+    if (!tenantId) return [];
+    try {
+      let query;
+      if (startDate && endDate) {
+        query = sql`
+          SELECT ct.*, u.name as user_name
+          FROM cash_transactions ct
+          LEFT JOIN users u ON ct.created_by = u.id
+          WHERE ct.tenant_id = ${tenantId}
+          AND ct.created_at BETWEEN ${startDate} AND ${endDate}
+          ORDER BY ct.created_at DESC
+        `;
+      } else {
+        query = sql`
+          SELECT ct.*, u.name as user_name
+          FROM cash_transactions ct
+          LEFT JOIN users u ON ct.created_by = u.id
+          WHERE ct.tenant_id = ${tenantId}
+          ORDER BY ct.created_at DESC
+          LIMIT 100
+        `;
+      }
+      const result = await query;
+      return result || [];
+    } catch (error) {
+      console.error('getCashTransactions error:', error);
+      return [];
+    }
+  },
+
+  createCashTransaction: async (data, tenantId) => {
+    try {
+      const result = await sql`
+        SELECT create_cash_transaction(
+          ${tenantId},
+          ${data.currency || 'TRY'},
+          ${data.amount},
+          ${data.transaction_type},
+          ${data.description || ''},
+          ${data.reference_type || null},
+          ${data.reference_id || null},
+          ${data.user_id || null}
+        ) as transaction_id
+      `;
+      return result[0]?.transaction_id || null;
+    } catch (error) {
+      console.error('createCashTransaction error:', error);
+      throw error;
+    }
+  },
 };

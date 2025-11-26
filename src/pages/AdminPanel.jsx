@@ -4,11 +4,12 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { neonService } from '@/lib/neonService';
 import { Button } from '@/components/ui/button';
-import { Loader2, Plus, Store, Edit, Trash2, MessageCircle } from 'lucide-react';
+import { Loader2, Plus, Store, Edit, Trash2, MessageCircle, Download, FileDown } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { SUBSCRIPTION_PLANS, CONTACT_INFO, ROLES } from '@/lib/constants';
 import { formatDateAR, formatDateForInput } from '@/lib/dateUtils';
+import { saveAs } from 'file-saver';
 
 const AdminPanel = () => {
   const { user } = useAuth();
@@ -303,6 +304,33 @@ const AdminPanel = () => {
     }
   };
 
+  const handleExportStoreData = async (store) => {
+    try {
+      setLoading(true);
+      const exportData = await neonService.exportTenantData(store.id);
+      
+      if (exportData) {
+        const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+        const fileName = `store_data_${store.name}_${new Date().toISOString().split('T')[0]}.json`;
+        saveAs(blob, fileName);
+        toast({ 
+          title: 'تم تصدير البيانات بنجاح', 
+          description: `تم تصدير بيانات المتجر "${store.name}"`,
+          variant: 'default'
+        });
+      }
+    } catch (error) {
+      console.error('Export store data error:', error);
+      toast({ 
+        title: 'خطأ في تصدير البيانات', 
+        description: error.message || 'حدث خطأ أثناء تصدير بيانات المتجر',
+        variant: 'destructive' 
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (!user?.isSuperAdmin) {
     return <div className="p-8 text-center text-red-500">{t('adminPanel.errors.accessDenied')}</div>;
   }
@@ -318,9 +346,32 @@ const AdminPanel = () => {
             <p className="text-gray-500 dark:text-gray-400 mt-1">{t('adminPanel.subtitle')}</p>
           </div>
         </div>
-        <Button onClick={() => setDialogOpen(true)} className="bg-purple-600 hover:bg-purple-700 text-white">
-          <Plus className="ml-2 rtl:mr-2 rtl:ml-0 h-4 w-4" /> {t('adminPanel.createNewStore')}
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            onClick={() => {
+              // تصدير جميع المتاجر
+              const allStoresData = stores.map(store => ({
+                id: store.id,
+                name: store.name,
+                owner: store.owner_name,
+                plan: store.subscription_plan,
+                status: store.subscription_status
+              }));
+              const blob = new Blob([JSON.stringify(allStoresData, null, 2)], { type: 'application/json' });
+              const fileName = `all_stores_${new Date().toISOString().split('T')[0]}.json`;
+              saveAs(blob, fileName);
+              toast({ title: 'تم تصدير قائمة المتاجر' });
+            }}
+            variant="outline"
+            className="border-blue-500 text-blue-600 hover:bg-blue-50 dark:border-blue-400 dark:text-blue-400 dark:hover:bg-blue-900/20 transition-all hover:scale-105 active:scale-95"
+          >
+            <Download className="h-4 w-4 ml-2 rtl:mr-2 rtl:ml-0" />
+            تصدير قائمة المتاجر
+          </Button>
+          <Button onClick={() => setDialogOpen(true)} className="bg-purple-600 hover:bg-purple-700 text-white transition-all hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl">
+            <Plus className="ml-2 rtl:mr-2 rtl:ml-0 h-4 w-4" /> {t('adminPanel.createNewStore')}
+          </Button>
+        </div>
       </div>
 
       {loading ? (
@@ -403,15 +454,26 @@ const AdminPanel = () => {
                                         <Button 
                                             size="sm" 
                                             variant="outline" 
-                                            className="text-blue-600 border-blue-200 hover:bg-blue-50 dark:text-blue-400 dark:border-blue-800 dark:hover:bg-blue-900/20"
+                                            className="text-blue-600 border-blue-200 hover:bg-blue-50 dark:text-blue-400 dark:border-blue-800 dark:hover:bg-blue-900/20 transition-all hover:scale-110 active:scale-95 shadow-sm hover:shadow"
                                             onClick={() => handleEditStore(store)}
+                                            title="تعديل"
                                         >
                                             <Edit className="h-3 w-3" />
                                         </Button>
                                         <Button 
                                             size="sm" 
+                                            variant="outline"
+                                            className="text-cyan-600 border-cyan-200 hover:bg-cyan-50 dark:text-cyan-400 dark:border-cyan-800 dark:hover:bg-cyan-900/20 transition-all hover:scale-110 active:scale-95 shadow-sm hover:shadow"
+                                            onClick={() => handleExportStoreData(store)}
+                                            title="تصدير بيانات المتجر"
+                                            disabled={loading}
+                                        >
+                                            <FileDown className="h-3 w-3" />
+                                        </Button>
+                                        <Button 
+                                            size="sm" 
                                             variant="outline" 
-                                            className="text-green-600 border-green-200 hover:bg-green-50 dark:text-green-400 dark:border-green-800 dark:hover:bg-green-900/20"
+                                            className="text-green-600 border-green-200 hover:bg-green-50 dark:text-green-400 dark:border-green-800 dark:hover:bg-green-900/20 transition-all hover:scale-110 active:scale-95 shadow-sm hover:shadow"
                                             onClick={() => handleExtendSubscription(store)}
                                         >
                                             {t('adminPanel.extendMonth')}
@@ -419,19 +481,21 @@ const AdminPanel = () => {
                                         <Button 
                                             size="sm" 
                                             variant="outline"
-                                            className="text-purple-600 border-purple-200 hover:bg-purple-50 dark:text-purple-400 dark:border-purple-800 dark:hover:bg-purple-900/20"
+                                            className="text-purple-600 border-purple-200 hover:bg-purple-50 dark:text-purple-400 dark:border-purple-800 dark:hover:bg-purple-900/20 transition-all hover:scale-110 active:scale-95 shadow-sm hover:shadow"
                                             onClick={() => {
                                               const message = `مرحباً، بخصوص متجر "${store.name}" - أود التواصل حول الاشتراك.`;
                                               window.open(`${CONTACT_INFO.WHATSAPP_URL}?text=${encodeURIComponent(message)}`, '_blank');
                                             }}
+                                            title="تواصل"
                                         >
                                             <MessageCircle className="h-3 w-3" />
                                         </Button>
                                         <Button 
                                             size="sm" 
                                             variant="outline"
-                                            className="text-red-600 border-red-200 hover:bg-red-50 dark:text-red-400 dark:border-red-800 dark:hover:bg-red-900/20"
+                                            className="text-red-600 border-red-200 hover:bg-red-50 dark:text-red-400 dark:border-red-800 dark:hover:bg-red-900/20 transition-all hover:scale-110 active:scale-95 shadow-sm hover:shadow"
                                             onClick={() => handleDeleteStore(store.id, store.name)}
+                                            title="حذف"
                                         >
                                             <Trash2 className="h-3 w-3" />
                                         </Button>
