@@ -33,10 +33,23 @@ console.log('Hash:', hash);
 
 ### 3. إعداد متغيرات البيئة في Netlify
 
-في Netlify Dashboard:
-1. اذهب إلى Site settings > Environment variables
-2. أضف المتغير التالي:
-   - `VITE_NEON_DATABASE_URL`: رابط اتصال قاعدة البيانات من Neon
+**راجع الملف [NETLIFY_ENV_SETUP.md](./NETLIFY_ENV_SETUP.md) للتعليمات التفصيلية خطوة بخطوة.**
+
+باختصار، في Netlify Dashboard:
+1. اذهب إلى **Site settings** > **Environment variables**
+2. اضغط على **Add a variable**
+3. أضف المتغير التالي:
+   - **Key**: `VITE_NEON_DATABASE_URL`
+   - **Value**: رابط الاتصال من Neon (مثال: `postgresql://user:password@host/database?sslmode=require`)
+   - **Scope**: All scopes (أو اختر البيئة المناسبة)
+4. احفظ وأعد نشر الموقع
+
+**مثال على رابط الاتصال:**
+```
+postgresql://neondb_owner:npg_TYtfnOlr2oW7@ep-holy-frog-ahulw0nk-pooler.c-3.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+```
+
+⚠️ **تحذير**: تأكد من استخدام رابط **Connection pooling** من Neon (يحتوي على `-pooler` في الرابط).
 
 ### 4. رفع المشروع إلى GitHub
 
