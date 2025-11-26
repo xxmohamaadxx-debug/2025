@@ -41,6 +41,7 @@ const FuelStationPage = React.lazy(() => import('@/pages/FuelStationPage'));
 const StoreTypesPage = React.lazy(() => import('@/pages/StoreTypesPage'));
 const ContractorProjectsPage = React.lazy(() => import('@/pages/ContractorProjectsPage'));
 const ContractorProjectItemsPage = React.lazy(() => import('@/pages/ContractorProjectItemsPage'));
+const LandingPage = React.lazy(() => import('@/pages/LandingPage'));
 const NotFoundPage = React.lazy(() => import('@/pages/NotFoundPage'));
 
 const LoadingSpinner = () => (
@@ -95,6 +96,8 @@ function App() {
               </Helmet>
               <Suspense fallback={<LoadingSpinner />}>
                 <Routes>
+                  <Route path="/landing" element={<LandingPage />} />
+                  <Route path="/" element={<LandingPage />} />
                   <Route path="/login" element={
                     <PublicRoute>
                       <AuthLayout>
@@ -167,7 +170,6 @@ function App() {
                   <Route path="/contractor-project-items" element={<PrivateRoute roles={['ANY']}><MainLayout><SubscriptionWarning /><ContractorProjectItemsPage /></MainLayout></PrivateRoute>} />
                   <Route path="/store-types" element={<PrivateRoute roles={['SUPER_ADMIN']}><MainLayout><StoreTypesPage /></MainLayout></PrivateRoute>} />
                   
-                  <Route path="/" element={<Navigate to="/dashboard" replace />} />
                   <Route path="*" element={<NotFoundPage />} />
                 </Routes>
               </Suspense>

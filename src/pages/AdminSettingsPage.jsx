@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { neonService } from '@/lib/neonService';
 import { Button } from '@/components/ui/button';
-import { Phone, MessageCircle, Mail, Lock, Save, UserPlus, Trash2, Shield } from 'lucide-react';
+import { Phone, MessageCircle, Mail, Lock, Save, UserPlus, Trash2, Shield, Smartphone, Download } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
@@ -14,7 +14,9 @@ const AdminSettingsPage = () => {
   const [settings, setSettings] = useState({
     support_phone: '',
     support_whatsapp: '',
-    support_email: ''
+    support_email: '',
+    mobile_app_android_url: '',
+    mobile_app_windows_url: ''
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -45,7 +47,9 @@ const AdminSettingsPage = () => {
       setSettings({
         support_phone: data.support_phone || '',
         support_whatsapp: data.support_whatsapp || '',
-        support_email: data.support_email || ''
+        support_email: data.support_email || '',
+        mobile_app_android_url: data.mobile_app_android_url || '',
+        mobile_app_windows_url: data.mobile_app_windows_url || ''
       });
     } catch (error) {
       console.error('Load settings error:', error);
@@ -66,7 +70,9 @@ const AdminSettingsPage = () => {
       await Promise.all([
         neonService.updateSystemSetting('support_phone', settings.support_phone, user.id),
         neonService.updateSystemSetting('support_whatsapp', settings.support_whatsapp, user.id),
-        neonService.updateSystemSetting('support_email', settings.support_email, user.id)
+        neonService.updateSystemSetting('support_email', settings.support_email, user.id),
+        neonService.updateSystemSetting('mobile_app_android_url', settings.mobile_app_android_url, user.id),
+        neonService.updateSystemSetting('mobile_app_windows_url', settings.mobile_app_windows_url, user.id)
       ]);
       toast({ title: 'تم حفظ الإعدادات بنجاح' });
     } catch (error) {
@@ -257,6 +263,57 @@ const AdminSettingsPage = () => {
             >
               <Save className="h-4 w-4 ml-2 rtl:mr-2 rtl:ml-0" />
               {saving ? 'جاري الحفظ...' : 'حفظ الإعدادات'}
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile App Download Links */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+            <Smartphone className="h-5 w-5" />
+            روابط تحميل تطبيق الجوال
+          </h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">إدارة روابط تحميل تطبيق الجوال (أندرويد وويندوز)</p>
+        </div>
+        <div className="p-6 space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+              <Download className="h-4 w-4" />
+              رابط تحميل تطبيق أندرويد (Android)
+            </label>
+            <input
+              type="url"
+              value={settings.mobile_app_android_url}
+              onChange={(e) => setSettings({ ...settings, mobile_app_android_url: e.target.value })}
+              className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+              placeholder="https://play.google.com/store/apps/... أو رابط مباشر للتنزيل"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+              <Download className="h-4 w-4" />
+              رابط تحميل تطبيق ويندوز (Windows)
+            </label>
+            <input
+              type="url"
+              value={settings.mobile_app_windows_url}
+              onChange={(e) => setSettings({ ...settings, mobile_app_windows_url: e.target.value })}
+              className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+              placeholder="https://apps.microsoft.com/... أو رابط مباشر للتنزيل"
+            />
+          </div>
+
+          <div className="flex justify-end pt-4">
+            <Button
+              onClick={handleSaveSettings}
+              disabled={saving}
+              className="bg-gradient-to-r from-orange-500 to-pink-500 text-white"
+            >
+              <Save className="h-4 w-4 ml-2 rtl:mr-2 rtl:ml-0" />
+              {saving ? 'جاري الحفظ...' : 'حفظ الروابط'}
             </Button>
           </div>
         </div>

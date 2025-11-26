@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-const Logo = ({ size = 'md', showText = true, className = '' }) => {
+const Logo = ({ size = 'md', showText = true, className = '', noLink = false }) => {
   const sizeClasses = {
     sm: 'w-8 h-8',
     md: 'w-10 h-10',
@@ -16,8 +16,8 @@ const Logo = ({ size = 'md', showText = true, className = '' }) => {
     xl: 'text-2xl'
   };
 
-  return (
-    <Link to="/dashboard" className={`flex items-center gap-2 ${className}`}>
+  const logoContent = (
+    <div className={`flex items-center gap-2 ${className}`}>
       <img 
         src="/logo.png" 
         alt="نظام إبراهيم للمحاسبة" 
@@ -45,9 +45,18 @@ const Logo = ({ size = 'md', showText = true, className = '' }) => {
           )}
         </div>
       )}
+    </div>
+  );
+
+  if (noLink) {
+    return logoContent;
+  }
+
+  return (
+    <Link to="/" className="inline-block">
+      {logoContent}
     </Link>
   );
 };
 
 export default Logo;
-
