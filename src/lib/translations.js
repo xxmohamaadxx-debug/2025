@@ -181,8 +181,7 @@ export const translations = {
       unitPrice: "سعر الوحدة",
       manual: "يدوي",
       fromInventory: "من المستودع",
-      addItem: "إضافة منتج"
-    },
+      addItem: "إضافة منتج",
       close: "إغلاق",
       confirm: "تأكيد",
       yes: "نعم",
@@ -203,7 +202,11 @@ export const translations = {
       previous: "السابق",
       finish: "إنهاء",
       welcome: "مرحباً",
-      systemName: "نظام إبراهيم للمحاسبة"
+      systemName: "نظام إبراهيم للمحاسبة",
+      dailyTransactions: "الحركة اليومية",
+      customers: "العملاء",
+      syncData: "مزامنة البيانات",
+      offlineMode: "وضع بدون إنترنت"
     },
     nav: {
       overview: "نظرة عامة",

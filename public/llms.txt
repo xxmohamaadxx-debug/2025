@@ -1,19 +1,23 @@
 ## Pages
 - [-](/adminpanel): No description available
 - [-](/auditlog): No description available
+- [-](/dashboard): No description available
 - [-](/inventory): No description available
+- [-](/invoicesout): No description available
 - [-](/login): No description available
 - [-](/partners): No description available
 - [-](/payroll): No description available
 - [-](/reports): No description available
+- [-](/settings): No description available
 - [-](/subscription): No description available
-- [- Ibrahim Accounting System](/invoicesout): Manage outgoing invoices and expense tracking
 - [- Ibrahim Accounting System](/register): Register for Ibrahim Accounting System - Start your 30-day free trial
 - [- Ibrahim Accounting System](/users): No description available
-- [- Ibrahim System](/dashboard): No description available
-- [- Ibrahim System](/settings): No description available
 - [404 - Page Not Found - Ibrahim Accounting System](/notfound): The page you are looking for does not exist
 - [إدارة الفريق -](/storeusers): No description available
 - [إعدادات المدير - نظام إبراهيم للمحاسبة](/adminsettings): No description available
+- [الحركة اليومية](/dailytransactions): No description available
+- [الدعم والمساعدة -](/support): No description available
+- [العملاء والديون](/customers): No description available
+- [النسخ الاحتياطي](/backup): No description available
 - [Untitled Page](/employees): No description available
 - [Untitled Page](/invoicesin): No description available
