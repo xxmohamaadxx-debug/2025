@@ -7,7 +7,7 @@ import {
   LayoutDashboard, FileText, ShoppingCart, Package, 
   Users, Settings, LogOut, Shield, BarChart, 
   CreditCard, Briefcase, X, MessageCircle, Database, Activity,
-  Wifi, Fuel, Store, Building2
+  Wifi, Fuel, Store, Building2, Bell
 } from 'lucide-react';
 import Logo from '@/components/Logo';
 
@@ -166,6 +166,11 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         <Link to="/subscription" className={navItemClass('/subscription')} onClick={handleLinkClick}>
           <CreditCard className="h-5 w-5 ltr:mr-3 rtl:ml-3" />
           {t('common.subscription')}
+        </Link>
+
+        <Link to="/notification-settings" className={navItemClass('/notification-settings')} onClick={handleLinkClick}>
+          <Bell className="h-5 w-5 ltr:mr-3 rtl:ml-3" />
+          إعدادات الإشعارات
         </Link>
 
         <Link to="/support" className={navItemClass('/support')} onClick={handleLinkClick}>

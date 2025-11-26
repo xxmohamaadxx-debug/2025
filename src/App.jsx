@@ -169,6 +169,7 @@ function App() {
                   <Route path="/contractor-projects" element={<PrivateRoute roles={['ANY']}><MainLayout><SubscriptionWarning /><ContractorProjectsPage /></MainLayout></PrivateRoute>} />
                   <Route path="/contractor-project-items" element={<PrivateRoute roles={['ANY']}><MainLayout><SubscriptionWarning /><ContractorProjectItemsPage /></MainLayout></PrivateRoute>} />
                   <Route path="/store-types" element={<PrivateRoute roles={['SUPER_ADMIN']}><MainLayout><StoreTypesPage /></MainLayout></PrivateRoute>} />
+                  <Route path="/notification-settings" element={<PrivateRoute roles={['ANY']}><MainLayout><SubscriptionWarning /><NotificationSettingsPage /></MainLayout></PrivateRoute>} />
                   
                   <Route path="*" element={<NotFoundPage />} />
                 </Routes>
