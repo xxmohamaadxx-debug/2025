@@ -173,12 +173,23 @@ const NotificationSettingsPage = () => {
       const permission = await Notification.requestPermission();
       
       if (permission === 'granted') {
+        // الحصول على VAPID Public Key من إعدادات النظام
+        const settings = await neonService.getSystemSettings();
+        const vapidPublicKey = settings.vapid_public_key;
+        
+        if (!vapidPublicKey) {
+          toast({
+            title: 'خطأ',
+            description: 'لم يتم تكوين VAPID Public Key. يرجى التواصل مع الأدمن لإضافته في إعدادات النظام.',
+            variant: 'destructive'
+          });
+          return;
+        }
+
         // الحصول على Push subscription
         const subscription = await registration.pushManager.subscribe({
           userVisibleOnly: true,
-          applicationServerKey: urlBase64ToUint8Array(
-            'BEl62iUYgUivxIkv69yViEuiBIa40HIWzC6E5rGdOMXKb1VnY5Fq3F5GJ1L2M3N4O5P6Q7R8S9T0U1V2W3X4Y5Z6A7B8C9D0E1F2G3'
-          ) // VAPID public key - يجب تحديثه
+          applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
         });
 
         // حفظ الاشتراك

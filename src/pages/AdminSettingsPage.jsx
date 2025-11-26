@@ -16,7 +16,9 @@ const AdminSettingsPage = () => {
     support_whatsapp: '',
     support_email: '',
     mobile_app_android_url: '',
-    mobile_app_windows_url: ''
+    mobile_app_windows_url: '',
+    vapid_public_key: '',
+    vapid_private_key: ''
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -49,7 +51,9 @@ const AdminSettingsPage = () => {
         support_whatsapp: data.support_whatsapp || '',
         support_email: data.support_email || '',
         mobile_app_android_url: data.mobile_app_android_url || '',
-        mobile_app_windows_url: data.mobile_app_windows_url || ''
+        mobile_app_windows_url: data.mobile_app_windows_url || '',
+        vapid_public_key: data.vapid_public_key || '',
+        vapid_private_key: data.vapid_private_key || ''
       });
     } catch (error) {
       console.error('Load settings error:', error);
@@ -72,7 +76,9 @@ const AdminSettingsPage = () => {
         neonService.updateSystemSetting('support_whatsapp', settings.support_whatsapp, user.id),
         neonService.updateSystemSetting('support_email', settings.support_email, user.id),
         neonService.updateSystemSetting('mobile_app_android_url', settings.mobile_app_android_url, user.id),
-        neonService.updateSystemSetting('mobile_app_windows_url', settings.mobile_app_windows_url, user.id)
+        neonService.updateSystemSetting('mobile_app_windows_url', settings.mobile_app_windows_url, user.id),
+        neonService.updateSystemSetting('vapid_public_key', settings.vapid_public_key, user.id),
+        neonService.updateSystemSetting('vapid_private_key', settings.vapid_private_key, user.id)
       ]);
       toast({ title: 'تم حفظ الإعدادات بنجاح' });
     } catch (error) {

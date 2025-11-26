@@ -31,7 +31,7 @@ const AdminPanel = () => {
     plan: 'trial',
     customDays: '',
     isTrial: true,
-    store_type_id: ''
+    store_type_ids: [] // أنواع متعددة
   });
 
   // Edit Store Form
@@ -40,7 +40,7 @@ const AdminPanel = () => {
     subscription_plan: '',
     subscription_status: '',
     subscription_expires_at: '',
-    store_type_id: ''
+    store_type_ids: [] // أنواع متعددة
   });
 
   // Subscription Extension Form
@@ -145,20 +145,29 @@ const AdminPanel = () => {
 
       const newTenant = await neonService.createTenant(formData.storeName, newUser.id);
       
-      // 3. تحديث Tenant ببيانات الاشتراك ونوع المتجر
+      // 3. تحديث Tenant ببيانات الاشتراك
       const updateData = {
         subscription_plan: subscriptionPlan,
         subscription_status: subscriptionStatus,
         subscription_expires_at: expiryDate.toISOString()
       };
       
-      if (formData.store_type_id) {
-        updateData.store_type_id = formData.store_type_id;
-      }
-      
       await neonService.updateTenant(newTenant.id, updateData);
 
-      // 4. تحديث المستخدم بـ tenant_id
+      // 4. إضافة أنواع المتاجر (أنواع متعددة)
+      if (formData.store_type_ids && formData.store_type_ids.length > 0) {
+        for (let i = 0; i < formData.store_type_ids.length; i++) {
+          const storeTypeId = formData.store_type_ids[i];
+          await neonService.addStoreTypeToTenant(
+            newTenant.id,
+            storeTypeId,
+            i === 0, // الأول هو الرئيسي
+            i // الأولوية
+          );
+        }
+      }
+
+      // 5. تحديث المستخدم بـ tenant_id
       await neonService.updateUserAdmin(newUser.id, {
         tenant_id: newTenant.id
       });
@@ -177,7 +186,7 @@ const AdminPanel = () => {
         plan: 'trial',
         customDays: '',
         isTrial: true,
-        store_type_id: ''
+        store_type_ids: []
       });
       
       setDialogOpen(false);
@@ -194,14 +203,24 @@ const AdminPanel = () => {
     }
   };
 
-  const handleEditStore = (store) => {
+  const handleEditStore = async (store) => {
     setSelectedStore(store);
+    
+    // تحميل أنواع المتاجر الحالية للمتجر
+    let currentStoreTypes = [];
+    try {
+      const tenantTypes = await neonService.getTenantStoreTypes(store.id);
+      currentStoreTypes = tenantTypes.map(t => t.store_type_id);
+    } catch (error) {
+      console.error('Load tenant store types error:', error);
+    }
+    
     setEditFormData({
       name: store.name || '',
       subscription_plan: store.subscription_plan || 'monthly',
       subscription_status: store.subscription_status || 'active',
       subscription_expires_at: store.subscription_expires_at ? formatDateForInput(store.subscription_expires_at) : '',
-      store_type_id: store.store_type_id || ''
+      store_type_ids: currentStoreTypes
     });
     setEditDialogOpen(true);
   };
@@ -227,12 +246,28 @@ const AdminPanel = () => {
       if (editFormData.subscription_expires_at) {
         updateData.subscription_expires_at = new Date(editFormData.subscription_expires_at).toISOString();
       }
-      
-      if (editFormData.store_type_id) {
-        updateData.store_type_id = editFormData.store_type_id;
-      }
 
       await neonService.updateTenant(selectedStore.id, updateData);
+
+      // تحديث أنواع المتاجر
+      // 1. حذف الأنواع الحالية
+      const currentTypes = await neonService.getTenantStoreTypes(selectedStore.id);
+      for (const currentType of currentTypes) {
+        await neonService.removeStoreTypeFromTenant(selectedStore.id, currentType.store_type_id);
+      }
+      
+      // 2. إضافة الأنواع الجديدة
+      if (editFormData.store_type_ids && editFormData.store_type_ids.length > 0) {
+        for (let i = 0; i < editFormData.store_type_ids.length; i++) {
+          const storeTypeId = editFormData.store_type_ids[i];
+          await neonService.addStoreTypeToTenant(
+            selectedStore.id,
+            storeTypeId,
+            i === 0, // الأول هو الرئيسي
+            i // الأولوية
+          );
+        }
+      }
 
       toast({ 
         title: "تم بنجاح", 
@@ -632,17 +667,44 @@ const AdminPanel = () => {
                 )}
 
                 <div>
-                    <label className="block text-sm font-medium mb-1 rtl:text-right">نوع المتجر</label>
-                    <select
-                        value={formData.store_type_id}
-                        onChange={(e) => setFormData({ ...formData, store_type_id: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
-                    >
-                        <option value="">اختر نوع المتجر (اختياري)</option>
-                        {storeTypes.map(type => (
-                            <option key={type.id} value={type.id}>{type.name_ar}</option>
-                        ))}
-                    </select>
+                    <label className="block text-sm font-medium mb-2 rtl:text-right">أنواع المتاجر (يمكن اختيار أكثر من نوع)</label>
+                    <div className="space-y-2 max-h-48 overflow-y-auto border border-gray-300 dark:border-gray-600 rounded-lg p-3">
+                        {storeTypes.length === 0 ? (
+                            <p className="text-sm text-gray-500">لا توجد أنواع متاجر متاحة</p>
+                        ) : (
+                            storeTypes.map(type => (
+                                <label key={type.id} className="flex items-center gap-2 p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={formData.store_type_ids?.includes(type.id) || false}
+                                        onChange={(e) => {
+                                            if (e.target.checked) {
+                                                setFormData({
+                                                    ...formData,
+                                                    store_type_ids: [...(formData.store_type_ids || []), type.id]
+                                                });
+                                            } else {
+                                                setFormData({
+                                                    ...formData,
+                                                    store_type_ids: formData.store_type_ids?.filter(id => id !== type.id) || []
+                                                });
+                                            }
+                                        }}
+                                        className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                                    />
+                                    <span className="text-sm text-gray-700 dark:text-gray-300">{type.name_ar}</span>
+                                    {type.description_ar && (
+                                        <span className="text-xs text-gray-500 dark:text-gray-400">- {type.description_ar}</span>
+                                    )}
+                                </label>
+                            ))
+                        )}
+                    </div>
+                    {formData.store_type_ids && formData.store_type_ids.length > 0 && (
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            تم اختيار {formData.store_type_ids.length} نوع متجر
+                        </p>
+                    )}
                 </div>
 
                 <div className="flex gap-2 pt-2">
@@ -658,7 +720,7 @@ const AdminPanel = () => {
                                 plan: 'trial',
                                 customDays: '',
                                 isTrial: true,
-                                store_type_id: ''
+                                store_type_ids: []
                             });
                         }} 
                         variant="outline" 
@@ -746,17 +808,44 @@ const AdminPanel = () => {
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium mb-1 rtl:text-right">نوع المتجر</label>
-                    <select
-                        value={editFormData.store_type_id}
-                        onChange={(e) => setEditFormData({ ...editFormData, store_type_id: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
-                    >
-                        <option value="">بدون نوع (عام)</option>
-                        {storeTypes.map(type => (
-                            <option key={type.id} value={type.id}>{type.name_ar}</option>
-                        ))}
-                    </select>
+                    <label className="block text-sm font-medium mb-2 rtl:text-right">أنواع المتاجر (يمكن اختيار أكثر من نوع)</label>
+                    <div className="space-y-2 max-h-48 overflow-y-auto border border-gray-300 dark:border-gray-600 rounded-lg p-3">
+                        {storeTypes.length === 0 ? (
+                            <p className="text-sm text-gray-500">لا توجد أنواع متاجر متاحة</p>
+                        ) : (
+                            storeTypes.map(type => (
+                                <label key={type.id} className="flex items-center gap-2 p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={editFormData.store_type_ids?.includes(type.id) || false}
+                                        onChange={(e) => {
+                                            if (e.target.checked) {
+                                                setEditFormData({
+                                                    ...editFormData,
+                                                    store_type_ids: [...(editFormData.store_type_ids || []), type.id]
+                                                });
+                                            } else {
+                                                setEditFormData({
+                                                    ...editFormData,
+                                                    store_type_ids: editFormData.store_type_ids?.filter(id => id !== type.id) || []
+                                                });
+                                            }
+                                        }}
+                                        className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                                    />
+                                    <span className="text-sm text-gray-700 dark:text-gray-300">{type.name_ar}</span>
+                                    {type.description_ar && (
+                                        <span className="text-xs text-gray-500 dark:text-gray-400">- {type.description_ar}</span>
+                                    )}
+                                </label>
+                            ))
+                        )}
+                    </div>
+                    {editFormData.store_type_ids && editFormData.store_type_ids.length > 0 && (
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            تم اختيار {editFormData.store_type_ids.length} نوع متجر
+                        </p>
+                    )}
                 </div>
 
                 <div className="flex gap-2 pt-2">
