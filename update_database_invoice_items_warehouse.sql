@@ -248,7 +248,7 @@ CREATE TABLE IF NOT EXISTS backups (
     backup_data JSONB NOT NULL,
     file_name TEXT,
     file_size NUMERIC(10, 2), -- بالكيلوبايت
-    created_by UUID REFERENCES users(id),
+    created_by UUID REFERENCES public_users(id),
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 

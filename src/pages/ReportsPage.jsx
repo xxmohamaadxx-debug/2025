@@ -86,7 +86,9 @@ const ReportsPage = () => {
         `${t('common.reports')} - ${t(`reports.${selectedPeriod}`) || selectedPeriod}`,
         reportData,
         columns,
-        tenant?.name
+        tenant?.name,
+        '/logo.png',
+        locale
       );
 
       toast({ title: t('reports.reportGenerated') || 'تم تصدير التقرير بنجاح' });
@@ -122,7 +124,8 @@ const ReportsPage = () => {
     exportToExcel(reportData, {
       title: `${t('common.reports')} - ${t(`reports.${selectedPeriod}`)}`,
       columns,
-      filename: `report_${selectedPeriod}_${new Date().toISOString().split('T')[0]}.xlsx`
+      filename: `report_${selectedPeriod}_${new Date().toISOString().split('T')[0]}.xlsx`,
+      locale: locale
     });
 
     toast({ title: t('reports.reportGenerated') });

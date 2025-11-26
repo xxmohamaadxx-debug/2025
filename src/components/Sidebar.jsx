@@ -6,7 +6,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { 
   LayoutDashboard, FileText, ShoppingCart, Package, 
   Users, Settings, LogOut, Shield, BarChart, 
-  CreditCard, Briefcase, X, MessageCircle
+  CreditCard, Briefcase, X, MessageCircle, Database
 } from 'lucide-react';
 import Logo from '@/components/Logo';
 
@@ -123,6 +123,13 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           <MessageCircle className="h-5 w-5 ltr:mr-3 rtl:ml-3" />
           الدعم والمساعدة
         </Link>
+
+        {(user?.isStoreOwner || user?.isSuperAdmin) && (
+          <Link to="/backup" className={navItemClass('/backup')} onClick={handleLinkClick}>
+            <Database className="h-5 w-5 ltr:mr-3 rtl:ml-3" />
+            النسخ الاحتياطي
+          </Link>
+        )}
 
         <Link to="/settings" className={navItemClass('/settings')} onClick={handleLinkClick}>
           <Settings className="h-5 w-5 ltr:mr-3 rtl:ml-3" />

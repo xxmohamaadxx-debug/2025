@@ -66,12 +66,21 @@ const InvoicesInPage = () => {
     setDialogOpen(true);
   };
 
-  const handleEdit = (invoice) => {
+  const handleEdit = async (invoice) => {
     setSelectedInvoice(invoice);
     setDialogOpen(true);
+    // تحميل عناصر الفاتورة
+    try {
+      if (invoice?.id && user?.tenant_id) {
+        const items = await neonService.getInvoiceItems(invoice.id, 'invoice_in', user.tenant_id);
+        // سيتم تحميل العناصر في InvoiceDialog
+      }
+    } catch (error) {
+      console.error('Load invoice items error:', error);
+    }
   };
 
-  const handleSave = async (data) => {
+  const handleSave = async (data, items = []) => {
     if (!user?.tenant_id) {
       toast({ 
         title: "خطأ", 
@@ -82,14 +91,20 @@ const InvoicesInPage = () => {
     }
 
     try {
+      const invoiceData = {
+        ...data,
+        date: data.date || new Date().toISOString().split('T')[0],
+      };
+
       if (selectedInvoice) {
-        await neonService.updateInvoiceIn(selectedInvoice.id, data, user.tenant_id);
+        await neonService.updateInvoiceIn(selectedInvoice.id, invoiceData, user.tenant_id);
+        // تحديث عناصر الفاتورة
+        if (items && items.length > 0) {
+          await neonService.updateInvoiceItems(selectedInvoice.id, 'invoice_in', items, user.tenant_id);
+        }
         toast({ title: "تم تحديث البيانات بنجاح" });
       } else {
-        await neonService.createInvoiceIn({
-          ...data,
-          date: data.date || new Date().toISOString().split('T')[0],
-        }, user.tenant_id);
+        const newInvoice = await neonService.createInvoiceIn(invoiceData, user.tenant_id, items);
         toast({ title: "تم إضافة البيانات بنجاح" });
       }
       setDialogOpen(false);
@@ -300,9 +315,11 @@ const InvoicesInPage = () => {
                                   variant="ghost" 
                                   onClick={async () => {
                                     try {
-                                      await exportInvoicePDF(inv, 'in', tenant?.name);
+                                      const items = await neonService.getInvoiceItems(inv.id, 'invoice_in', user.tenant_id);
+                                      await exportInvoicePDF(inv, 'in', tenant?.name, '/logo.png', inv.language || 'ar', items);
                                       toast({ title: 'تم تصدير PDF بنجاح' });
                                     } catch (error) {
+                                      console.error('Export PDF error:', error);
                                       toast({ title: 'خطأ في التصدير', variant: "destructive" });
                                     }
                                   }}
@@ -315,8 +332,10 @@ const InvoicesInPage = () => {
                                   variant="ghost" 
                                   onClick={async () => {
                                     try {
-                                      await printInvoice(inv, 'in', tenant?.name);
+                                      const items = await neonService.getInvoiceItems(inv.id, 'invoice_in', user.tenant_id);
+                                      await printInvoice(inv, 'in', tenant?.name, '/logo.png', inv.language || 'ar', items);
                                     } catch (error) {
+                                      console.error('Print error:', error);
                                       toast({ title: 'خطأ في الطباعة', variant: "destructive" });
                                     }
                                   }}

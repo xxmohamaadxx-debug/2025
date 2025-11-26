@@ -304,9 +304,30 @@ export const neonService = {
       return [];
     }
   },
-  createInvoiceIn: (data, tenantId) => createRecord('invoices_in', data, tenantId),
+  createInvoiceIn: async (data, tenantId, items = []) => {
+    try {
+      const invoice = await createRecord('invoices_in', data, tenantId);
+      // حفظ عناصر الفاتورة
+      if (items && items.length > 0 && invoice?.id) {
+        await neonService.createInvoiceItems(invoice.id, 'invoice_in', items, tenantId);
+      }
+      return invoice;
+    } catch (error) {
+      console.error('createInvoiceIn error:', error);
+      throw error;
+    }
+  },
   updateInvoiceIn: (id, data, tenantId) => updateRecord('invoices_in', id, data, tenantId),
-  deleteInvoiceIn: (id, tenantId) => deleteRecord('invoices_in', id, tenantId),
+  deleteInvoiceIn: async (id, tenantId) => {
+    try {
+      // حذف عناصر الفاتورة أولاً (سيتم استرجاع الكميات تلقائياً عبر Trigger)
+      await sql`DELETE FROM invoice_items WHERE invoice_id = ${id} AND invoice_type = 'invoice_in'`;
+      await deleteRecord('invoices_in', id, tenantId);
+    } catch (error) {
+      console.error('deleteInvoiceIn error:', error);
+      throw error;
+    }
+  },
 
   getInvoicesOut: async (tenantId) => {
     if (!tenantId) return [];
@@ -324,9 +345,30 @@ export const neonService = {
       return [];
     }
   },
-  createInvoiceOut: (data, tenantId) => createRecord('invoices_out', data, tenantId),
+  createInvoiceOut: async (data, tenantId, items = []) => {
+    try {
+      const invoice = await createRecord('invoices_out', data, tenantId);
+      // حفظ عناصر الفاتورة
+      if (items && items.length > 0 && invoice?.id) {
+        await neonService.createInvoiceItems(invoice.id, 'invoice_out', items, tenantId);
+      }
+      return invoice;
+    } catch (error) {
+      console.error('createInvoiceOut error:', error);
+      throw error;
+    }
+  },
   updateInvoiceOut: (id, data, tenantId) => updateRecord('invoices_out', id, data, tenantId),
-  deleteInvoiceOut: (id, tenantId) => deleteRecord('invoices_out', id, tenantId),
+  deleteInvoiceOut: async (id, tenantId) => {
+    try {
+      // حذف عناصر الفاتورة أولاً (سيتم استرجاع الكميات تلقائياً عبر Trigger)
+      await sql`DELETE FROM invoice_items WHERE invoice_id = ${id} AND invoice_type = 'invoice_out'`;
+      await deleteRecord('invoices_out', id, tenantId);
+    } catch (error) {
+      console.error('deleteInvoiceOut error:', error);
+      throw error;
+    }
+  },
 
   // Inventory
   getInventory: async (tenantId) => {
@@ -711,6 +753,173 @@ export const neonService = {
       }
     } catch (error) {
       console.error('updateUserPermissions error:', error);
+      throw error;
+    }
+  },
+
+  // Invoice Items
+  getInvoiceItems: async (invoiceId, invoiceType, tenantId) => {
+    if (!invoiceId || !tenantId) return [];
+    try {
+      const result = await sql`
+        SELECT ii.*, inv.name as inventory_item_name, inv.sku as inventory_item_sku
+        FROM invoice_items ii
+        LEFT JOIN inventory_items inv ON ii.inventory_item_id = inv.id
+        WHERE ii.invoice_id = ${invoiceId}
+        AND ii.invoice_type = ${invoiceType}
+        AND ii.tenant_id = ${tenantId}
+        ORDER BY ii.created_at ASC
+      `;
+      return result || [];
+    } catch (error) {
+      console.error('getInvoiceItems error:', error);
+      return [];
+    }
+  },
+
+  createInvoiceItems: async (invoiceId, invoiceType, items, tenantId) => {
+    if (!invoiceId || !items || items.length === 0 || !tenantId) return [];
+    try {
+      const createdItems = [];
+      for (const item of items) {
+        const itemData = {
+          invoice_id: invoiceId,
+          invoice_type: invoiceType,
+          tenant_id: tenantId,
+          inventory_item_id: item.inventory_item_id || null,
+          item_name: item.item_name || item.name || '',
+          item_code: item.item_code || item.code || '',
+          quantity: parseFloat(item.quantity || 1),
+          unit: item.unit || 'piece',
+          unit_price: parseFloat(item.unit_price || 0),
+          total_price: parseFloat(item.total_price || item.quantity * item.unit_price || 0),
+          currency: item.currency || 'TRY',
+          notes: item.notes || null,
+        };
+        const created = await createRecord('invoice_items', itemData, tenantId);
+        createdItems.push(created);
+      }
+      return createdItems;
+    } catch (error) {
+      console.error('createInvoiceItems error:', error);
+      throw error;
+    }
+  },
+
+  updateInvoiceItems: async (invoiceId, invoiceType, items, tenantId) => {
+    if (!invoiceId || !tenantId) return [];
+    try {
+      // حذف العناصر القديمة
+      await sql`DELETE FROM invoice_items WHERE invoice_id = ${invoiceId} AND invoice_type = ${invoiceType} AND tenant_id = ${tenantId}`;
+      // إضافة العناصر الجديدة
+      if (items && items.length > 0) {
+        return await neonService.createInvoiceItems(invoiceId, invoiceType, items, tenantId);
+      }
+      return [];
+    } catch (error) {
+      console.error('updateInvoiceItems error:', error);
+      throw error;
+    }
+  },
+
+  deleteInvoiceItem: async (itemId, tenantId) => {
+    try {
+      return await deleteRecord('invoice_items', itemId, tenantId);
+    } catch (error) {
+      console.error('deleteInvoiceItem error:', error);
+      throw error;
+    }
+  },
+
+  // Backup & Restore
+  createBackup: async (tenantId, userId) => {
+    if (!tenantId) throw new Error('Tenant ID is required');
+    try {
+      // استدعاء Function من قاعدة البيانات لإنشاء النسخة الاحتياطية
+      const backupData = await sql`
+        SELECT create_tenant_backup(${tenantId}) as backup_data
+      `;
+      
+      const data = backupData[0]?.backup_data;
+      if (!data) throw new Error('Failed to create backup');
+
+      // حفظ النسخة الاحتياطية في جدول backups
+      const backupRecord = await createRecord('backups', {
+        tenant_id: tenantId,
+        backup_type: 'full',
+        backup_data: data,
+        file_name: `backup_${tenantId}_${Date.now()}.json`,
+        file_size: JSON.stringify(data).length / 1024, // بالكيلوبايت
+        created_by: userId,
+      }, tenantId);
+
+      return backupRecord;
+    } catch (error) {
+      console.error('createBackup error:', error);
+      throw error;
+    }
+  },
+
+  getBackups: async (tenantId) => {
+    if (!tenantId) return [];
+    try {
+      const result = await sql`
+        SELECT b.*, u.name as created_by_name
+        FROM backups b
+        LEFT JOIN users u ON b.created_by = u.id
+        WHERE b.tenant_id = ${tenantId}
+        ORDER BY b.created_at DESC
+      `;
+      return result || [];
+    } catch (error) {
+      console.error('getBackups error:', error);
+      return [];
+    }
+  },
+
+  deleteBackup: async (backupId, tenantId) => {
+    try {
+      return await deleteRecord('backups', backupId, tenantId);
+    } catch (error) {
+      console.error('deleteBackup error:', error);
+      throw error;
+    }
+  },
+
+  exportBackupData: async (tenantId) => {
+    if (!tenantId) throw new Error('Tenant ID is required');
+    try {
+      const backupData = await sql`
+        SELECT create_tenant_backup(${tenantId}) as backup_data
+      `;
+      return backupData[0]?.backup_data || null;
+    } catch (error) {
+      console.error('exportBackupData error:', error);
+      throw error;
+    }
+  },
+
+  importBackupData: async (backupData, targetTenantId) => {
+    if (!backupData || !targetTenantId) throw new Error('Backup data and tenant ID are required');
+    try {
+      // التحقق من صحة البيانات
+      if (!backupData.tenant || !backupData.invoices_in || !backupData.invoices_out) {
+        throw new Error('Invalid backup data format');
+      }
+
+      // ملاحظة: استعادة البيانات يجب أن تتم بعناية
+      // هنا سنحفظ البيانات فقط في جدول backups للاستعادة اليدوية
+      const backupRecord = await createRecord('backups', {
+        tenant_id: targetTenantId,
+        backup_type: 'imported',
+        backup_data: backupData,
+        file_name: `imported_backup_${targetTenantId}_${Date.now()}.json`,
+        file_size: JSON.stringify(backupData).length / 1024,
+      }, targetTenantId);
+
+      return backupRecord;
+    } catch (error) {
+      console.error('importBackupData error:', error);
       throw error;
     }
   },

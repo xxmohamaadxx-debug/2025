@@ -98,7 +98,8 @@ export const exportToExcel = (data, options = {}) => {
     title = 'تقرير',
     columns = [],
     filename = 'report.xlsx',
-    sheetName = 'Sheet1'
+    sheetName = 'Sheet1',
+    locale = 'ar'
   } = options;
 
   // Prepare data

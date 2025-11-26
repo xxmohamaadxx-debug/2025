@@ -543,6 +543,203 @@ COMMENT ON COLUMN invoices_in.invoice_number IS 'رقم فاتورة تلقائ�
 COMMENT ON COLUMN invoices_out.invoice_number IS 'رقم فاتورة تلقائي فريد';
 
 -- ============================================
+-- القسم 20: دمج تحديثات عناصر الفواتير والمستودع
+-- ============================================
+
+-- إنشاء جدول عناصر الفواتير
+CREATE TABLE IF NOT EXISTS invoice_items (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    invoice_id UUID NOT NULL,
+    invoice_type TEXT NOT NULL CHECK (invoice_type IN ('invoice_in', 'invoice_out')),
+    tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE NOT NULL,
+    inventory_item_id UUID REFERENCES inventory_items(id) ON DELETE SET NULL,
+    item_name TEXT NOT NULL,
+    item_code TEXT,
+    quantity NUMERIC(10, 2) NOT NULL DEFAULT 1,
+    unit TEXT DEFAULT 'piece',
+    unit_price NUMERIC(15, 2) NOT NULL DEFAULT 0,
+    total_price NUMERIC(15, 2) NOT NULL DEFAULT 0,
+    currency TEXT DEFAULT 'TRY',
+    notes TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_invoice_items_invoice ON invoice_items(invoice_id, invoice_type);
+CREATE INDEX IF NOT EXISTS idx_invoice_items_tenant ON invoice_items(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_invoice_items_inventory ON invoice_items(inventory_item_id);
+
+-- تحديث جداول الفواتير
+ALTER TABLE invoices_in ADD COLUMN IF NOT EXISTS items JSONB DEFAULT '[]'::jsonb;
+ALTER TABLE invoices_out ADD COLUMN IF NOT EXISTS items JSONB DEFAULT '[]'::jsonb;
+ALTER TABLE invoices_in ADD COLUMN IF NOT EXISTS warehouse_updated BOOLEAN DEFAULT false;
+ALTER TABLE invoices_out ADD COLUMN IF NOT EXISTS warehouse_updated BOOLEAN DEFAULT false;
+ALTER TABLE invoices_in ADD COLUMN IF NOT EXISTS language TEXT DEFAULT 'ar';
+ALTER TABLE invoices_out ADD COLUMN IF NOT EXISTS language TEXT DEFAULT 'ar';
+
+-- تحديث inventory_transactions
+ALTER TABLE inventory_transactions ADD COLUMN IF NOT EXISTS invoice_item_id UUID REFERENCES invoice_items(id) ON DELETE SET NULL;
+CREATE INDEX IF NOT EXISTS idx_inventory_transactions_invoice_item ON inventory_transactions(invoice_item_id);
+
+-- Function لتحديث المستودع من الفاتورة
+CREATE OR REPLACE FUNCTION update_inventory_from_invoice()
+RETURNS TRIGGER AS $$
+DECLARE
+    item_record RECORD;
+    current_quantity NUMERIC;
+BEGIN
+    IF NEW.inventory_item_id IS NOT NULL THEN
+        SELECT * INTO item_record FROM inventory_items WHERE id = NEW.inventory_item_id;
+        
+        IF FOUND THEN
+            IF NEW.invoice_type = 'invoice_in' THEN
+                UPDATE inventory_items SET quantity = quantity + NEW.quantity WHERE id = NEW.inventory_item_id;
+                INSERT INTO inventory_transactions (
+                    tenant_id, inventory_item_id, transaction_type, quantity, unit,
+                    related_invoice_id, related_invoice_type, invoice_item_id, notes
+                ) VALUES (
+                    NEW.tenant_id, NEW.inventory_item_id, 'in', NEW.quantity, NEW.unit,
+                    NEW.invoice_id, NEW.invoice_type, NEW.id, 'إضافة من فاتورة وارد'
+                );
+            ELSE
+                SELECT quantity INTO current_quantity FROM inventory_items WHERE id = NEW.inventory_item_id;
+                IF current_quantity >= NEW.quantity THEN
+                    UPDATE inventory_items SET quantity = quantity - NEW.quantity WHERE id = NEW.inventory_item_id;
+                    INSERT INTO inventory_transactions (
+                        tenant_id, inventory_item_id, transaction_type, quantity, unit,
+                        related_invoice_id, related_invoice_type, invoice_item_id, notes
+                    ) VALUES (
+                        NEW.tenant_id, NEW.inventory_item_id, 'out', NEW.quantity, NEW.unit,
+                        NEW.invoice_id, NEW.invoice_type, NEW.id, 'إخراج من فاتورة صادر'
+                    );
+                ELSE
+                    RAISE EXCEPTION 'الكمية غير كافية في المستودع. المتوفرة: %, المطلوبة: %', current_quantity, NEW.quantity;
+                END IF;
+            END IF;
+        END IF;
+    END IF;
+    
+    IF NEW.invoice_type = 'invoice_in' THEN
+        UPDATE invoices_in SET warehouse_updated = true WHERE id = NEW.invoice_id;
+    ELSE
+        UPDATE invoices_out SET warehouse_updated = true WHERE id = NEW.invoice_id;
+    END IF;
+    
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trigger_update_warehouse_from_invoice_item ON invoice_items;
+CREATE TRIGGER trigger_update_warehouse_from_invoice_item
+    AFTER INSERT ON invoice_items
+    FOR EACH ROW
+    EXECUTE FUNCTION update_inventory_from_invoice();
+
+-- Function لاسترجاع الكمية عند الحذف
+CREATE OR REPLACE FUNCTION restore_inventory_on_item_delete()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF OLD.inventory_item_id IS NOT NULL THEN
+        IF OLD.invoice_type = 'invoice_in' THEN
+            UPDATE inventory_items SET quantity = GREATEST(0, quantity - OLD.quantity) WHERE id = OLD.inventory_item_id;
+        ELSE
+            UPDATE inventory_items SET quantity = quantity + OLD.quantity WHERE id = OLD.inventory_item_id;
+        END IF;
+    END IF;
+    RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trigger_restore_inventory_on_item_delete ON invoice_items;
+CREATE TRIGGER trigger_restore_inventory_on_item_delete
+    AFTER DELETE ON invoice_items
+    FOR EACH ROW
+    EXECUTE FUNCTION restore_inventory_on_item_delete();
+
+-- Function لحساب المبلغ الإجمالي
+CREATE OR REPLACE FUNCTION calculate_invoice_total()
+RETURNS TRIGGER AS $$
+DECLARE
+    total_amount NUMERIC := 0;
+BEGIN
+    SELECT COALESCE(SUM(total_price), 0) INTO total_amount
+    FROM invoice_items
+    WHERE invoice_id = NEW.invoice_id AND invoice_type = NEW.invoice_type AND currency = NEW.currency;
+    
+    IF NEW.invoice_type = 'invoice_in' THEN
+        UPDATE invoices_in SET amount = total_amount WHERE id = NEW.invoice_id;
+    ELSE
+        UPDATE invoices_out SET amount = total_amount WHERE id = NEW.invoice_id;
+    END IF;
+    
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trigger_calculate_invoice_total ON invoice_items;
+CREATE TRIGGER trigger_calculate_invoice_total
+    AFTER INSERT OR UPDATE OR DELETE ON invoice_items
+    FOR EACH ROW
+    EXECUTE FUNCTION calculate_invoice_total();
+
+-- جدول النسخ الاحتياطي
+CREATE TABLE IF NOT EXISTS backups (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE NOT NULL,
+    backup_type TEXT NOT NULL DEFAULT 'full',
+    backup_data JSONB NOT NULL,
+    file_name TEXT,
+    file_size NUMERIC(10, 2),
+    created_by UUID REFERENCES users(id),
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_backups_tenant ON backups(tenant_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_backups_type ON backups(backup_type);
+
+-- Function للنسخ الاحتياطي
+CREATE OR REPLACE FUNCTION create_tenant_backup(tenant_uuid UUID)
+RETURNS JSONB AS $$
+DECLARE
+    backup_data JSONB;
+BEGIN
+    SELECT jsonb_build_object(
+        'tenant', (SELECT row_to_json(t.*) FROM tenants t WHERE id = tenant_uuid),
+        'users', (SELECT jsonb_agg(row_to_json(u.*)) FROM users u WHERE tenant_id = tenant_uuid),
+        'partners', (SELECT jsonb_agg(row_to_json(p.*)) FROM partners p WHERE tenant_id = tenant_uuid),
+        'inventory_items', (SELECT jsonb_agg(row_to_json(i.*)) FROM inventory_items i WHERE tenant_id = tenant_uuid),
+        'invoices_in', (SELECT jsonb_agg(row_to_json(inv.*)) FROM invoices_in inv WHERE tenant_id = tenant_uuid),
+        'invoices_out', (SELECT jsonb_agg(row_to_json(inv.*)) FROM invoices_out inv WHERE tenant_id = tenant_uuid),
+        'invoice_items', (SELECT jsonb_agg(row_to_json(item.*)) FROM invoice_items item WHERE item.tenant_id = tenant_uuid),
+        'employees', (SELECT jsonb_agg(row_to_json(e.*)) FROM employees e WHERE tenant_id = tenant_uuid),
+        'payroll', (SELECT jsonb_agg(row_to_json(p.*)) FROM payroll p WHERE tenant_id = tenant_uuid),
+        'inventory_transactions', (SELECT jsonb_agg(row_to_json(t.*)) FROM inventory_transactions t WHERE t.tenant_id = tenant_uuid),
+        'created_at', NOW()
+    ) INTO backup_data;
+    RETURN backup_data;
+END;
+$$ LANGUAGE plpgsql;
+
+-- View لعرض عناصر الفواتير
+CREATE OR REPLACE VIEW invoice_items_view AS
+SELECT ii.*, inv.name as inventory_item_name, inv.sku as inventory_item_sku, inv.quantity as current_stock
+FROM invoice_items ii
+LEFT JOIN inventory_items inv ON ii.inventory_item_id = inv.id;
+
+-- جدول إعدادات التقارير
+CREATE TABLE IF NOT EXISTS report_settings (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE,
+    report_type TEXT NOT NULL,
+    language TEXT DEFAULT 'ar',
+    format TEXT DEFAULT 'pdf',
+    settings JSONB DEFAULT '{}'::jsonb,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_report_settings_tenant ON report_settings(tenant_id, report_type);
+
+-- ============================================
 -- تأكيد نجاح التحديث
 -- ============================================
 

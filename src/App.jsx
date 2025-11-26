@@ -32,6 +32,7 @@ const AuditLogPage = React.lazy(() => import('@/pages/AuditLogPage'));
 const SettingsPage = React.lazy(() => import('@/pages/SettingsPage'));
 const SubscriptionPage = React.lazy(() => import('@/pages/SubscriptionPage'));
 const SupportPage = React.lazy(() => import('@/pages/SupportPage'));
+const BackupPage = React.lazy(() => import('@/pages/BackupPage'));
 const NotFoundPage = React.lazy(() => import('@/pages/NotFoundPage'));
 
 const LoadingSpinner = () => (
@@ -148,6 +149,7 @@ function App() {
                   <Route path="/settings" element={<PrivateRoute roles={['ANY']}><MainLayout><SubscriptionWarning /><SettingsPage /></MainLayout></PrivateRoute>} />
                   <Route path="/subscription" element={<PrivateRoute roles={['ANY']}><MainLayout><SubscriptionWarning /><SubscriptionPage /></MainLayout></PrivateRoute>} />
                   <Route path="/support" element={<PrivateRoute roles={['ANY']}><MainLayout><SubscriptionWarning /><SupportPage /></MainLayout></PrivateRoute>} />
+                  <Route path="/backup" element={<PrivateRoute roles={['STORE_OWNER', 'SUPER_ADMIN']}><MainLayout><SubscriptionWarning /><BackupPage /></MainLayout></PrivateRoute>} />
                   
                   <Route path="/" element={<Navigate to="/dashboard" replace />} />
                   <Route path="*" element={<NotFoundPage />} />
