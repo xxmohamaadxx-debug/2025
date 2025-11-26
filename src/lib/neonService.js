@@ -1901,4 +1901,145 @@ export const neonService = {
       return [];
     }
   },
+
+  // Multiple Store Types Management
+  getTenantStoreTypes: async (tenantId) => {
+    if (!tenantId) return [];
+    try {
+      const result = await sql`
+        SELECT * FROM get_tenant_store_types(${tenantId})
+      `;
+      return result || [];
+    } catch (error) {
+      console.error('getTenantStoreTypes error:', error);
+      return [];
+    }
+  },
+
+  addStoreTypeToTenant: async (tenantId, storeTypeId, isPrimary = false, priority = 0) => {
+    try {
+      const result = await sql`
+        SELECT add_store_type_to_tenant(${tenantId}, ${storeTypeId}, ${isPrimary}, ${priority}) as success
+      `;
+      return result[0]?.success || false;
+    } catch (error) {
+      console.error('addStoreTypeToTenant error:', error);
+      throw error;
+    }
+  },
+
+  removeStoreTypeFromTenant: async (tenantId, storeTypeId) => {
+    try {
+      await sql`
+        DELETE FROM tenant_store_types
+        WHERE tenant_id = ${tenantId} AND store_type_id = ${storeTypeId}
+      `;
+      return true;
+    } catch (error) {
+      console.error('removeStoreTypeFromTenant error:', error);
+      throw error;
+    }
+  },
+
+  // Notification Settings Management
+  getTenantNotificationSettings: async (tenantId) => {
+    if (!tenantId) return [];
+    try {
+      const result = await sql`
+        SELECT * FROM get_tenant_notification_settings(${tenantId})
+      `;
+      return result || [];
+    } catch (error) {
+      console.error('getTenantNotificationSettings error:', error);
+      return [];
+    }
+  },
+
+  updateNotificationSetting: async (tenantId, notificationType, settings, userId) => {
+    try {
+      await sql`
+        INSERT INTO notification_settings (tenant_id, notification_type, enabled, show_in_app, show_push, show_sound, priority)
+        VALUES (${tenantId}, ${notificationType}, ${settings.enabled}, ${settings.show_in_app}, ${settings.show_push}, ${settings.show_sound}, ${settings.priority || 'normal'})
+        ON CONFLICT (tenant_id, notification_type) DO UPDATE SET
+          enabled = EXCLUDED.enabled,
+          show_in_app = EXCLUDED.show_in_app,
+          show_push = EXCLUDED.show_push,
+          show_sound = EXCLUDED.show_sound,
+          priority = EXCLUDED.priority,
+          updated_at = NOW()
+      `;
+      return true;
+    } catch (error) {
+      console.error('updateNotificationSetting error:', error);
+      throw error;
+    }
+  },
+
+  // Push Notifications Management
+  savePushSubscription: async (tenantId, userId, subscription) => {
+    try {
+      await sql`
+        INSERT INTO push_subscriptions (tenant_id, user_id, endpoint, p256dh, auth, user_agent, is_active)
+        VALUES (${tenantId}, ${userId}, ${subscription.endpoint}, ${subscription.keys.p256dh}, ${subscription.keys.auth}, ${navigator.userAgent || ''}, true)
+        ON CONFLICT (tenant_id, user_id, endpoint) DO UPDATE SET
+          p256dh = EXCLUDED.p256dh,
+          auth = EXCLUDED.auth,
+          is_active = true,
+          updated_at = NOW()
+      `;
+      return true;
+    } catch (error) {
+      console.error('savePushSubscription error:', error);
+      throw error;
+    }
+  },
+
+  getPushSubscriptions: async (tenantId, userId = null) => {
+    if (!tenantId) return [];
+    try {
+      let query;
+      if (userId) {
+        query = sql`
+          SELECT * FROM push_subscriptions
+          WHERE tenant_id = ${tenantId} AND user_id = ${userId} AND is_active = true
+        `;
+      } else {
+        query = sql`
+          SELECT * FROM push_subscriptions
+          WHERE tenant_id = ${tenantId} AND is_active = true
+        `;
+      }
+      const result = await query;
+      return result || [];
+    } catch (error) {
+      console.error('getPushSubscriptions error:', error);
+      return [];
+    }
+  },
+
+  removePushSubscription: async (tenantId, userId, endpoint) => {
+    try {
+      await sql`
+        UPDATE push_subscriptions
+        SET is_active = false, updated_at = NOW()
+        WHERE tenant_id = ${tenantId} AND user_id = ${userId} AND endpoint = ${endpoint}
+      `;
+      return true;
+    } catch (error) {
+      console.error('removePushSubscription error:', error);
+      throw error;
+    }
+  },
+
+  canSendPushNotification: async (tenantId, notificationType) => {
+    try {
+      const result = await sql`
+        SELECT can_send_push_notification(${tenantId}, ${notificationType}) as can_send
+      `;
+      return result[0]?.can_send || false;
+    } catch (error) {
+      console.error('canSendPushNotification error:', error);
+      return false;
+    }
+  },
 };
