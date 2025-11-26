@@ -107,12 +107,15 @@ const PaymentDialog = ({ open, onOpenChange, customer, onSave }) => {
             >
               <option value="payment">دفعة (تسديد دين)</option>
               <option value="receipt">استلام (من عميل)</option>
-              <option value="debt">إضافة دين</option>
-              <option value="credit">إضافة رصيد</option>
+              <option value="debt">إضافة دين جديد</option>
+              <option value="credit">إضافة رصيد جديد</option>
             </select>
-            <p className="text-xs text-gray-500 mt-1">
-              {formData.type === 'payment' && currentDebt > 0 && 'ستُخصم من الدين تلقائياً'}
-              {formData.type === 'payment' && currentDebt === 0 && 'ستُضاف كرصيد للعميل'}
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              {formData.type === 'payment' && currentDebt > 0 && '✅ ستُخصم من الدين تلقائياً'}
+              {formData.type === 'payment' && currentDebt === 0 && '✅ ستُضاف كرصيد للعميل'}
+              {formData.type === 'debt' && '⚠️ سيتم إضافة دين جديد للعميل'}
+              {formData.type === 'credit' && '✅ سيتم إضافة رصيد جديد للعميل'}
+              {formData.type === 'receipt' && '💰 استلام مبلغ من العميل (يُضاف كدين)'}
             </p>
           </div>
 

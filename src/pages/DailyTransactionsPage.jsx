@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { neonService } from '@/lib/neonService';
 import { Button } from '@/components/ui/button';
-import { Plus, Loader2, Search, Filter, Calendar, TrendingUp, TrendingDown, Wallet } from 'lucide-react';
+import { Plus, Loader2, Search, Filter, Calendar, TrendingUp, TrendingDown, Wallet, Activity } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { formatDateAR, formatDateShort } from '@/lib/dateUtils';
 import { CURRENCIES } from '@/lib/constants';

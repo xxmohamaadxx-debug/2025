@@ -337,6 +337,21 @@ export const generateReportPDF = async (title, data, columns, tenantName, logoPa
     console.error('Logo not found');
   }
 
+  // إضافة العلامة المائية في الخلفية (قبل أي محتوى)
+  if (logoBase64) {
+    try {
+      doc.setGState(doc.GState({ opacity: 0.08 }));
+      const logoWidth = 120;
+      const logoHeight = 120;
+      const centerX = (pageWidth - logoWidth) / 2;
+      const centerY = (pageHeight - logoHeight) / 2;
+      doc.addImage(logoBase64, 'PNG', centerX, centerY, logoWidth, logoHeight);
+      doc.setGState(doc.GState({ opacity: 1 }));
+    } catch (error) {
+      console.error('Error adding watermark:', error);
+    }
+  }
+
   // العنوان
   autoTable(doc, {
     startY: 10,
@@ -390,14 +405,18 @@ export const generateReportPDF = async (title, data, columns, tenantName, logoPa
     })),
     theme: 'striped',
     headStyles: { fillColor: [255, 140, 0], textColor: 255, fontStyle: 'bold' },
-    styles: { fontSize: 9, halign: isRTL ? 'right' : 'left' },
+    styles: { 
+      fontSize: isRTL ? 10 : 9, 
+      halign: isRTL ? 'right' : 'left',
+      font: isRTL ? 'Arial' : 'helvetica'
+    },
     margin: { left: 15, right: 15 },
     didDrawPage: function (data) {
       // إضافة علامة مائية في كل صفحة
-      if (logoBase64 && data.pageNumber > 1) {
-        doc.setGState(doc.GState({ opacity: 0.05 }));
-        const logoWidth = 100;
-        const logoHeight = 100;
+      if (logoBase64) {
+        doc.setGState(doc.GState({ opacity: 0.08 }));
+        const logoWidth = 120;
+        const logoHeight = 120;
         const centerX = (pageWidth - logoWidth) / 2;
         const centerY = (pageHeight - logoHeight) / 2;
         doc.addImage(logoBase64, 'PNG', centerX, centerY, logoWidth, logoHeight);
