@@ -6,7 +6,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { 
   LayoutDashboard, FileText, ShoppingCart, Package, 
   Users, Settings, LogOut, Shield, BarChart, 
-  CreditCard, Briefcase, X
+  CreditCard, Briefcase, X, MessageCircle
 } from 'lucide-react';
 import Logo from '@/components/Logo';
 
@@ -117,6 +117,11 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         <Link to="/subscription" className={navItemClass('/subscription')} onClick={handleLinkClick}>
           <CreditCard className="h-5 w-5 ltr:mr-3 rtl:ml-3" />
           {t('common.subscription')}
+        </Link>
+
+        <Link to="/support" className={navItemClass('/support')} onClick={handleLinkClick}>
+          <MessageCircle className="h-5 w-5 ltr:mr-3 rtl:ml-3" />
+          الدعم والمساعدة
         </Link>
 
         <Link to="/settings" className={navItemClass('/settings')} onClick={handleLinkClick}>
