@@ -10,6 +10,7 @@ import InvoiceDialog from '@/components/invoices/InvoiceDialog';
 import { toast } from '@/components/ui/use-toast';
 import { formatDateAR, formatDateShort } from '@/lib/dateUtils';
 import { exportInvoicePDF, printInvoice } from '@/lib/pdfUtils';
+import { isOnline, storeOffline } from '@/lib/offlineService';
 
 const InvoicesOutPage = () => {
   const { user, tenant } = useAuth();
@@ -67,6 +68,22 @@ const InvoicesOutPage = () => {
         date: invoiceData.date || new Date().toISOString().split('T')[0],
       };
 
+      // التحقق من حالة الإنترنت
+      if (!isOnline()) {
+        await storeOffline('invoices_out', selectedInvoice ? 'update' : 'create', {
+          ...data,
+          items: items || []
+        }, user.tenant_id, user.id);
+        
+        toast({ 
+          title: "تم حفظ البيانات محلياً",
+          description: "سيتم رفعها تلقائياً عند الاتصال بالإنترنت"
+        });
+        setDialogOpen(false);
+        setSelectedInvoice(null);
+        return;
+      }
+
       if (selectedInvoice) {
         await neonService.updateInvoiceOut(selectedInvoice.id, data, user.tenant_id);
         // تحديث عناصر الفاتورة
@@ -83,6 +100,26 @@ const InvoicesOutPage = () => {
       loadInvoices();
     } catch (error) {
       console.error('Invoice save error:', error);
+      
+      // في حالة الخطأ، حاول الحفظ محلياً
+      if (!isOnline()) {
+        try {
+          await storeOffline('invoices_out', selectedInvoice ? 'update' : 'create', {
+            ...invoiceData,
+            items: items || []
+          }, user.tenant_id, user.id);
+          toast({ 
+            title: "تم حفظ البيانات محلياً",
+            description: "سيتم رفعها تلقائياً عند الاتصال بالإنترنت"
+          });
+          setDialogOpen(false);
+          setSelectedInvoice(null);
+          return;
+        } catch (offlineError) {
+          console.error('Offline save error:', offlineError);
+        }
+      }
+      
       toast({ 
         title: "خطأ في حفظ البيانات", 
         description: error.message || "حدث خطأ أثناء حفظ البيانات. يرجى المحاولة مرة أخرى.",

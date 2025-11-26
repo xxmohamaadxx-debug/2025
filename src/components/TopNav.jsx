@@ -2,13 +2,13 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { Search, User, Menu, Shield } from 'lucide-react';
+import { Search, User, Menu, Shield, Wifi, WifiOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import Logo from '@/components/Logo';
 import Notifications from '@/components/Notifications';
 
-const TopNav = ({ onMenuClick }) => {
+const TopNav = ({ onMenuClick, isOffline = false, pendingSyncCount = 0 }) => {
   const { user } = useAuth();
   const { t } = useLanguage();
 
@@ -39,6 +39,24 @@ const TopNav = ({ onMenuClick }) => {
       </div>
 
       <div className="flex items-center gap-2 md:gap-4">
+        {isOffline && (
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-yellow-100 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
+            <WifiOff className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
+            <span className="text-xs text-yellow-800 dark:text-yellow-200 hidden sm:inline">بدون إنترنت</span>
+            {pendingSyncCount > 0 && (
+              <span className="text-xs bg-yellow-200 dark:bg-yellow-800 px-2 py-0.5 rounded-full">
+                {pendingSyncCount}
+              </span>
+            )}
+          </div>
+        )}
+        {!isOffline && navigator.onLine && (
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-green-100 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+            <Wifi className="h-4 w-4 text-green-600 dark:text-green-400" />
+            <span className="text-xs text-green-800 dark:text-green-200 hidden sm:inline">متصل</span>
+          </div>
+        )}
+        
         {user?.isSuperAdmin && (
           <Link to="/admin">
             <Button variant="outline" size="sm" className="gap-2 border-purple-500 text-purple-600 hover:bg-purple-50 dark:border-purple-400 dark:text-purple-400 dark:hover:bg-purple-900/20">

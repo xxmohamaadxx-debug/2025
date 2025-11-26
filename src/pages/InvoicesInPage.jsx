@@ -10,6 +10,7 @@ import { toast } from '@/components/ui/use-toast';
 import InvoiceDialog from '@/components/invoices/InvoiceDialog';
 import { formatDateAR, formatDateShort } from '@/lib/dateUtils';
 import { exportInvoicePDF, printInvoice } from '@/lib/pdfUtils';
+import { isOnline, storeOffline } from '@/lib/offlineService';
 
 const InvoicesInPage = () => {
   const { user, tenant } = useAuth();
@@ -96,6 +97,24 @@ const InvoicesInPage = () => {
         date: data.date || new Date().toISOString().split('T')[0],
       };
 
+      // التحقق من حالة الإنترنت
+      if (!isOnline()) {
+        // حفظ محلياً في Offline Mode
+        await storeOffline('invoices_in', selectedInvoice ? 'update' : 'create', {
+          ...invoiceData,
+          items: items || []
+        }, user.tenant_id, user.id);
+        
+        toast({ 
+          title: "تم حفظ البيانات محلياً",
+          description: "سيتم رفعها تلقائياً عند الاتصال بالإنترنت"
+        });
+        setDialogOpen(false);
+        setSelectedInvoice(null);
+        // تحميل من localStorage في وضع Offline
+        return;
+      }
+
       if (selectedInvoice) {
         await neonService.updateInvoiceIn(selectedInvoice.id, invoiceData, user.tenant_id);
         // تحديث عناصر الفاتورة
@@ -112,6 +131,26 @@ const InvoicesInPage = () => {
       loadInvoices();
     } catch (error) {
       console.error('Invoice save error:', error);
+      
+      // في حالة الخطأ، حاول الحفظ محلياً
+      if (!isOnline()) {
+        try {
+          await storeOffline('invoices_in', selectedInvoice ? 'update' : 'create', {
+            ...data,
+            items: items || []
+          }, user.tenant_id, user.id);
+          toast({ 
+            title: "تم حفظ البيانات محلياً",
+            description: "سيتم رفعها تلقائياً عند الاتصال بالإنترنت"
+          });
+          setDialogOpen(false);
+          setSelectedInvoice(null);
+          return;
+        } catch (offlineError) {
+          console.error('Offline save error:', offlineError);
+        }
+      }
+      
       toast({ 
         title: "خطأ في حفظ البيانات", 
         description: error.message || "حدث خطأ أثناء حفظ البيانات. يرجى المحاولة مرة أخرى.",

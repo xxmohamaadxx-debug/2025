@@ -291,6 +291,25 @@ const DashboardPage = () => {
         
         {/* الموظفون النشطون - بطاقة واحدة */}
         <KPICard t={t} title={t('dashboard.activeEmployees')} value={stats.employees} icon={Users} color="bg-orange-500" />
+        
+        {/* الربح/الخسارة اليومية */}
+        {stats.todayProfitLoss && (
+          (() => {
+            const currency = stats.todayProfitLoss.currency || 'TRY';
+            const currencyInfo = CURRENCIES[currency] || { symbol: currency, code: currency };
+            const netProfit = parseFloat(stats.todayProfitLoss.net_profit || 0);
+            return (
+              <KPICard
+                key={`daily-profit-${currency}`}
+                t={t}
+                title={`الربح/الخسارة اليومية (${currencyInfo.code})`}
+                value={`${currencyInfo.symbol}${netProfit.toLocaleString('ar-EG', { minimumFractionDigits: 2 })}`}
+                icon={netProfit >= 0 ? TrendingUp : TrendingDown}
+                color={netProfit >= 0 ? "bg-green-500" : "bg-red-500"}
+              />
+            );
+          })()
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

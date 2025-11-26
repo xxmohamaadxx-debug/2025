@@ -95,6 +95,11 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           الحركة اليومية
         </Link>
 
+        <Link to="/customers" className={navItemClass('/customers')} onClick={handleLinkClick}>
+          <Users className="h-5 w-5 ltr:mr-3 rtl:ml-3" />
+          العملاء والديون
+        </Link>
+
         <Link to="/partners" className={navItemClass('/partners')} onClick={handleLinkClick}>
           <Users className="h-5 w-5 ltr:mr-3 rtl:ml-3" />
           {t('common.partners')}
