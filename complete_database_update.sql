@@ -740,6 +740,87 @@ CREATE TABLE IF NOT EXISTS report_settings (
 CREATE INDEX IF NOT EXISTS idx_report_settings_tenant ON report_settings(tenant_id, report_type);
 
 -- ============================================
+-- القسم 21: دمج تحديثات العملاء والحركة اليومية و Offline Mode
+-- (انظر ملف update_database_customers_transactions_offline.sql للتفاصيل الكاملة)
+-- ============================================
+
+-- تحديث جدول partners لدعم الديون والرصيد
+ALTER TABLE partners
+ADD COLUMN IF NOT EXISTS balance NUMERIC(15, 2) DEFAULT 0,
+ADD COLUMN IF NOT EXISTS debt NUMERIC(15, 2) DEFAULT 0,
+ADD COLUMN IF NOT EXISTS currency TEXT DEFAULT 'TRY',
+ADD COLUMN IF NOT EXISTS payment_method TEXT DEFAULT 'cash',
+ADD COLUMN IF NOT EXISTS total_paid NUMERIC(15, 2) DEFAULT 0,
+ADD COLUMN IF NOT EXISTS total_received NUMERIC(15, 2) DEFAULT 0;
+
+CREATE INDEX IF NOT EXISTS idx_partners_balance ON partners(tenant_id, balance);
+CREATE INDEX IF NOT EXISTS idx_partners_debt ON partners(tenant_id, debt);
+
+-- جدول معاملات العملاء (الدفعات)
+CREATE TABLE IF NOT EXISTS customer_transactions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE NOT NULL,
+    partner_id UUID REFERENCES partners(id) ON DELETE CASCADE NOT NULL,
+    transaction_type TEXT NOT NULL CHECK (transaction_type IN ('payment', 'receipt', 'debt', 'credit')),
+    amount NUMERIC(15, 2) NOT NULL DEFAULT 0,
+    currency TEXT DEFAULT 'TRY',
+    payment_method TEXT DEFAULT 'cash',
+    description TEXT,
+    invoice_id UUID,
+    invoice_type TEXT CHECK (invoice_type IN ('invoice_in', 'invoice_out')),
+    transaction_date TIMESTAMPTZ DEFAULT NOW(),
+    created_by UUID REFERENCES users(id),
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    notes TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_customer_transactions_partner ON customer_transactions(partner_id, transaction_date DESC);
+CREATE INDEX IF NOT EXISTS idx_customer_transactions_tenant ON customer_transactions(tenant_id);
+
+-- جدول الحركة اليومية
+CREATE TABLE IF NOT EXISTS daily_transactions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE NOT NULL,
+    transaction_type TEXT NOT NULL CHECK (transaction_type IN ('income', 'expense', 'payment', 'receipt')),
+    category TEXT,
+    amount NUMERIC(15, 2) NOT NULL DEFAULT 0,
+    currency TEXT DEFAULT 'TRY',
+    description TEXT,
+    reference_id UUID,
+    reference_type TEXT,
+    transaction_date DATE NOT NULL DEFAULT CURRENT_DATE,
+    payment_method TEXT DEFAULT 'cash',
+    created_by UUID REFERENCES users(id),
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    notes TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_daily_transactions_date ON daily_transactions(tenant_id, transaction_date DESC);
+CREATE INDEX IF NOT EXISTS idx_daily_transactions_type ON daily_transactions(transaction_type);
+
+-- جدول البيانات المؤقتة (Offline)
+CREATE TABLE IF NOT EXISTS offline_queue (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE NOT NULL,
+    user_id UUID REFERENCES users(id),
+    operation_type TEXT NOT NULL,
+    table_name TEXT NOT NULL,
+    record_data JSONB NOT NULL,
+    record_id UUID,
+    sync_status TEXT DEFAULT 'pending',
+    error_message TEXT,
+    retry_count INT DEFAULT 0,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    synced_at TIMESTAMPTZ
+);
+
+CREATE INDEX IF NOT EXISTS idx_offline_queue_status ON offline_queue(tenant_id, sync_status, created_at);
+
+-- تحديث جداول الفواتير لدعم طريقة الدفع
+ALTER TABLE invoices_in ADD COLUMN IF NOT EXISTS payment_method TEXT DEFAULT 'cash';
+ALTER TABLE invoices_out ADD COLUMN IF NOT EXISTS payment_method TEXT DEFAULT 'cash';
+
+-- ============================================
 -- تأكيد نجاح التحديث
 -- ============================================
 

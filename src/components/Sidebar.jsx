@@ -6,7 +6,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { 
   LayoutDashboard, FileText, ShoppingCart, Package, 
   Users, Settings, LogOut, Shield, BarChart, 
-  CreditCard, Briefcase, X, MessageCircle, Database
+  CreditCard, Briefcase, X, MessageCircle, Database, Activity
 } from 'lucide-react';
 import Logo from '@/components/Logo';
 
@@ -89,6 +89,11 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         </Link>
 
         <div className="px-4 mb-2 mt-6 text-xs font-semibold text-gray-400 uppercase tracking-wider">{t('nav.management') || 'إدارة'}</div>
+
+        <Link to="/daily-transactions" className={navItemClass('/daily-transactions')} onClick={handleLinkClick}>
+          <Activity className="h-5 w-5 ltr:mr-3 rtl:ml-3" />
+          الحركة اليومية
+        </Link>
 
         <Link to="/partners" className={navItemClass('/partners')} onClick={handleLinkClick}>
           <Users className="h-5 w-5 ltr:mr-3 rtl:ml-3" />

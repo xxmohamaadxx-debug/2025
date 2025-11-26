@@ -923,4 +923,163 @@ export const neonService = {
       throw error;
     }
   },
+
+  // Customer Transactions (الدفعات والديون)
+  getCustomerTransactions: async (tenantId, partnerId = null) => {
+    if (!tenantId) return [];
+    try {
+      let query;
+      if (partnerId) {
+        query = sql`
+          SELECT ct.*, p.name as partner_name, u.name as created_by_name
+          FROM customer_transactions ct
+          LEFT JOIN partners p ON ct.partner_id = p.id
+          LEFT JOIN users u ON ct.created_by = u.id
+          WHERE ct.tenant_id = ${tenantId} AND ct.partner_id = ${partnerId}
+          ORDER BY ct.transaction_date DESC, ct.created_at DESC
+        `;
+      } else {
+        query = sql`
+          SELECT ct.*, p.name as partner_name, u.name as created_by_name
+          FROM customer_transactions ct
+          LEFT JOIN partners p ON ct.partner_id = p.id
+          LEFT JOIN users u ON ct.created_by = u.id
+          WHERE ct.tenant_id = ${tenantId}
+          ORDER BY ct.transaction_date DESC, ct.created_at DESC
+        `;
+      }
+      return await query;
+    } catch (error) {
+      console.error('getCustomerTransactions error:', error);
+      return [];
+    }
+  },
+
+  createCustomerTransaction: async (data, tenantId) => {
+    try {
+      return await createRecord('customer_transactions', {
+        ...data,
+        transaction_date: data.transaction_date || new Date().toISOString(),
+      }, tenantId);
+    } catch (error) {
+      console.error('createCustomerTransaction error:', error);
+      throw error;
+    }
+  },
+
+  updateCustomerTransaction: (id, data, tenantId) => updateRecord('customer_transactions', id, data, tenantId),
+  deleteCustomerTransaction: (id, tenantId) => deleteRecord('customer_transactions', id, tenantId),
+
+  // Daily Transactions (الحركة اليومية)
+  getDailyTransactions: async (tenantId, date = null) => {
+    if (!tenantId) return [];
+    try {
+      let query;
+      if (date) {
+        query = sql`
+          SELECT dt.*, u.name as created_by_name
+          FROM daily_transactions dt
+          LEFT JOIN users u ON dt.created_by = u.id
+          WHERE dt.tenant_id = ${tenantId} AND dt.transaction_date = ${date}
+          ORDER BY dt.transaction_date DESC, dt.created_at DESC
+        `;
+      } else {
+        query = sql`
+          SELECT dt.*, u.name as created_by_name
+          FROM daily_transactions dt
+          LEFT JOIN users u ON dt.created_by = u.id
+          WHERE dt.tenant_id = ${tenantId}
+          ORDER BY dt.transaction_date DESC, dt.created_at DESC
+          LIMIT 500
+        `;
+      }
+      return await query;
+    } catch (error) {
+      console.error('getDailyTransactions error:', error);
+      return [];
+    }
+  },
+
+  getDailyProfitLoss: async (tenantId, startDate = null, endDate = null) => {
+    if (!tenantId) return null;
+    try {
+      let query;
+      if (startDate && endDate) {
+        query = sql`
+          SELECT * FROM daily_profit_loss
+          WHERE tenant_id = ${tenantId}
+          AND transaction_date BETWEEN ${startDate} AND ${endDate}
+          ORDER BY transaction_date DESC
+        `;
+      } else {
+        query = sql`
+          SELECT * FROM daily_profit_loss
+          WHERE tenant_id = ${tenantId}
+          ORDER BY transaction_date DESC
+          LIMIT 30
+        `;
+      }
+      const result = await query;
+      return result || [];
+    } catch (error) {
+      console.error('getDailyProfitLoss error:', error);
+      return [];
+    }
+  },
+
+  createDailyTransaction: async (data, tenantId) => {
+    try {
+      return await createRecord('daily_transactions', {
+        ...data,
+        transaction_date: data.transaction_date || new Date().toISOString().split('T')[0],
+      }, tenantId);
+    } catch (error) {
+      console.error('createDailyTransaction error:', error);
+      throw error;
+    }
+  },
+
+  // Customer Summary (تقرير العملاء)
+  getCustomerSummary: async (tenantId) => {
+    if (!tenantId) return [];
+    try {
+      const result = await sql`
+        SELECT * FROM customer_summary
+        WHERE tenant_id = ${tenantId}
+        ORDER BY debt DESC, balance DESC
+      `;
+      return result || [];
+    } catch (error) {
+      console.error('getCustomerSummary error:', error);
+      return [];
+    }
+  },
+
+  // Offline Queue
+  getOfflineQueue: async (tenantId) => {
+    if (!tenantId) return [];
+    try {
+      const result = await sql`
+        SELECT * FROM offline_queue
+        WHERE tenant_id = ${tenantId} AND sync_status = 'pending'
+        ORDER BY created_at ASC
+      `;
+      return result || [];
+    } catch (error) {
+      console.error('getOfflineQueue error:', error);
+      return [];
+    }
+  },
+
+  createOfflineQueueItem: async (data, tenantId) => {
+    try {
+      return await createRecord('offline_queue', data, tenantId);
+    } catch (error) {
+      console.error('createOfflineQueueItem error:', error);
+      throw error;
+    }
+  },
+
+  updateOfflineQueueItem: (id, data, tenantId) => updateRecord('offline_queue', id, data, tenantId),
+  deleteOfflineQueueItem: (id, tenantId) => deleteRecord('offline_queue', id, tenantId),
 };

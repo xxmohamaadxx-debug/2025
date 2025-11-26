@@ -48,7 +48,9 @@ const DashboardPage = () => {
     incomeByCurrency: { TRY: 0, USD: 0, SYP: 0 },
     expensesByCurrency: { TRY: 0, USD: 0, SYP: 0 },
     employees: 0, 
-    lowStock: 0 
+    lowStock: 0,
+    dailyProfitLoss: [],
+    todayProfitLoss: null
   });
   const [loading, setLoading] = useState(true);
   const [filterPeriod, setFilterPeriod] = useState('day'); // 'day', 'week', 'month', 'all'
@@ -89,7 +91,8 @@ const DashboardPage = () => {
           Promise.race([neonService.getInvoicesIn(user.tenant_id).catch(() => []), timeoutPromise]),
           Promise.race([neonService.getInvoicesOut(user.tenant_id).catch(() => []), timeoutPromise]),
           Promise.race([neonService.getEmployees(user.tenant_id).catch(() => []), timeoutPromise]),
-          Promise.race([neonService.getInventory(user.tenant_id).catch(() => []), timeoutPromise])
+          Promise.race([neonService.getInventory(user.tenant_id).catch(() => []), timeoutPromise]),
+          Promise.race([neonService.getDailyProfitLoss(user.tenant_id, null, null).catch(() => []), timeoutPromise])
         ];
 
         const results = await Promise.allSettled(promises);
@@ -98,6 +101,7 @@ const DashboardPage = () => {
         let invoicesOut = Array.isArray(results[1].value) ? results[1].value : [];
         const employees = Array.isArray(results[2].value) ? results[2].value : [];
         const inventory = Array.isArray(results[3].value) ? results[3].value : [];
+        const dailyProfitLoss = Array.isArray(results[4].value) ? results[4].value : [];
         
         // تصفية حسب الفترة المحددة
         const now = new Date();
@@ -143,11 +147,19 @@ const DashboardPage = () => {
           }
         });
         
+        // حساب الربح/الخسارة اليومية
+        const todayProfitLoss = dailyProfitLoss.find(p => {
+          const today = new Date().toISOString().split('T')[0];
+          return p.transaction_date === today;
+        });
+
         setStats({
           incomeByCurrency,
           expensesByCurrency,
           employees: employees.filter(e => e?.status === 'Active').length,
-          lowStock: inventory.filter(i => Number(i?.quantity || 0) <= Number(i?.min_stock || 5)).length
+          lowStock: inventory.filter(i => Number(i?.quantity || 0) <= Number(i?.min_stock || 5)).length,
+          dailyProfitLoss: dailyProfitLoss || [],
+          todayProfitLoss: todayProfitLoss || null
         });
       } catch (error) {
         console.error("Dashboard load error:", error);
