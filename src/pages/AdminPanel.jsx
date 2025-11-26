@@ -15,6 +15,7 @@ const AdminPanel = () => {
   const { user } = useAuth();
   const { t } = useLanguage();
   const [stores, setStores] = useState([]);
+  const [storeTypes, setStoreTypes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -29,7 +30,8 @@ const AdminPanel = () => {
     password: '',
     plan: 'trial',
     customDays: '',
-    isTrial: true
+    isTrial: true,
+    store_type_id: ''
   });
 
   // Edit Store Form
@@ -37,7 +39,8 @@ const AdminPanel = () => {
     name: '',
     subscription_plan: '',
     subscription_status: '',
-    subscription_expires_at: ''
+    subscription_expires_at: '',
+    store_type_id: ''
   });
 
   // Subscription Extension Form
@@ -48,7 +51,10 @@ const AdminPanel = () => {
   });
 
   useEffect(() => {
-    if (user?.isSuperAdmin) fetchStores();
+    if (user?.isSuperAdmin) {
+      fetchStores();
+      fetchStoreTypes();
+    }
   }, [user]);
 
   const fetchStores = async () => {
@@ -65,6 +71,15 @@ const AdminPanel = () => {
       setStores([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchStoreTypes = async () => {
+    try {
+      const types = await neonService.getStoreTypes();
+      setStoreTypes(types || []);
+    } catch (error) {
+      console.error("Fetch store types error:", error);
     }
   };
 
@@ -130,12 +145,18 @@ const AdminPanel = () => {
 
       const newTenant = await neonService.createTenant(formData.storeName, newUser.id);
       
-      // 3. تحديث Tenant ببيانات الاشتراك
-      await neonService.updateTenant(newTenant.id, {
+      // 3. تحديث Tenant ببيانات الاشتراك ونوع المتجر
+      const updateData = {
         subscription_plan: subscriptionPlan,
         subscription_status: subscriptionStatus,
         subscription_expires_at: expiryDate.toISOString()
-      });
+      };
+      
+      if (formData.store_type_id) {
+        updateData.store_type_id = formData.store_type_id;
+      }
+      
+      await neonService.updateTenant(newTenant.id, updateData);
 
       // 4. تحديث المستخدم بـ tenant_id
       await neonService.updateUserAdmin(newUser.id, {
@@ -155,7 +176,8 @@ const AdminPanel = () => {
         password: '',
         plan: 'trial',
         customDays: '',
-        isTrial: true
+        isTrial: true,
+        store_type_id: ''
       });
       
       setDialogOpen(false);
@@ -178,7 +200,8 @@ const AdminPanel = () => {
       name: store.name || '',
       subscription_plan: store.subscription_plan || 'monthly',
       subscription_status: store.subscription_status || 'active',
-      subscription_expires_at: store.subscription_expires_at ? formatDateForInput(store.subscription_expires_at) : ''
+      subscription_expires_at: store.subscription_expires_at ? formatDateForInput(store.subscription_expires_at) : '',
+      store_type_id: store.store_type_id || ''
     });
     setEditDialogOpen(true);
   };
@@ -203,6 +226,10 @@ const AdminPanel = () => {
 
       if (editFormData.subscription_expires_at) {
         updateData.subscription_expires_at = new Date(editFormData.subscription_expires_at).toISOString();
+      }
+      
+      if (editFormData.store_type_id) {
+        updateData.store_type_id = editFormData.store_type_id;
       }
 
       await neonService.updateTenant(selectedStore.id, updateData);
@@ -601,6 +628,20 @@ const AdminPanel = () => {
                     </div>
                 )}
 
+                <div>
+                    <label className="block text-sm font-medium mb-1 rtl:text-right">نوع المتجر</label>
+                    <select
+                        value={formData.store_type_id}
+                        onChange={(e) => setFormData({ ...formData, store_type_id: e.target.value })}
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
+                    >
+                        <option value="">اختر نوع المتجر (اختياري)</option>
+                        {storeTypes.map(type => (
+                            <option key={type.id} value={type.id}>{type.name_ar}</option>
+                        ))}
+                    </select>
+                </div>
+
                 <div className="flex gap-2 pt-2">
                     <Button 
                         type="button"
@@ -613,7 +654,8 @@ const AdminPanel = () => {
                                 password: '',
                                 plan: 'trial',
                                 customDays: '',
-                                isTrial: true
+                                isTrial: true,
+                                store_type_id: ''
                             });
                         }} 
                         variant="outline" 
@@ -695,6 +737,20 @@ const AdminPanel = () => {
                         onChange={(e) => setEditFormData({ ...editFormData, subscription_expires_at: e.target.value })}
                         className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
                     />
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium mb-1 rtl:text-right">نوع المتجر</label>
+                    <select
+                        value={editFormData.store_type_id}
+                        onChange={(e) => setEditFormData({ ...editFormData, store_type_id: e.target.value })}
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
+                    >
+                        <option value="">بدون نوع (عام)</option>
+                        {storeTypes.map(type => (
+                            <option key={type.id} value={type.id}>{type.name_ar}</option>
+                        ))}
+                    </select>
                 </div>
 
                 <div className="flex gap-2 pt-2">

@@ -6,7 +6,8 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { 
   LayoutDashboard, FileText, ShoppingCart, Package, 
   Users, Settings, LogOut, Shield, BarChart, 
-  CreditCard, Briefcase, X, MessageCircle, Database, Activity
+  CreditCard, Briefcase, X, MessageCircle, Database, Activity,
+  Wifi, Fuel, Store
 } from 'lucide-react';
 import Logo from '@/components/Logo';
 
@@ -121,6 +122,31 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           <BarChart className="h-5 w-5 ltr:mr-3 rtl:ml-3" />
           {t('common.reports')}
         </Link>
+
+        {/* صالات الإنترنت والمحروقات */}
+        <div className="px-4 mb-2 mt-6 text-xs font-semibold text-gray-400 uppercase tracking-wider">متاجر متخصصة</div>
+        
+        <Link to="/subscribers" className={navItemClass('/subscribers')} onClick={handleLinkClick}>
+          <Users className="h-5 w-5 ltr:mr-3 rtl:ml-3" />
+          المشتركين
+        </Link>
+
+        <Link to="/internet-usage" className={navItemClass('/internet-usage')} onClick={handleLinkClick}>
+          <Wifi className="h-5 w-5 ltr:mr-3 rtl:ml-3" />
+          استخدام الإنترنت
+        </Link>
+
+        <Link to="/fuel-station" className={navItemClass('/fuel-station')} onClick={handleLinkClick}>
+          <Fuel className="h-5 w-5 ltr:mr-3 rtl:ml-3" />
+          متجر المحروقات
+        </Link>
+
+        {user?.isSuperAdmin && (
+          <Link to="/store-types" className={navItemClass('/store-types')} onClick={handleLinkClick}>
+            <Store className="h-5 w-5 ltr:mr-3 rtl:ml-3 text-purple-500 dark:text-purple-400" />
+            أنواع المتاجر
+          </Link>
+        )}
 
         <div className="px-4 mb-2 mt-6 text-xs font-semibold text-gray-400 uppercase tracking-wider">{t('nav.system') || 'النظام'}</div>
 

@@ -35,6 +35,10 @@ const SupportPage = React.lazy(() => import('@/pages/SupportPage'));
 const BackupPage = React.lazy(() => import('@/pages/BackupPage'));
 const DailyTransactionsPage = React.lazy(() => import('@/pages/DailyTransactionsPage'));
 const CustomersPage = React.lazy(() => import('@/pages/CustomersPage'));
+const SubscribersPage = React.lazy(() => import('@/pages/SubscribersPage'));
+const InternetUsagePage = React.lazy(() => import('@/pages/InternetUsagePage'));
+const FuelStationPage = React.lazy(() => import('@/pages/FuelStationPage'));
+const StoreTypesPage = React.lazy(() => import('@/pages/StoreTypesPage'));
 const NotFoundPage = React.lazy(() => import('@/pages/NotFoundPage'));
 
 const LoadingSpinner = () => (
@@ -154,6 +158,10 @@ function App() {
                   <Route path="/backup" element={<PrivateRoute roles={['STORE_OWNER', 'SUPER_ADMIN']}><MainLayout><SubscriptionWarning /><BackupPage /></MainLayout></PrivateRoute>} />
                   <Route path="/daily-transactions" element={<PrivateRoute roles={['ANY']}><MainLayout><SubscriptionWarning /><DailyTransactionsPage /></MainLayout></PrivateRoute>} />
                   <Route path="/customers" element={<PrivateRoute roles={['ANY']}><MainLayout><SubscriptionWarning /><CustomersPage /></MainLayout></PrivateRoute>} />
+                  <Route path="/subscribers" element={<PrivateRoute roles={['ANY']}><MainLayout><SubscriptionWarning /><SubscribersPage /></MainLayout></PrivateRoute>} />
+                  <Route path="/internet-usage" element={<PrivateRoute roles={['ANY']}><MainLayout><SubscriptionWarning /><InternetUsagePage /></MainLayout></PrivateRoute>} />
+                  <Route path="/fuel-station" element={<PrivateRoute roles={['ANY']}><MainLayout><SubscriptionWarning /><FuelStationPage /></MainLayout></PrivateRoute>} />
+                  <Route path="/store-types" element={<PrivateRoute roles={['SUPER_ADMIN']}><MainLayout><StoreTypesPage /></MainLayout></PrivateRoute>} />
                   
                   <Route path="/" element={<Navigate to="/dashboard" replace />} />
                   <Route path="*" element={<NotFoundPage />} />

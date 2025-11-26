@@ -1165,4 +1165,401 @@ export const neonService = {
       throw error;
     }
   },
+
+  // ============================================
+  // Store Types Management
+  // ============================================
+  getStoreTypes: async () => {
+    try {
+      const result = await sql`SELECT * FROM store_types WHERE is_active = true ORDER BY sort_order, name_ar`;
+      return result || [];
+    } catch (error) {
+      console.error('getStoreTypes error:', error);
+      return [];
+    }
+  },
+  
+  createStoreType: async (data) => {
+    try {
+      const result = await sql`
+        INSERT INTO store_types (code, name_ar, name_en, name_tr, description_ar, description_en, features, sort_order, icon)
+        VALUES (${data.code}, ${data.name_ar}, ${data.name_en}, ${data.name_tr}, ${data.description_ar}, ${data.description_en}, ${JSON.stringify(data.features || {})}::jsonb, ${data.sort_order || 0}, ${data.icon})
+        RETURNING *
+      `;
+      return result[0];
+    } catch (error) {
+      console.error('createStoreType error:', error);
+      throw error;
+    }
+  },
+  
+  updateStoreType: async (id, data) => {
+    try {
+      const result = await sql`
+        UPDATE store_types 
+        SET name_ar = ${data.name_ar}, name_en = ${data.name_en}, name_tr = ${data.name_tr},
+            description_ar = ${data.description_ar}, description_en = ${data.description_en},
+            features = ${JSON.stringify(data.features || {})}::jsonb, sort_order = ${data.sort_order || 0},
+            icon = ${data.icon}, is_active = ${data.is_active !== undefined ? data.is_active : true}, updated_at = NOW()
+        WHERE id = ${id}
+        RETURNING *
+      `;
+      return result[0];
+    } catch (error) {
+      console.error('updateStoreType error:', error);
+      throw error;
+    }
+  },
+
+  // ============================================
+  // Subscribers Management
+  // ============================================
+  getSubscribers: async (tenantId) => {
+    if (!tenantId) return [];
+    try {
+      const result = await sql`
+        SELECT * FROM subscribers 
+        WHERE tenant_id = ${tenantId}
+        ORDER BY created_at DESC
+      `;
+      return result || [];
+    } catch (error) {
+      console.error('getSubscribers error:', error);
+      return [];
+    }
+  },
+
+  createSubscriber: async (data, tenantId) => {
+    return createRecord('subscribers', data, tenantId);
+  },
+
+  updateSubscriber: async (id, data, tenantId) => {
+    return updateRecord('subscribers', id, data, tenantId);
+  },
+
+  deleteSubscriber: async (id, tenantId) => {
+    return deleteRecord('subscribers', id, tenantId);
+  },
+
+  // ============================================
+  // Subscriptions Management
+  // ============================================
+  getSubscriptions: async (tenantId, subscriberId = null) => {
+    if (!tenantId) return [];
+    try {
+      let query;
+      if (subscriberId) {
+        query = sql`
+          SELECT * FROM subscriptions 
+          WHERE tenant_id = ${tenantId} AND subscriber_id = ${subscriberId}
+          ORDER BY end_date DESC
+        `;
+      } else {
+        query = sql`
+          SELECT * FROM subscriptions 
+          WHERE tenant_id = ${tenantId}
+          ORDER BY end_date DESC
+        `;
+      }
+      const result = await query;
+      return result || [];
+    } catch (error) {
+      console.error('getSubscriptions error:', error);
+      return [];
+    }
+  },
+
+  createSubscription: async (data, tenantId) => {
+    return createRecord('subscriptions', data, tenantId);
+  },
+
+  updateSubscription: async (id, data, tenantId) => {
+    return updateRecord('subscriptions', id, data, tenantId);
+  },
+
+  deleteSubscription: async (id, tenantId) => {
+    return deleteRecord('subscriptions', id, tenantId);
+  },
+
+  getExpiringSubscriptions: async (tenantId, days = 7) => {
+    if (!tenantId) return [];
+    try {
+      const result = await sql`
+        SELECT * FROM expiring_subscriptions
+        WHERE tenant_id = ${tenantId}
+        AND days_remaining <= ${days}
+        ORDER BY days_remaining ASC
+      `;
+      return result || [];
+    } catch (error) {
+      console.error('getExpiringSubscriptions error:', error);
+      return [];
+    }
+  },
+
+  // ============================================
+  // Internet Usage Management
+  // ============================================
+  getInternetUsage: async (tenantId, subscriberId = null, startDate = null, endDate = null) => {
+    if (!tenantId) return [];
+    try {
+      let query;
+      if (subscriberId) {
+        if (startDate && endDate) {
+          query = sql`
+            SELECT * FROM internet_usage 
+            WHERE tenant_id = ${tenantId} AND subscriber_id = ${subscriberId}
+            AND DATE(session_start) BETWEEN ${startDate} AND ${endDate}
+            ORDER BY session_start DESC
+          `;
+        } else {
+          query = sql`
+            SELECT * FROM internet_usage 
+            WHERE tenant_id = ${tenantId} AND subscriber_id = ${subscriberId}
+            ORDER BY session_start DESC
+          `;
+        }
+      } else {
+        if (startDate && endDate) {
+          query = sql`
+            SELECT * FROM internet_usage 
+            WHERE tenant_id = ${tenantId}
+            AND DATE(session_start) BETWEEN ${startDate} AND ${endDate}
+            ORDER BY session_start DESC
+          `;
+        } else {
+          query = sql`
+            SELECT * FROM internet_usage 
+            WHERE tenant_id = ${tenantId}
+            ORDER BY session_start DESC
+          `;
+        }
+      }
+      const result = await query;
+      return result || [];
+    } catch (error) {
+      console.error('getInternetUsage error:', error);
+      return [];
+    }
+  },
+
+  createInternetUsage: async (data, tenantId) => {
+    return createRecord('internet_usage', data, tenantId);
+  },
+
+  updateInternetUsage: async (id, data, tenantId) => {
+    return updateRecord('internet_usage', id, data, tenantId);
+  },
+
+  // ============================================
+  // Subscriber Transactions
+  // ============================================
+  getSubscriberTransactions: async (tenantId, subscriberId = null) => {
+    if (!tenantId) return [];
+    try {
+      let query;
+      if (subscriberId) {
+        query = sql`
+          SELECT * FROM subscriber_transactions 
+          WHERE tenant_id = ${tenantId} AND subscriber_id = ${subscriberId}
+          ORDER BY transaction_date DESC
+        `;
+      } else {
+        query = sql`
+          SELECT * FROM subscriber_transactions 
+          WHERE tenant_id = ${tenantId}
+          ORDER BY transaction_date DESC
+        `;
+      }
+      const result = await query;
+      return result || [];
+    } catch (error) {
+      console.error('getSubscriberTransactions error:', error);
+      return [];
+    }
+  },
+
+  createSubscriberTransaction: async (data, tenantId) => {
+    return createRecord('subscriber_transactions', data, tenantId);
+  },
+
+  // ============================================
+  // Fuel Station Management
+  // ============================================
+  getFuelTypes: async (tenantId) => {
+    if (!tenantId) return [];
+    try {
+      const result = await sql`
+        SELECT * FROM fuel_types 
+        WHERE tenant_id = ${tenantId} AND is_active = true
+        ORDER BY name_ar
+      `;
+      return result || [];
+    } catch (error) {
+      console.error('getFuelTypes error:', error);
+      return [];
+    }
+  },
+
+  createFuelType: async (data, tenantId) => {
+    return createRecord('fuel_types', data, tenantId);
+  },
+
+  updateFuelType: async (id, data, tenantId) => {
+    return updateRecord('fuel_types', id, data, tenantId);
+  },
+
+  deleteFuelType: async (id, tenantId) => {
+    return deleteRecord('fuel_types', id, tenantId);
+  },
+
+  getFuelTransactions: async (tenantId, fuelTypeId = null, startDate = null, endDate = null) => {
+    if (!tenantId) return [];
+    try {
+      let query;
+      if (fuelTypeId && startDate && endDate) {
+        query = sql`
+          SELECT ft.*, ftp.name_ar as fuel_name, ftp.code as fuel_code
+          FROM fuel_transactions ft
+          JOIN fuel_types ftp ON ft.fuel_type_id = ftp.id
+          WHERE ft.tenant_id = ${tenantId} AND ft.fuel_type_id = ${fuelTypeId}
+          AND DATE(ft.transaction_date) BETWEEN ${startDate} AND ${endDate}
+          ORDER BY ft.transaction_date DESC
+        `;
+      } else if (startDate && endDate) {
+        query = sql`
+          SELECT ft.*, ftp.name_ar as fuel_name, ftp.code as fuel_code
+          FROM fuel_transactions ft
+          JOIN fuel_types ftp ON ft.fuel_type_id = ftp.id
+          WHERE ft.tenant_id = ${tenantId}
+          AND DATE(ft.transaction_date) BETWEEN ${startDate} AND ${endDate}
+          ORDER BY ft.transaction_date DESC
+        `;
+      } else {
+        query = sql`
+          SELECT ft.*, ftp.name_ar as fuel_name, ftp.code as fuel_code
+          FROM fuel_transactions ft
+          JOIN fuel_types ftp ON ft.fuel_type_id = ftp.id
+          WHERE ft.tenant_id = ${tenantId}
+          ORDER BY ft.transaction_date DESC
+        `;
+      }
+      const result = await query;
+      return result || [];
+    } catch (error) {
+      console.error('getFuelTransactions error:', error);
+      return [];
+    }
+  },
+
+  createFuelTransaction: async (data, tenantId) => {
+    return createRecord('fuel_transactions', data, tenantId);
+  },
+
+  updateFuelTransaction: async (id, data, tenantId) => {
+    return updateRecord('fuel_transactions', id, data, tenantId);
+  },
+
+  deleteFuelTransaction: async (id, tenantId) => {
+    return deleteRecord('fuel_transactions', id, tenantId);
+  },
+
+  getFuelInventory: async (tenantId) => {
+    if (!tenantId) return [];
+    try {
+      const result = await sql`
+        SELECT * FROM current_fuel_inventory
+        WHERE tenant_id = ${tenantId}
+        ORDER BY fuel_name
+      `;
+      return result || [];
+    } catch (error) {
+      console.error('getFuelInventory error:', error);
+      return [];
+    }
+  },
+
+  getFuelPrices: async (tenantId, fuelTypeId = null) => {
+    if (!tenantId) return [];
+    try {
+      let query;
+      if (fuelTypeId) {
+        query = sql`
+          SELECT * FROM fuel_prices 
+          WHERE tenant_id = ${tenantId} AND fuel_type_id = ${fuelTypeId} AND is_active = true
+          ORDER BY effective_date DESC
+          LIMIT 1
+        `;
+      } else {
+        query = sql`
+          SELECT * FROM fuel_prices 
+          WHERE tenant_id = ${tenantId} AND is_active = true
+          ORDER BY effective_date DESC
+        `;
+      }
+      const result = await query;
+      return result || [];
+    } catch (error) {
+      console.error('getFuelPrices error:', error);
+      return [];
+    }
+  },
+
+  createFuelPrice: async (data, tenantId) => {
+    // تعطيل الأسعار القديمة أولاً
+    if (data.fuel_type_id && data.price_type) {
+      await sql`
+        UPDATE fuel_prices 
+        SET is_active = false, end_date = CURRENT_DATE
+        WHERE tenant_id = ${tenantId} 
+        AND fuel_type_id = ${data.fuel_type_id} 
+        AND price_type = ${data.price_type}
+        AND is_active = true
+      `;
+    }
+    return createRecord('fuel_prices', data, tenantId);
+  },
+
+  // ============================================
+  // Subscription Notifications
+  // ============================================
+  getSubscriptionNotifications: async (tenantId, isSent = null) => {
+    if (!tenantId) return [];
+    try {
+      let query;
+      if (isSent !== null) {
+        query = sql`
+          SELECT * FROM subscription_notifications 
+          WHERE tenant_id = ${tenantId} AND is_sent = ${isSent}
+          ORDER BY created_at DESC
+        `;
+      } else {
+        query = sql`
+          SELECT * FROM subscription_notifications 
+          WHERE tenant_id = ${tenantId}
+          ORDER BY created_at DESC
+        `;
+      }
+      const result = await query;
+      return result || [];
+    } catch (error) {
+      console.error('getSubscriptionNotifications error:', error);
+      return [];
+    }
+  },
+
+  markNotificationAsSent: async (id, tenantId) => {
+    try {
+      const result = await sql`
+        UPDATE subscription_notifications 
+        SET is_sent = true, sent_at = NOW()
+        WHERE id = ${id} AND tenant_id = ${tenantId}
+        RETURNING *
+      `;
+      return result[0];
+    } catch (error) {
+      console.error('markNotificationAsSent error:', error);
+      throw error;
+    }
+  },
 };

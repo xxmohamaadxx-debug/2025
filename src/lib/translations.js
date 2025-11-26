@@ -622,6 +622,41 @@ export const translations = {
       noDataAvailable: "Veri bulunamadı",
       type: "Tür",
       partner: "Ortak"
+    },
+    subscribers: {
+      title: "المشتركين",
+      addSubscriber: "إضافة مشترك",
+      name: "الاسم",
+      phone: "الهاتف",
+      subscriptionType: "نوع الاشتراك",
+      internetSpeed: "السرعة",
+      balance: "الرصيد",
+      active: "نشط",
+      suspended: "معلق",
+      expired: "منتهي"
+    },
+    internetUsage: {
+      title: "استخدام الإنترنت",
+      addUsage: "إضافة سجل استخدام",
+      subscriber: "المشترك",
+      duration: "المدة",
+      dataUsed: "البيانات المستخدمة",
+      cost: "التكلفة"
+    },
+    fuelStation: {
+      title: "متجر المحروقات",
+      transactions: "المعاملات",
+      inventory: "المخزون",
+      fuelTypes: "أنواع المحروقات",
+      addTransaction: "إضافة معاملة",
+      addFuelType: "إضافة نوع محروقات"
+    },
+    storeTypes: {
+      title: "أنواع المتاجر",
+      addType: "إضافة نوع متجر",
+      code: "الكود",
+      name: "الاسم",
+      description: "الوصف"
     }
   }
 };
