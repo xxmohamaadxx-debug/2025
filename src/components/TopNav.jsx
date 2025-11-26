@@ -34,8 +34,10 @@ const TopNav = ({ onMenuClick, isOffline: propIsOffline = false, pendingSyncCoun
       setConnectionStatus('offline');
     };
 
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
+    if (typeof window !== 'undefined') {
+      window.addEventListener('online', handleOnline);
+      window.addEventListener('offline', handleOffline);
+    }
 
     // Check periodically
     const interval = setInterval(async () => {
