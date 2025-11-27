@@ -12,7 +12,7 @@ import CustomerDialog from '@/components/customers/CustomerDialog';
 import PaymentDialog from '@/components/customers/PaymentDialog';
 
 const CustomersPage = () => {
-  const { user, tenant } = useAuth();
+  const { user, tenant, permissions } = useAuth();
   const { t } = useLanguage();
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -64,12 +64,35 @@ const CustomersPage = () => {
   };
 
   const handleSaveCustomer = async (data) => {
+    if (!user?.tenant_id) return;
+    
+    // التحقق من الصلاحيات
+    if (selectedCustomer && !permissions.canEdit) {
+      toast({
+        title: 'غير مصرح',
+        description: 'ليس لديك صلاحية لتعديل العملاء',
+        variant: 'destructive'
+      });
+      return;
+    }
+
     try {
       if (selectedCustomer) {
         await neonService.updatePartner(selectedCustomer.id, { ...data, type: 'Customer' }, user.tenant_id);
+        // تسجيل في Audit Log
+        await neonService.log(user.tenant_id, user.id, 'UPDATE_CUSTOMER', {
+          customer_id: selectedCustomer.id,
+          customer_name: data.name || selectedCustomer.name,
+          changes: data
+        });
         toast({ title: 'تم تحديث العميل بنجاح' });
       } else {
-        await neonService.createPartner({ ...data, type: 'Customer' }, user.tenant_id);
+        const newCustomer = await neonService.createPartner({ ...data, type: 'Customer' }, user.tenant_id);
+        // تسجيل في Audit Log
+        await neonService.log(user.tenant_id, user.id, 'CREATE_CUSTOMER', {
+          customer_id: newCustomer.id,
+          customer_name: data.name
+        });
         toast({ title: 'تم إضافة العميل بنجاح' });
       }
       setCustomerDialogOpen(false);
@@ -86,7 +109,7 @@ const CustomersPage = () => {
   };
 
   const handleSavePayment = async (paymentData) => {
-    if (!selectedCustomer) return;
+    if (!selectedCustomer || !user?.tenant_id) return;
 
     try {
       const transactionData = {
@@ -101,7 +124,18 @@ const CustomersPage = () => {
         notes: paymentData.notes
       };
 
-      await neonService.createCustomerTransaction(transactionData, user.tenant_id);
+      const transaction = await neonService.createCustomerTransaction(transactionData, user.tenant_id);
+      
+      // تسجيل في Audit Log
+      await neonService.log(user.tenant_id, user.id, 'CUSTOMER_TRANSACTION', {
+        transaction_id: transaction.id,
+        customer_id: selectedCustomer.id,
+        customer_name: selectedCustomer.name,
+        transaction_type: paymentData.type,
+        amount: parseFloat(paymentData.amount),
+        currency: transactionData.currency
+      });
+      
       toast({ title: 'تم تسجيل المعاملة بنجاح' });
       setPaymentDialogOpen(false);
       setSelectedCustomer(null);
@@ -116,11 +150,26 @@ const CustomersPage = () => {
     }
   };
 
-  const handleDeleteCustomer = async (id) => {
-    if (!window.confirm('هل أنت متأكد من حذف هذا العميل؟')) return;
+  const handleDeleteCustomer = async (customer) => {
+    if (!permissions.canDelete) {
+      toast({
+        title: 'غير مصرح',
+        description: 'ليس لديك صلاحية لحذف العملاء',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    if (!window.confirm(`هل أنت متأكد من حذف العميل "${customer.name}"؟`)) return;
 
     try {
-      await neonService.deletePartner(id, user.tenant_id);
+      await neonService.deletePartner(customer.id, user.tenant_id);
+      // تسجيل في Audit Log
+      await neonService.log(user.tenant_id, user.id, 'DELETE_CUSTOMER', {
+        customer_id: customer.id,
+        customer_name: customer.name,
+        deleted_at: new Date().toISOString()
+      });
       toast({ title: 'تم حذف العميل بنجاح' });
       loadCustomers();
     } catch (error) {
@@ -305,22 +354,45 @@ const CustomersPage = () => {
                           >
                             <DollarSign className="h-4 w-4" />
                           </Button>
+                          {permissions.canEdit && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleEditCustomer(customer)}
+                              title="تعديل"
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          )}
+                          {permissions.canDelete && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleDeleteCustomer(customer)}
+                              title="حذف"
+                              className="text-red-500 hover:text-red-700"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
+                          {permissions.canEdit && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleEditCustomer(customer)}
+                              title="تعديل"
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          )}
                           <Button
                             size="sm"
                             variant="ghost"
-                            onClick={() => handleEditCustomer(customer)}
-                            title="تعديل"
+                            onClick={() => handleAddPayment(customer)}
+                            title="إضافة دفعة/معاملة"
+                            className="text-blue-500 hover:text-blue-700"
                           >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => handleDeleteCustomer(customer.id)}
-                            title="حذف"
-                            className="text-red-500 hover:text-red-700"
-                          >
-                            <Trash2 className="h-4 w-4" />
+                            <DollarSign className="h-4 w-4" />
                           </Button>
                         </div>
                       </td>

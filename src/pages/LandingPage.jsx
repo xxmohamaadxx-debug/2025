@@ -5,11 +5,12 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { neonService } from '@/lib/neonService';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { motion } from 'framer-motion';
 import { 
   Shield, Database, Smartphone, TrendingUp, Users, Store, 
   Wifi, Fuel, Building2, CheckCircle, Download, LogIn, 
   MessageCircle, Star, Lock, Zap, BarChart, CreditCard,
-  Phone, Mail, Clock, Headphones
+  Phone, Mail, Clock, Headphones, Rocket, Sparkles
 } from 'lucide-react';
 import Logo from '@/components/Logo';
 import { toast } from '@/components/ui/use-toast';
@@ -21,11 +22,12 @@ const LandingPage = () => {
   const [appSettings, setAppSettings] = useState({});
   const [trialDialogOpen, setTrialDialogOpen] = useState(false);
   const [trialForm, setTrialForm] = useState({
+    full_name: '',
     store_name: '',
-    store_type: '',
-    manager_name: '',
+    store_types: [], // أنواع متعددة
     email: '',
-    password: ''
+    password: '',
+    subscription_duration: 'trial'
   });
   const [loading, setLoading] = useState(true);
 
@@ -49,10 +51,10 @@ const LandingPage = () => {
   };
 
   const handleTrialRequest = () => {
-    if (!trialForm.store_name || !trialForm.store_type || !trialForm.manager_name || !trialForm.email || !trialForm.password) {
+    if (!trialForm.store_name || !trialForm.full_name || trialForm.store_types.length === 0 || !trialForm.email || !trialForm.password) {
       toast({
         title: 'خطأ',
-        description: 'يرجى ملء جميع الحقول',
+        description: 'يرجى ملء جميع الحقول المطلوبة',
         variant: 'destructive'
       });
       return;
@@ -61,12 +63,25 @@ const LandingPage = () => {
     const whatsappNumber = appSettings.support_whatsapp || appSettings.support_phone || '963994054027';
     const cleanNumber = whatsappNumber.replace(/[^0-9]/g, '');
     
+    const selectedTypes = trialForm.store_types.map(typeId => {
+      const type = storeTypes.find(t => t.id === typeId);
+      return type ? (type.name_ar || type.name_en) : '';
+    }).filter(Boolean).join(' + ');
+    
+    const durationMap = {
+      'trial': '15 يوم (تجريبي)',
+      'monthly': 'شهري',
+      '6months': '6 أشهر',
+      'yearly': 'سنوي'
+    };
+    
     const message = `🎯 طلب نسخة تجريبية جديدة\n\n` +
+      `👤 الاسم الكامل: ${trialForm.full_name}\n` +
       `📌 اسم المتجر: ${trialForm.store_name}\n` +
-      `🏪 نوع المتجر: ${trialForm.store_type}\n` +
-      `👤 اسم المدير: ${trialForm.manager_name}\n` +
+      `🏪 نوع المتجر: ${selectedTypes}\n` +
       `📧 البريد الإلكتروني: ${trialForm.email}\n` +
-      `🔑 كلمة المرور: ${trialForm.password}\n\n` +
+      `🔑 كلمة المرور: ${trialForm.password}\n` +
+      `📅 مدة الاشتراك المطلوبة: ${durationMap[trialForm.subscription_duration] || trialForm.subscription_duration}\n\n` +
       `يرجى إنشاء المتجر والتفعيل. شكراً!`;
     
     const whatsappUrl = `https://wa.me/${cleanNumber}?text=${encodeURIComponent(message)}`;
@@ -74,16 +89,17 @@ const LandingPage = () => {
     
     toast({
       title: 'تم إرسال الطلب',
-      description: 'سيتم التواصل معك قريباً'
+      description: 'سيتم التواصل معك قريباً عبر الواتساب'
     });
     
     setTrialDialogOpen(false);
     setTrialForm({
+      full_name: '',
       store_name: '',
-      store_type: '',
-      manager_name: '',
+      store_types: [],
       email: '',
-      password: ''
+      password: '',
+      subscription_duration: 'trial'
     });
   };
 
@@ -198,39 +214,76 @@ const LandingPage = () => {
 
       {/* Hero Section */}
       <section className="relative py-20 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-orange-400/20 to-pink-400/20 blur-3xl"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-orange-400/20 via-pink-400/20 to-purple-400/20 blur-3xl animate-pulse"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,140,0,0.1),transparent_50%)]"></div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="flex justify-center mb-8">
-            <Logo size="xl" />
+          <div className="flex justify-center mb-8 animate-bounce-slow">
+            <div className="transform hover:scale-110 transition-transform duration-300">
+              <Logo size="xl" />
+            </div>
           </div>
-          <h1 className="text-5xl md:text-6xl font-extrabold text-gray-900 dark:text-white mb-6">
-            نظام إدارة محاسبي
-            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-pink-500">
-              متكامل ومتقدم
-            </span>
-          </h1>
-          <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto">
-            إدارة متكاملة لجميع أنواع المتاجر مع نسخ احتياطية تلقائية وحماية عالية وتقارير شاملة
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+          >
+            <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold text-gray-900 dark:text-white mb-6">
+              نظام إدارة محاسبي
+              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-orange-500 via-pink-500 to-purple-500 animate-gradient">
+                متكامل ومتقدم
+              </span>
+            </h1>
+          </motion.div>
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+          >
+            <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-4 max-w-3xl mx-auto font-medium">
+              قوة تحويل متجرك إلى إمبراطورية رقمية 🔥
+            </p>
+          </motion.div>
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.3 }}
+          >
+            <p className="text-lg md:text-xl text-gray-500 dark:text-gray-400 mb-8 max-w-3xl mx-auto">
+              إدارة متكاملة لجميع أنواع المتاجر مع نسخ احتياطية تلقائية وحماية عالية وتقارير شاملة
+              <br />
+              <span className="text-orange-500 font-semibold">ابدأ مجاناً لمدة 15 يوم - بدون بطاقة ائتمان</span>
+            </p>
+          </motion.div>
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+            className="flex flex-col sm:flex-row gap-4 justify-center items-center"
+          >
             <Button
               onClick={() => setTrialDialogOpen(true)}
               size="lg"
-              className="bg-gradient-to-r from-orange-500 to-pink-500 text-white text-lg px-8 py-6 hover:scale-105 transition-transform"
+              className="bg-gradient-to-r from-orange-500 via-pink-500 to-purple-500 text-white text-lg px-8 py-6 hover:scale-110 transition-all shadow-2xl hover:shadow-orange-500/50 group relative overflow-hidden"
             >
-              <MessageCircle className="h-5 w-5 ml-2 rtl:mr-2 rtl:ml-0" />
-              طلب نسخة تجريبية مجانية
+              <span className="relative z-10 flex items-center gap-2">
+                <Rocket className="h-5 w-5 group-hover:animate-bounce" />
+                طلب نسخة تجريبية مجانية
+              </span>
+              <motion.div
+                className="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                initial={false}
+              />
             </Button>
             <Button
               onClick={() => navigate('/login')}
               size="lg"
               variant="outline"
-              className="text-lg px-8 py-6 border-2"
+              className="text-lg px-8 py-6 border-2 border-gray-300 dark:border-gray-600 hover:border-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-all hover:scale-105"
             >
               <LogIn className="h-5 w-5 ml-2 rtl:mr-2 rtl:ml-0" />
               تسجيل الدخول
             </Button>
-          </div>
+          </motion.div>
           <div className="mt-12 flex flex-wrap justify-center gap-6 text-sm text-gray-600 dark:text-gray-400">
             <div className="flex items-center gap-2">
               <CheckCircle className="h-5 w-5 text-green-500" />
@@ -452,75 +505,122 @@ const LandingPage = () => {
 
       {/* Trial Request Dialog */}
       <Dialog open={trialDialogOpen} onOpenChange={setTrialDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>طلب نسخة تجريبية</DialogTitle>
+            <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-transparent">
+              🚀 ابدأ رحلتك الآن - نسخة تجريبية مجانية
+            </DialogTitle>
             <DialogDescription>
-              املأ البيانات التالية وسيتم التواصل معك عبر الواتساب
+              املأ البيانات التالية وسيتم التواصل معك عبر الواتساب خلال دقائق
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
-              <label className="block text-sm font-medium mb-1">اسم المتجر *</label>
+              <label className="block text-sm font-medium mb-2">الاسم الكامل *</label>
+              <input
+                type="text"
+                required
+                value={trialForm.full_name}
+                onChange={(e) => setTrialForm({ ...trialForm, full_name: e.target.value })}
+                className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all"
+                placeholder="أدخل اسمك الكامل"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">اسم المتجر *</label>
               <input
                 type="text"
                 required
                 value={trialForm.store_name}
                 onChange={(e) => setTrialForm({ ...trialForm, store_name: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
+                className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all"
                 placeholder="اسم المتجر"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">نوع المتجر *</label>
-              <select
-                required
-                value={trialForm.store_type}
-                onChange={(e) => setTrialForm({ ...trialForm, store_type: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
-              >
-                <option value="">اختر نوع المتجر</option>
-                {storeTypes.map(type => (
-                  <option key={type.id} value={type.name_ar || type.name_en}>
-                    {type.name_ar || type.name_en}
-                  </option>
-                ))}
-              </select>
+              <label className="block text-sm font-medium mb-2">نوع المتجر * (يمكن اختيار أكثر من نوع)</label>
+              <div className="space-y-2 max-h-48 overflow-y-auto border-2 border-gray-300 dark:border-gray-600 rounded-lg p-3 bg-gray-50 dark:bg-gray-800">
+                {storeTypes.length === 0 ? (
+                  <p className="text-sm text-gray-500 text-center py-4">جاري تحميل أنواع المتاجر...</p>
+                ) : (
+                  storeTypes.map(type => (
+                    <label key={type.id} className="flex items-center gap-3 p-3 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg cursor-pointer transition-colors border border-transparent hover:border-orange-300">
+                      <input
+                        type="checkbox"
+                        checked={trialForm.store_types?.includes(type.id) || false}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setTrialForm({
+                              ...trialForm,
+                              store_types: [...(trialForm.store_types || []), type.id]
+                            });
+                          } else {
+                            setTrialForm({
+                              ...trialForm,
+                              store_types: trialForm.store_types?.filter(id => id !== type.id) || []
+                            });
+                          }
+                        }}
+                        className="w-5 h-5 text-orange-600 border-gray-300 rounded focus:ring-orange-500 focus:ring-2"
+                      />
+                      <div className="flex-1">
+                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          {type.name_ar || type.name_en}
+                        </span>
+                        {type.description_ar && (
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            {type.description_ar}
+                          </p>
+                        )}
+                      </div>
+                    </label>
+                  ))
+                )}
+              </div>
+              {trialForm.store_types && trialForm.store_types.length > 0 && (
+                <p className="text-xs text-green-600 dark:text-green-400 mt-2 flex items-center gap-1">
+                  <CheckCircle className="h-4 w-4" />
+                  تم اختيار {trialForm.store_types.length} نوع متجر
+                </p>
+              )}
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">اسم المدير *</label>
-              <input
-                type="text"
-                required
-                value={trialForm.manager_name}
-                onChange={(e) => setTrialForm({ ...trialForm, manager_name: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
-                placeholder="اسم المدير"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">البريد الإلكتروني *</label>
+              <label className="block text-sm font-medium mb-2">البريد الإلكتروني *</label>
               <input
                 type="email"
                 required
                 value={trialForm.email}
                 onChange={(e) => setTrialForm({ ...trialForm, email: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
+                className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all"
                 placeholder="email@example.com"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">كلمة المرور *</label>
+              <label className="block text-sm font-medium mb-2">كلمة المرور *</label>
               <input
                 type="password"
                 required
+                minLength={6}
                 value={trialForm.password}
                 onChange={(e) => setTrialForm({ ...trialForm, password: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
-                placeholder="كلمة المرور"
+                className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all"
+                placeholder="كلمة المرور (6 أحرف على الأقل)"
               />
             </div>
-            <div className="flex gap-2">
+            <div>
+              <label className="block text-sm font-medium mb-2">مدة الاشتراك المطلوبة</label>
+              <select
+                value={trialForm.subscription_duration}
+                onChange={(e) => setTrialForm({ ...trialForm, subscription_duration: e.target.value })}
+                className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all"
+              >
+                <option value="trial">15 يوم تجريبي (مجاني)</option>
+                <option value="monthly">شهري</option>
+                <option value="6months">6 أشهر</option>
+                <option value="yearly">سنوي</option>
+              </select>
+            </div>
+            <div className="flex gap-2 pt-2">
               <Button
                 onClick={() => setTrialDialogOpen(false)}
                 variant="outline"
@@ -530,7 +630,7 @@ const LandingPage = () => {
               </Button>
               <Button
                 onClick={handleTrialRequest}
-                className="flex-1 bg-gradient-to-r from-orange-500 to-pink-500 text-white"
+                className="flex-1 bg-gradient-to-r from-orange-500 to-pink-500 text-white hover:from-orange-600 hover:to-pink-600 shadow-lg hover:shadow-xl transition-all hover:scale-105 active:scale-95"
               >
                 <MessageCircle className="h-4 w-4 ml-2 rtl:mr-2 rtl:ml-0" />
                 إرسال عبر الواتساب
