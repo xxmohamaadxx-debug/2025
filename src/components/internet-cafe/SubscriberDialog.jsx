@@ -4,6 +4,7 @@ import { InteractiveButton } from '@/components/ui/InteractiveButton';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { neonService } from '@/lib/neonService';
+import HelpButton from '@/components/ui/HelpButton';
 
 const SubscriberDialog = ({ open, onOpenChange, subscriber, onSave, subscriptionTypes = [] }) => {
   const { t } = useLanguage();
@@ -25,7 +26,7 @@ const SubscriberDialog = ({ open, onOpenChange, subscriber, onSave, subscription
     base_price: '',
     tax_amount: '',
     discount_amount: '',
-    currency: 'TRY',
+    currency: 'USD',
     payment_method: 'cash',
     notes: '',
     partner_id: null
@@ -77,7 +78,7 @@ const SubscriberDialog = ({ open, onOpenChange, subscriber, onSave, subscription
         base_price: '',
         tax_amount: '',
         discount_amount: '',
-        currency: 'TRY',
+        currency: 'USD',
         payment_method: 'cash',
         notes: '',
         partner_id: null
@@ -117,7 +118,13 @@ const SubscriberDialog = ({ open, onOpenChange, subscriber, onSave, subscription
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto relative">
+        <HelpButton
+          position="top-right"
+          helpTextAr="هنا يمكنك إدخال أو تعديل بيانات مشترك إنترنت. أدخل رقم المشترك، الاسم، الهاتف، البريد الإلكتروني، رقم الهوية، العنوان، الفرع، نوع الاشتراك، تاريخ البدء والانتهاء، السعر، والضريبة. يمكنك ربط المشترك بشريك (عميل)."
+          helpTextEn="Here you can add or edit internet subscriber data. Enter the subscriber number, name, phone, email, identity number, address, branch, subscription type, start and end dates, price, and tax. You can link the subscriber to a partner (customer)."
+          helpTextTr="Burada internet abone verilerini ekleyebilir veya düzenleyebilirsiniz. Abone numarasını, adı, telefonu, e-postayı, kimlik numarasını, adresi, şubeyi, abonelik türünü, başlangıç ve bitiş tarihlerini, fiyatı ve vergiyi girin. Aboneyi bir ortakla (müşteri) bağlayabilirsiniz."}
+        />
         <DialogHeader>
           <DialogTitle>
             {subscriber ? 'تعديل مشترك' : 'إضافة مشترك جديد'}
@@ -289,9 +296,11 @@ const SubscriberDialog = ({ open, onOpenChange, subscriber, onSave, subscription
                 onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
               >
-                <option value="TRY">TRY</option>
-                <option value="USD">USD</option>
-                <option value="SYP">SYP</option>
+                <option value="USD">$ دولار أمريكي (USD)</option>
+                <option value="TRY">₺ ليرة تركية (TRY)</option>
+                <option value="SYP">£S ليرة سورية (SYP)</option>
+                <option value="SAR">﷼ ريال سعودي (SAR)</option>
+                <option value="EUR">€ يورو (EUR)</option>
               </select>
             </div>
             <div>

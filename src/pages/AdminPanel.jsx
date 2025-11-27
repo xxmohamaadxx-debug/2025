@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { neonService } from '@/lib/neonService';
 import { Button } from '@/components/ui/button';
-import { Loader2, Plus, Store, Edit, Trash2, MessageCircle, Download, FileDown, Package, Users, ShoppingCart, FolderPlus, Clock } from 'lucide-react';
+import { Loader2, Plus, Store, Edit, Trash2, MessageCircle, Download, FileDown, Package, Users, ShoppingCart, FolderPlus, Clock, CheckCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from '@/components/ui/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
@@ -24,6 +24,8 @@ const AdminPanel = () => {
   const [trialPeriodDialogOpen, setTrialPeriodDialogOpen] = useState(false);
   const [contentDialogOpen, setContentDialogOpen] = useState(false);
   const [selectedStore, setSelectedStore] = useState(null);
+  const [supportTickets, setSupportTickets] = useState([]);
+  const [loadingTickets, setLoadingTickets] = useState(false);
   
   // New Store Form
   const [formData, setFormData] = useState({
@@ -70,6 +72,7 @@ const AdminPanel = () => {
     if (user?.isSuperAdmin) {
       fetchStores();
       fetchStoreTypes();
+      fetchSupportTickets();
     }
   }, [user]);
 
@@ -96,6 +99,65 @@ const AdminPanel = () => {
       setStoreTypes(types || []);
     } catch (error) {
       console.error("Fetch store types error:", error);
+    }
+  };
+
+  const fetchSupportTickets = async () => {
+    setLoadingTickets(true);
+    try {
+      const tickets = await neonService.getSupportTickets(null, null, true);
+      setSupportTickets(tickets || []);
+    } catch (error) {
+      console.error("Fetch support tickets error:", error);
+      toast({
+        title: "خطأ",
+        description: "حدث خطأ في تحميل تذاكر الدعم",
+        variant: "destructive"
+      });
+    } finally {
+      setLoadingTickets(false);
+    }
+  };
+
+  const handleDeleteTicket = async (ticketId) => {
+    if (!window.confirm('هل أنت متأكد من حذف هذه التذكرة؟')) return;
+    
+    try {
+      await neonService.deleteSupportTicket(ticketId);
+      toast({
+        title: "تم بنجاح",
+        description: "تم حذف التذكرة بنجاح"
+      });
+      fetchSupportTickets();
+    } catch (error) {
+      console.error('Delete ticket error:', error);
+      toast({
+        title: "خطأ",
+        description: error.message || "حدث خطأ أثناء حذف التذكرة",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleResolveTicket = async (ticketId) => {
+    try {
+      await neonService.updateSupportTicket(ticketId, {
+        status: 'resolved',
+        resolved_at: new Date().toISOString(),
+        resolved_by: user?.id
+      });
+      toast({
+        title: "تم بنجاح",
+        description: "تم حل التذكرة بنجاح"
+      });
+      fetchSupportTickets();
+    } catch (error) {
+      console.error('Resolve ticket error:', error);
+      toast({
+        title: "خطأ",
+        description: error.message || "حدث خطأ أثناء حل التذكرة",
+        variant: "destructive"
+      });
     }
   };
 
@@ -260,7 +322,13 @@ const AdminPanel = () => {
       };
 
       if (editFormData.subscription_expires_at) {
-        updateData.subscription_expires_at = new Date(editFormData.subscription_expires_at).toISOString();
+        // التأكد من أن التاريخ بصيغة yyyy-MM-dd
+        const dateStr = editFormData.subscription_expires_at;
+        if (dateStr && dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
+          updateData.subscription_expires_at = new Date(dateStr + 'T00:00:00').toISOString();
+        } else {
+          updateData.subscription_expires_at = new Date(dateStr).toISOString();
+        }
       }
 
       await neonService.updateTenant(selectedStore.id, updateData);
@@ -1231,6 +1299,113 @@ const AdminPanel = () => {
             </div>
         </DialogContent>
       </Dialog>
+
+      {/* Support Tickets Section */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <MessageCircle className="h-6 w-6 text-blue-500" />
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white">تذاكر طلب الدعم</h2>
+          </div>
+          <Button
+            onClick={fetchSupportTickets}
+            variant="outline"
+            size="sm"
+            disabled={loadingTickets}
+          >
+            {loadingTickets ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              'تحديث'
+            )}
+          </Button>
+        </div>
+
+        {loadingTickets ? (
+          <div className="flex justify-center items-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+          </div>
+        ) : supportTickets.length === 0 ? (
+          <p className="text-center text-gray-500 dark:text-gray-400 py-8">
+            لا توجد تذاكر دعم حالياً
+          </p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50 dark:bg-gray-700">
+                <tr>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">المتجر</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">المستخدم</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">الموضوع</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">الحالة</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">الأولوية</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">التاريخ</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">الإجراءات</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                {supportTickets.map((ticket) => (
+                  <tr key={ticket.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                    <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">
+                      {ticket.tenant_name || '-'}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">
+                      {ticket.user_name || ticket.user_email || '-'}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">
+                      {ticket.subject}
+                    </td>
+                    <td className="px-4 py-3 text-sm">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        ticket.status === 'resolved' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' :
+                        ticket.status === 'in_progress' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400' :
+                        ticket.status === 'closed' ? 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400' :
+                        'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'
+                      }`}>
+                        {ticket.status === 'resolved' ? 'محلول' :
+                         ticket.status === 'in_progress' ? 'قيد المعالجة' :
+                         ticket.status === 'closed' ? 'مغلق' : 'مفتوح'}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">
+                      {ticket.priority === 'urgent' ? 'عاجل' :
+                       ticket.priority === 'high' ? 'عالية' :
+                       ticket.priority === 'medium' ? 'متوسطة' : 'منخفضة'}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">
+                      {formatDateAR(ticket.created_at)}
+                    </td>
+                    <td className="px-4 py-3 text-sm">
+                      <div className="flex gap-2">
+                        {ticket.status !== 'resolved' && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleResolveTicket(ticket.id)}
+                            className="text-green-600 hover:text-green-700"
+                            title="حل التذكرة"
+                          >
+                            <CheckCircle className="h-4 w-4" />
+                          </Button>
+                        )}
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleDeleteTicket(ticket.id)}
+                          className="text-red-600 hover:text-red-700"
+                          title="حذف التذكرة"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

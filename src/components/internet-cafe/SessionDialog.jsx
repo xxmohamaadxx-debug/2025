@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { InteractiveButton } from '@/components/ui/InteractiveButton';
 import { useAuth } from '@/contexts/AuthContext';
+import HelpButton from '@/components/ui/HelpButton';
 
 const SessionDialog = ({ open, onOpenChange, session, subscribers = [], devices = [], onSave }) => {
   const { user } = useAuth();
@@ -13,7 +14,7 @@ const SessionDialog = ({ open, onOpenChange, session, subscribers = [], devices 
     price_per_minute: '',
     price_per_hour: '',
     base_price: '',
-    currency: 'TRY'
+    currency: 'USD'
   });
 
   useEffect(() => {
@@ -37,7 +38,7 @@ const SessionDialog = ({ open, onOpenChange, session, subscribers = [], devices 
         price_per_minute: '',
         price_per_hour: '',
         base_price: '',
-        currency: 'TRY'
+        currency: 'USD'
       });
     }
   }, [session, open]);
@@ -56,7 +57,13 @@ const SessionDialog = ({ open, onOpenChange, session, subscribers = [], devices 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl relative">
+        <HelpButton
+          position="top-right"
+          helpTextAr="هنا يمكنك بدء أو تعديل جلسة إنترنت. حدد المشترك (أو اختر ضيف)، الجهاز، والأسعار (دقيقة/ساعة/أساسي). يمكنك بدء الجلسة مباشرة أو حجزها لوقت لاحق."
+          helpTextEn="Here you can start or edit an internet session. Select the subscriber (or choose guest), device, and prices (minute/hour/base). You can start the session immediately or reserve it for later."
+          helpTextTr="Burada bir internet oturumu başlatabilir veya düzenleyebilirsiniz. Aboneyi (veya misafir seçin), cihazı ve fiyatları (dakika/saat/temel) seçin. Oturumu hemen başlatabilir veya daha sonra için rezerve edebilirsiniz."}
+        />
         <DialogHeader>
           <DialogTitle>{session ? 'تعديل جلسة' : 'بدء جلسة جديدة'}</DialogTitle>
         </DialogHeader>
@@ -147,9 +154,11 @@ const SessionDialog = ({ open, onOpenChange, session, subscribers = [], devices 
                 onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
               >
-                <option value="TRY">TRY</option>
-                <option value="USD">USD</option>
-                <option value="SYP">SYP</option>
+                <option value="USD">$ دولار أمريكي (USD)</option>
+                <option value="TRY">₺ ليرة تركية (TRY)</option>
+                <option value="SYP">£S ليرة سورية (SYP)</option>
+                <option value="SAR">﷼ ريال سعودي (SAR)</option>
+                <option value="EUR">€ يورو (EUR)</option>
               </select>
             </div>
           </div>

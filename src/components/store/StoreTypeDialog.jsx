@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
+import HelpButton from '@/components/ui/HelpButton';
 
 const StoreTypeDialog = ({ open, onOpenChange, storeType, onSave }) => {
   const { t } = useLanguage();
@@ -52,7 +53,13 @@ const StoreTypeDialog = ({ open, onOpenChange, storeType, onSave }) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto relative">
+        <HelpButton
+          position="top-right"
+          helpTextAr="هنا يمكنك إدخال أو تعديل نوع متجر (مثل: صالة إنترنت، متجر مقاولين، محطة محروقات، متجر إكسسوارات). أدخل الكود، الاسم بالعربية والإنجليزية والتركية، الوصف، الأيقونة، وترتيب العرض. يمكنك تفعيل أو تعطيل النوع."
+          helpTextEn="Here you can add or edit a store type (e.g., internet cafe, contractor store, fuel station, accessories store). Enter the code, name in Arabic, English, and Turkish, description, icon, and display order. You can activate or deactivate the type."
+          helpTextTr="Burada bir mağaza türü (ör. internet kafe, müteahhit mağazası, benzin istasyonu, aksesuar mağazası) ekleyebilir veya düzenleyebilirsiniz. Kodu, Arapça, İngilizce ve Türkçe adı, açıklamayı, simgeyi ve görüntüleme sırasını girin. Türü etkinleştirebilir veya devre dışı bırakabilirsiniz."}
+        />
         <DialogHeader>
           <DialogTitle>
             {storeType ? 'تعديل نوع متجر' : 'إضافة نوع متجر جديد'}

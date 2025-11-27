@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { CURRENCIES } from '@/lib/constants';
+import HelpButton from '@/components/ui/HelpButton';
 
 const ContractorProjectDialog = ({ open, onOpenChange, project, partners, onSave }) => {
   const { t } = useLanguage();
@@ -16,7 +17,7 @@ const ContractorProjectDialog = ({ open, onOpenChange, project, partners, onSave
     end_date: '',
     estimated_cost: '',
     contract_value: '',
-    currency: 'TRY',
+    currency: 'USD',
     status: 'planning',
     project_type: '',
     location: '',
@@ -51,7 +52,7 @@ const ContractorProjectDialog = ({ open, onOpenChange, project, partners, onSave
         end_date: '',
         estimated_cost: '',
         contract_value: '',
-        currency: 'TRY',
+        currency: 'USD',
         status: 'planning',
         project_type: '',
         location: '',
@@ -72,7 +73,13 @@ const ContractorProjectDialog = ({ open, onOpenChange, project, partners, onSave
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto relative">
+        <HelpButton
+          position="top-right"
+          helpTextAr="هنا يمكنك إدخال أو تعديل مشروع مقاول. أدخل كود المشروع، الاسم، العميل، تاريخ البدء والانتهاء، التكلفة المقدرة، قيمة العقد، العملة، الحالة (تخطيط، قيد التنفيذ، مكتمل)، نوع المشروع، والموقع. يمكنك ربط المشروع بجدول الكميات (BOQ)."
+          helpTextEn="Here you can add or edit a contractor project. Enter the project code, name, client, start and end dates, estimated cost, contract value, currency, status (planning, in progress, completed), project type, and location. You can link the project to a Bill of Quantities (BOQ)."
+          helpTextTr="Burada bir müteahhit projesi ekleyebilir veya düzenleyebilirsiniz. Proje kodunu, adını, müşteriyi, başlangıç ve bitiş tarihlerini, tahmini maliyeti, sözleşme değerini, para birimini, durumu (planlama, devam ediyor, tamamlandı), proje türünü ve konumu girin. Projeyi bir Miktar Listesi (BOQ) ile bağlayabilirsiniz."}
+        />
         <DialogHeader>
           <DialogTitle>
             {project ? 'تعديل مشروع' : 'إضافة مشروع جديد'}
@@ -186,9 +193,11 @@ const ContractorProjectDialog = ({ open, onOpenChange, project, partners, onSave
                 onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
               >
-                <option value="TRY">TRY - ليرة تركية</option>
-                <option value="USD">USD - دولار</option>
-                <option value="SYP">SYP - ليرة سورية</option>
+                <option value="USD">$ دولار أمريكي (USD)</option>
+                <option value="TRY">₺ ليرة تركية (TRY)</option>
+                <option value="SYP">£S ليرة سورية (SYP)</option>
+                <option value="SAR">﷼ ريال سعودي (SAR)</option>
+                <option value="EUR">€ يورو (EUR)</option>
               </select>
             </div>
 

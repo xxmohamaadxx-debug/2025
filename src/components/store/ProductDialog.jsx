@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { InteractiveButton } from '@/components/ui/InteractiveButton';
+import HelpButton from '@/components/ui/HelpButton';
 // import ImageUploader from '@/components/ImageUploader'; // سيتم إضافته لاحقاً
 
 const ProductDialog = ({ open, onOpenChange, product, onSave }) => {
@@ -12,7 +13,7 @@ const ProductDialog = ({ open, onOpenChange, product, onSave }) => {
     specifications: {},
     selling_price: '',
     cost_price: '',
-    currency: 'TRY',
+    currency: 'USD',
     tax_rate: '',
     discount_allowed: '',
     reorder_level: '',
@@ -50,7 +51,7 @@ const ProductDialog = ({ open, onOpenChange, product, onSave }) => {
         specifications: {},
         selling_price: '',
         cost_price: '',
-        currency: 'TRY',
+        currency: 'USD',
         tax_rate: '',
         discount_allowed: '',
         reorder_level: '',
@@ -82,7 +83,13 @@ const ProductDialog = ({ open, onOpenChange, product, onSave }) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto relative">
+        <HelpButton
+          position="top-right"
+          helpTextAr="هنا يمكنك إدخال أو تعديل منتج. أدخل SKU (كود المنتج)، الاسم، الفئة، الماركة، سعر البيع، سعر التكلفة، العملة، معدل الضريبة، والحد الأدنى لإعادة الطلب. يمكنك إضافة مواصفات تفصيلية وموقع الرف."
+          helpTextEn="Here you can add or edit a product. Enter the SKU (product code), name, category, brand, selling price, cost price, currency, tax rate, and reorder level. You can add detailed specifications and shelf location."
+          helpTextTr="Burada bir ürün ekleyebilir veya düzenleyebilirsiniz. SKU'yu (ürün kodu), adı, kategoriyi, markayı, satış fiyatını, maliyet fiyatını, para birimini, vergi oranını ve yeniden sipariş seviyesini girin. Detaylı özellikler ve raf konumu ekleyebilirsiniz."}
+        />
         <DialogHeader>
           <DialogTitle>{product ? 'تعديل منتج' : 'إضافة منتج جديد'}</DialogTitle>
         </DialogHeader>
@@ -159,9 +166,11 @@ const ProductDialog = ({ open, onOpenChange, product, onSave }) => {
                 onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
               >
-                <option value="TRY">TRY</option>
-                <option value="USD">USD</option>
-                <option value="SYP">SYP</option>
+                <option value="USD">$ دولار أمريكي (USD)</option>
+                <option value="TRY">₺ ليرة تركية (TRY)</option>
+                <option value="SYP">£S ليرة سورية (SYP)</option>
+                <option value="SAR">﷼ ريال سعودي (SAR)</option>
+                <option value="EUR">€ يورو (EUR)</option>
               </select>
             </div>
             <div>

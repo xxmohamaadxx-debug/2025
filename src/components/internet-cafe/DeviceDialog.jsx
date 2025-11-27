@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { InteractiveButton } from '@/components/ui/InteractiveButton';
+import HelpButton from '@/components/ui/HelpButton';
 
 const DeviceDialog = ({ open, onOpenChange, device, onSave }) => {
   const [formData, setFormData] = useState({
@@ -9,7 +10,7 @@ const DeviceDialog = ({ open, onOpenChange, device, onSave }) => {
     status: 'available',
     location: '',
     session_price: '',
-    currency: 'TRY',
+    currency: 'USD',
     maintenance_notes: ''
   });
 
@@ -31,7 +32,7 @@ const DeviceDialog = ({ open, onOpenChange, device, onSave }) => {
         status: 'available',
         location: '',
         session_price: '',
-        currency: 'TRY',
+        currency: 'USD',
         maintenance_notes: ''
       });
     }
@@ -48,7 +49,13 @@ const DeviceDialog = ({ open, onOpenChange, device, onSave }) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl relative">
+        <HelpButton
+          position="top-right"
+          helpTextAr="هنا يمكنك إدخال أو تعديل جهاز في صالة الإنترنت. أدخل رقم الجهاز، المواصفات (المعالج، الذاكرة، إلخ)، الحالة (متاح، مشغول، صيانة)، الموقع، وسعر الجلسة. يمكنك إضافة ملاحظات صيانة."
+          helpTextEn="Here you can add or edit a device in the internet cafe. Enter the device number, specifications (processor, memory, etc.), status (available, busy, maintenance), location, and session price. You can add maintenance notes."
+          helpTextTr="Burada internet kafedeki bir cihazı ekleyebilir veya düzenleyebilirsiniz. Cihaz numarasını, özelliklerini (işlemci, bellek, vb.), durumunu (müsait, meşgul, bakım), konumunu ve oturum fiyatını girin. Bakım notları ekleyebilirsiniz."}
+        />
         <DialogHeader>
           <DialogTitle>{device ? 'تعديل جهاز' : 'إضافة جهاز جديد'}</DialogTitle>
         </DialogHeader>

@@ -761,6 +761,39 @@ export const neonService = {
     }
   },
 
+  deleteSupportTicket: async (ticketId) => {
+    try {
+      const result = await sql`
+        DELETE FROM support_tickets WHERE id = ${ticketId}::UUID
+        RETURNING *
+      `;
+      return result[0];
+    } catch (error) {
+      console.error('deleteSupportTicket error:', error);
+      throw error;
+    }
+  },
+
+  updateSupportTicket: async (ticketId, data) => {
+    try {
+      const result = await sql`
+        UPDATE support_tickets 
+        SET 
+          status = ${data.status || 'open'},
+          admin_response = ${data.admin_response || null},
+          resolved_at = ${data.resolved_at ? new Date(data.resolved_at).toISOString() : null},
+          resolved_by = ${data.resolved_by || null},
+          updated_at = NOW()
+        WHERE id = ${ticketId}::UUID
+        RETURNING *
+      `;
+      return result[0];
+    } catch (error) {
+      console.error('updateSupportTicket error:', error);
+      throw error;
+    }
+  },
+
   getSupportTicketMessages: async (ticketId) => {
     try {
       const result = await sql`
@@ -1594,7 +1627,22 @@ export const neonService = {
   getFuelInventory: async (tenantId) => {
     if (!tenantId) return [];
     try {
-      // التحقق من وجود الدالة أولاً
+      // محاولة استخدام view أولاً
+      const viewExists = await sql`
+        SELECT EXISTS (
+          SELECT 1 FROM information_schema.views 
+          WHERE table_schema = 'public' AND table_name = 'current_fuel_inventory'
+        ) as exists
+      `;
+      
+      if (viewExists[0]?.exists) {
+        const result = await sql`
+          SELECT * FROM current_fuel_inventory WHERE tenant_id = ${tenantId}::UUID
+        `;
+        return result || [];
+      }
+      
+      // Fallback: استخدام الدالة
       const funcExists = await sql`
         SELECT EXISTS (
           SELECT 1 FROM pg_proc p
@@ -2637,9 +2685,53 @@ export const neonService = {
   },
 
   getDebtsReport: async (tenantId) => {
+    if (!tenantId) return [];
     try {
+      // التحقق من وجود view أولاً
+      const viewExists = await sql`
+        SELECT EXISTS (
+          SELECT 1 FROM information_schema.views 
+          WHERE table_schema = 'public' AND table_name = 'debts_report_view'
+        ) as exists
+      `;
+      
+      if (viewExists[0]?.exists) {
+        const result = await sql`
+          SELECT * FROM debts_report_view WHERE tenant_id = ${tenantId}::UUID
+        `;
+        return result || [];
+      }
+      
+      // Fallback: حساب يدوي
       const result = await sql`
-        SELECT * FROM debts_report_view WHERE tenant_id = ${tenantId}
+        SELECT 
+          d.tenant_id,
+          d.id as debt_id,
+          d.entity_type,
+          d.entity_id,
+          CASE 
+            WHEN d.entity_type = 'customer' THEN p.name
+            WHEN d.entity_type = 'supplier' THEN p.name
+            WHEN d.entity_type = 'employee' THEN e.name
+            ELSE 'غير محدد'
+          END as entity_name,
+          d.amount as original_amount,
+          d.amount - COALESCE(SUM(pay.amount), 0) as remaining_amount,
+          COALESCE(SUM(pay.amount), 0) as paid_amount,
+          d.status,
+          d.created_at,
+          d.due_date,
+          CASE 
+            WHEN d.amount - COALESCE(SUM(pay.amount), 0) <= 0 THEN 'paid'
+            WHEN d.due_date < CURRENT_DATE AND d.amount - COALESCE(SUM(pay.amount), 0) > 0 THEN 'overdue'
+            ELSE 'pending'
+          END as payment_status
+        FROM debts d
+        LEFT JOIN payments pay ON pay.debt_id = d.id
+        LEFT JOIN partners p ON (d.entity_type IN ('customer', 'supplier') AND p.id = d.entity_id)
+        LEFT JOIN employees e ON (d.entity_type = 'employee' AND e.id = d.entity_id)
+        WHERE d.tenant_id = ${tenantId}::UUID
+        GROUP BY d.id, d.tenant_id, d.entity_type, d.entity_id, d.amount, d.status, d.created_at, d.due_date, p.name, e.name
       `;
       return result || [];
     } catch (error) {

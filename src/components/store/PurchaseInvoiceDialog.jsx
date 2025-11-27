@@ -4,6 +4,7 @@ import { InteractiveButton } from '@/components/ui/InteractiveButton';
 import { useAuth } from '@/contexts/AuthContext';
 import { neonService } from '@/lib/neonService';
 import { Plus, Trash2 } from 'lucide-react';
+import HelpButton from '@/components/ui/HelpButton';
 
 const PurchaseInvoiceDialog = ({ open, onOpenChange, invoice, onSave }) => {
   const { user } = useAuth();
@@ -17,7 +18,7 @@ const PurchaseInvoiceDialog = ({ open, onOpenChange, invoice, onSave }) => {
     shipping_cost: '',
     tax_amount: '',
     discount_amount: '',
-    currency: 'TRY',
+    currency: 'USD',
     payment_method: 'cash',
     is_credit: false,
     due_date: '',
@@ -54,7 +55,7 @@ const PurchaseInvoiceDialog = ({ open, onOpenChange, invoice, onSave }) => {
         shipping_cost: '',
         tax_amount: '',
         discount_amount: '',
-        currency: 'TRY',
+        currency: 'USD',
         payment_method: 'cash',
         is_credit: false,
         due_date: '',
@@ -146,7 +147,13 @@ const PurchaseInvoiceDialog = ({ open, onOpenChange, invoice, onSave }) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto relative">
+        <HelpButton
+          position="top-right"
+          helpTextAr="هنا يمكنك إدخال أو تعديل فاتورة شراء. حدد المورد، التاريخ، أضف المنتجات من المخزون، حدد تكلفة الشحن، الضريبة، الخصم، وطريقة الدفع. يمكنك تحديد إذا كانت الفاتورة ديناً (credit) أو مدفوعة."
+          helpTextEn="Here you can add or edit a purchase invoice. Select the vendor, date, add products from inventory, specify shipping cost, tax, discount, and payment method. You can specify if the invoice is credit or paid."
+          helpTextTr="Burada bir satın alma faturası ekleyebilir veya düzenleyebilirsiniz. Tedarikçiyi seçin, tarihi, envanterden ürünleri ekleyin, nakliye maliyetini, vergiyi, indirimi ve ödeme yöntemini belirtin. Faturanın kredi mi yoksa ödenmiş mi olduğunu belirtebilirsiniz."}
+        />
         <DialogHeader>
           <DialogTitle>{invoice ? 'تعديل فاتورة شراء' : 'إضافة فاتورة شراء جديدة'}</DialogTitle>
         </DialogHeader>
@@ -222,9 +229,11 @@ const PurchaseInvoiceDialog = ({ open, onOpenChange, invoice, onSave }) => {
                 onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
               >
-                <option value="TRY">TRY</option>
-                <option value="USD">USD</option>
-                <option value="SYP">SYP</option>
+                <option value="USD">$ دولار أمريكي (USD)</option>
+                <option value="TRY">₺ ليرة تركية (TRY)</option>
+                <option value="SYP">£S ليرة سورية (SYP)</option>
+                <option value="SAR">﷼ ريال سعودي (SAR)</option>
+                <option value="EUR">€ يورو (EUR)</option>
               </select>
             </div>
             <div>

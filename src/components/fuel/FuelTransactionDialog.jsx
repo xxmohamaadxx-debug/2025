@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { CURRENCIES } from '@/lib/constants';
+import HelpButton from '@/components/ui/HelpButton';
 
 const FuelTransactionDialog = ({ open, onOpenChange, transaction, fuelTypes, onSave }) => {
   const { t } = useLanguage();
@@ -12,7 +13,7 @@ const FuelTransactionDialog = ({ open, onOpenChange, transaction, fuelTypes, onS
     quantity: '',
     unit_price: '',
     total_amount: '',
-    currency: 'TRY',
+    currency: 'USD',
     payment_method: 'cash',
     reference_number: '',
     supplier_customer_name: '',
@@ -43,7 +44,7 @@ const FuelTransactionDialog = ({ open, onOpenChange, transaction, fuelTypes, onS
         quantity: '',
         unit_price: '',
         total_amount: '',
-        currency: 'TRY',
+        currency: 'USD',
         payment_method: 'cash',
         reference_number: '',
         supplier_customer_name: '',
@@ -76,7 +77,13 @@ const FuelTransactionDialog = ({ open, onOpenChange, transaction, fuelTypes, onS
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto relative">
+        <HelpButton
+          position="top-right"
+          helpTextAr="هنا يمكنك إدخال أو تعديل معاملة محروقات (شراء، بيع، تعديل، أو فقد). حدد نوع المحروقات، الكمية، سعر الوحدة (سيتم حساب الإجمالي تلقائياً)، العملة، طريقة الدفع، والمورد/العميل. يمكنك إضافة ملاحظات."
+          helpTextEn="Here you can add or edit a fuel transaction (purchase, sale, adjustment, or loss). Select the fuel type, quantity, unit price (total will be calculated automatically), currency, payment method, and supplier/customer. You can add notes."
+          helpTextTr="Burada bir yakıt işlemi (satın alma, satış, ayarlama veya kayıp) ekleyebilir veya düzenleyebilirsiniz. Yakıt türünü, miktarı, birim fiyatını (toplam otomatik olarak hesaplanacaktır), para birimini, ödeme yöntemini ve tedarikçi/müşteriyi seçin. Notlar ekleyebilirsiniz."}
+        />
         <DialogHeader>
           <DialogTitle>
             {transaction ? 'تعديل معاملة محروقات' : 'إضافة معاملة محروقات جديدة'}
@@ -173,9 +180,11 @@ const FuelTransactionDialog = ({ open, onOpenChange, transaction, fuelTypes, onS
                 onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
               >
-                <option value="TRY">TRY - ليرة تركية</option>
-                <option value="USD">USD - دولار</option>
-                <option value="SYP">SYP - ليرة سورية</option>
+                <option value="USD">$ دولار أمريكي (USD)</option>
+                <option value="TRY">₺ ليرة تركية (TRY)</option>
+                <option value="SYP">£S ليرة سورية (SYP)</option>
+                <option value="SAR">﷼ ريال سعودي (SAR)</option>
+                <option value="EUR">€ يورو (EUR)</option>
               </select>
             </div>
 

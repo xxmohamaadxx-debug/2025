@@ -534,7 +534,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         <NavItem
           to="/messages"
           icon={MessageCircle}
-          label={locale === 'ar' ? 'المراسلة' : locale === 'en' ? 'Messages' : 'Mesajlar'}
+          label={locale === 'ar' ? '💬 المراسلة' : locale === 'en' ? '💬 Messages' : '💬 Mesajlar'}
           isActive={isActive('/messages')}
           onClick={handleLinkClick}
           delay={1.08}

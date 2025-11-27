@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { CURRENCIES, EMPLOYEE_STATUS } from '@/lib/constants';
 import { formatDateForInput, getCurrentDateInput } from '@/lib/dateUtils';
+import HelpButton from '@/components/ui/HelpButton';
 
 const EmployeeDialog = ({ open, onOpenChange, employee, onSave }) => {
   const { t } = useLanguage();
@@ -12,7 +13,7 @@ const EmployeeDialog = ({ open, onOpenChange, employee, onSave }) => {
     name: '',
     position: '',
     base_salary: '',
-    currency: 'TRY',
+    currency: 'USD',
     status: 'Active',
     hire_date: getCurrentDateInput(),
   });
@@ -23,7 +24,7 @@ const EmployeeDialog = ({ open, onOpenChange, employee, onSave }) => {
         name: employee.name || '',
         position: employee.position || '',
         base_salary: employee.base_salary || employee.salary || '',
-        currency: employee.currency || 'TRY',
+        currency: employee.currency || 'USD',
         status: employee.status || 'Active',
         hire_date: employee.hire_date || employee.hireDate ? formatDateForInput(employee.hire_date || employee.hireDate) : getCurrentDateInput(),
       });
@@ -32,7 +33,7 @@ const EmployeeDialog = ({ open, onOpenChange, employee, onSave }) => {
         name: '',
         position: '',
         base_salary: '',
-        currency: 'TRY',
+        currency: 'USD',
         status: 'Active',
         hire_date: getCurrentDateInput(),
       });
@@ -46,7 +47,13 @@ const EmployeeDialog = ({ open, onOpenChange, employee, onSave }) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md relative">
+        <HelpButton
+          position="top-right"
+          helpTextAr="هنا يمكنك إدخال أو تعديل بيانات موظف. أدخل الاسم الكامل، الوظيفة، الراتب الأساسي، العملة، تاريخ التوظيف، والحالة (نشط/غير نشط). الراتب الأساسي سيُستخدم في كشوف الرواتب."
+          helpTextEn="Here you can add or edit employee data. Enter the full name, position, base salary, currency, hire date, and status (active/inactive). The base salary will be used in payroll reports."
+          helpTextTr="Burada çalışan verilerini ekleyebilir veya düzenleyebilirsiniz. Tam adı, pozisyonu, temel maaşı, para birimini, işe alım tarihini ve durumu (aktif/pasif) girin. Temel maaş bordro raporlarında kullanılacaktır."}
+        />
         <DialogHeader>
           <DialogTitle>
             {employee ? t('common.edit') : t('common.add')} {t('employees.employee')}
@@ -100,9 +107,11 @@ const EmployeeDialog = ({ open, onOpenChange, employee, onSave }) => {
                 onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
                 className="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
               >
-                <option value="TRY">₺ ليرة تركية (TRY)</option>
                 <option value="USD">$ دولار أمريكي (USD)</option>
+                <option value="TRY">₺ ليرة تركية (TRY)</option>
                 <option value="SYP">£S ليرة سورية (SYP)</option>
+                <option value="SAR">﷼ ريال سعودي (SAR)</option>
+                <option value="EUR">€ يورو (EUR)</option>
               </select>
             </div>
           </div>

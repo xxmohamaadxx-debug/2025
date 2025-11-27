@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
+import HelpButton from '@/components/ui/HelpButton';
 
 const CustomerDialog = ({ open, onOpenChange, customer, onSave }) => {
   const { t } = useLanguage();
@@ -11,7 +12,7 @@ const CustomerDialog = ({ open, onOpenChange, customer, onSave }) => {
     email: '',
     address: '',
     notes: '',
-    currency: 'TRY',
+    currency: 'USD',
     payment_method: 'cash'
   });
 
@@ -33,7 +34,7 @@ const CustomerDialog = ({ open, onOpenChange, customer, onSave }) => {
         email: '',
         address: '',
         notes: '',
-        currency: 'TRY',
+        currency: 'USD',
         payment_method: 'cash'
       });
     }
@@ -46,7 +47,13 @@ const CustomerDialog = ({ open, onOpenChange, customer, onSave }) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md relative">
+        <HelpButton
+          position="top-right"
+          helpTextAr="هنا يمكنك إدخال أو تعديل بيانات عميل. أدخل الاسم، رقم الهاتف، البريد الإلكتروني، والعنوان. يمكنك تحديد العملة المفضلة وطريقة الدفع الافتراضية. يمكنك إضافة ملاحظات."
+          helpTextEn="Here you can add or edit customer data. Enter the name, phone number, email, and address. You can specify the preferred currency and default payment method. You can add notes."
+          helpTextTr="Burada müşteri verilerini ekleyebilir veya düzenleyebilirsiniz. Adı, telefon numarası, e-postayı ve adresi girin. Tercih edilen para birimini ve varsayılan ödeme yöntemini belirtebilirsiniz. Notlar ekleyebilirsiniz."}
+        />
         <DialogHeader>
           <DialogTitle>
             {customer ? 'تعديل عميل' : 'إضافة عميل'}
@@ -104,9 +111,11 @@ const CustomerDialog = ({ open, onOpenChange, customer, onSave }) => {
               onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
               className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
             >
-              <option value="TRY">TRY - ليرة تركية</option>
-              <option value="USD">USD - دولار</option>
-              <option value="SYP">SYP - ليرة سورية</option>
+              <option value="USD">$ دولار أمريكي (USD)</option>
+              <option value="TRY">₺ ليرة تركية (TRY)</option>
+              <option value="SYP">£S ليرة سورية (SYP)</option>
+              <option value="SAR">﷼ ريال سعودي (SAR)</option>
+              <option value="EUR">€ يورو (EUR)</option>
             </select>
           </div>
           <div>

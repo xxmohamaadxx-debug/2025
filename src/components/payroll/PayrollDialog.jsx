@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
+import HelpButton from '@/components/ui/HelpButton';
 
 const PayrollDialog = ({ open, onOpenChange, employees, onSave }) => {
   const { t } = useLanguage();
@@ -39,7 +40,12 @@ const PayrollDialog = ({ open, onOpenChange, employees, onSave }) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md relative">
+        <HelpButton
+          position="top-right"
+          helpTextAr="هنا يمكنك إنشاء كشف راتب للموظف. حدد الموظف، الفترة (الشهر والسنة)، وأضف أي مكافآت أو خصومات. سيتم حساب الراتب الصافي تلقائياً (الراتب الأساسي + المكافآت - الخصومات)."
+          helpTextEn="Here you can create a payroll for an employee. Select the employee, period (month and year), and add any bonuses or deductions. The net salary will be calculated automatically (base salary + bonuses - deductions)."
+          helpTextTr="Burada bir çalışan için bordro oluşturabilirsiniz. Çalışanı, dönemi (ay ve yıl) seçin ve herhangi bir ikramiye veya kesinti ekleyin. Net maaş otomatik olarak hesaplanacaktır (temel maaş + ikramiyeler - kesintiler)."}/>
         <DialogHeader>
           <DialogTitle>إنشاء كشف راتب</DialogTitle>
           <DialogDescription>

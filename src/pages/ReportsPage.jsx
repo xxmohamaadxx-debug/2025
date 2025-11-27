@@ -86,22 +86,47 @@ const ReportsPage = () => {
 
     const columns = [
       { key: 'type', label: t('reports.type') || 'النوع' },
-      { key: 'date', label: t('common.date'), formatter: (val) => formatDateAR(val) },
+      { key: 'date', label: t('common.date'), formatter: (val) => {
+        if (!val) return '-';
+        try {
+          if (typeof val === 'string' && val.match(/^\d{4}-\d{2}-\d{2}/)) {
+            return formatDateAR(val);
+          }
+          return formatDateAR(new Date(val));
+        } catch (e) {
+          return val || '-';
+        }
+      }},
       { key: 'description', label: t('common.description') },
-      { key: 'amount', label: t('common.amount') },
+      { key: 'amount', label: t('common.amount'), formatter: (val) => {
+        const num = parseFloat(val || 0);
+        return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      }},
       { key: 'currency', label: t('common.currency') },
       { key: 'category', label: t('common.category') },
       { key: 'partner', label: t('reports.partner') || 'الطرف' }
     ];
 
-    exportToExcel(reportData, {
-      title: `${t('common.reports')} - ${t(`reports.${selectedPeriod}`)}`,
-      columns,
-      filename: `report_${selectedPeriod}_${new Date().toISOString().split('T')[0]}.xlsx`,
-      locale: locale
-    });
+    try {
+      exportToExcel(reportData, {
+        title: `${t('common.reports')} - ${t(`reports.${selectedPeriod}`)}`,
+        columns,
+        filename: `report_${selectedPeriod}_${new Date().toISOString().split('T')[0]}.xlsx`,
+        locale: locale
+      });
 
-    toast({ title: t('reports.reportGenerated') });
+      toast({ 
+        title: t('reports.reportGenerated'), 
+        description: `${reportData.length} ${t('reports.recordsExported') || 'سجل'}` 
+      });
+    } catch (error) {
+      console.error('Export Excel error:', error);
+      toast({ 
+        title: t('common.error'), 
+        description: error.message || t('reports.exportExcelError') || 'حدث خطأ أثناء التصدير',
+        variant: 'destructive' 
+      });
+    }
   };
 
   // Get filtered and grouped data for display

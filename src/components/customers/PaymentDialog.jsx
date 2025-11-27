@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { CURRENCIES } from '@/lib/constants';
+import HelpButton from '@/components/ui/HelpButton';
 
 const PaymentDialog = ({ open, onOpenChange, customer, onSave }) => {
   const { t } = useLanguage();
@@ -11,7 +12,7 @@ const PaymentDialog = ({ open, onOpenChange, customer, onSave }) => {
   const [formData, setFormData] = useState({
     type: 'payment', // 'payment', 'receipt', 'debt', 'credit'
     amount: '',
-    currency: 'TRY',
+    currency: 'USD',
     payment_method: 'cash',
     date: new Date().toISOString().split('T')[0],
     description: '',
@@ -73,7 +74,13 @@ const PaymentDialog = ({ open, onOpenChange, customer, onSave }) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md relative">
+        <HelpButton
+          position="top-right"
+          helpTextAr="هنا يمكنك إدخال معاملة مالية للعميل (دفعة، استلام، دين، أو رصيد). النظام سيحسب تلقائياً: إذا كان العميل عليه دين، ستُخصم الدفعة من الدين. إذا لم يكن عليه دين، ستُضاف كرصيد. يمكنك تحديد طريقة الدفع والعملة."
+          helpTextEn="Here you can enter a financial transaction for the customer (payment, receipt, debt, or credit). The system will automatically calculate: if the customer has debt, the payment will be deducted from the debt. If there is no debt, it will be added as credit. You can specify the payment method and currency."
+          helpTextTr="Burada müşteri için bir finansal işlem girebilirsiniz (ödeme, makbuz, borç veya kredi). Sistem otomatik olarak hesaplayacaktır: müşterinin borcu varsa, ödeme borçtan düşülecektir. Borç yoksa, kredi olarak eklenecektir. Ödeme yöntemini ve para birimini belirtebilirsiniz."}
+        />
         <DialogHeader>
           <DialogTitle>
             إضافة معاملة - {customer.name}
@@ -144,9 +151,11 @@ const PaymentDialog = ({ open, onOpenChange, customer, onSave }) => {
               className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
               required
             >
-              <option value="TRY">TRY - ليرة تركية</option>
-              <option value="USD">USD - دولار</option>
-              <option value="SYP">SYP - ليرة سورية</option>
+              <option value="USD">$ دولار أمريكي (USD)</option>
+              <option value="TRY">₺ ليرة تركية (TRY)</option>
+              <option value="SYP">£S ليرة سورية (SYP)</option>
+              <option value="SAR">﷼ ريال سعودي (SAR)</option>
+              <option value="EUR">€ يورو (EUR)</option>
             </select>
           </div>
 

@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { neonService } from '@/lib/neonService';
 import { Upload, X, Paperclip, Plus, Trash2 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
+import HelpButton from '@/components/ui/HelpButton';
 
 const InvoiceDialog = ({ open, onOpenChange, invoice, onSave, type }) => {
   const { t } = useLanguage();
@@ -20,7 +21,7 @@ const InvoiceDialog = ({ open, onOpenChange, invoice, onSave, type }) => {
   
   const [formData, setFormData] = useState({
     amount: '',
-    currency: 'TRY',
+    currency: 'USD',
     description: '',
     date: new Date().toISOString().split('T')[0],
     category: '',
@@ -192,7 +193,7 @@ const InvoiceDialog = ({ open, onOpenChange, invoice, onSave, type }) => {
     } else {
       setFormData({
         amount: '',
-        currency: 'TRY',
+        currency: 'USD',
         description: '',
         date: new Date().toISOString().split('T')[0],
         category: '',
@@ -236,7 +237,19 @@ const InvoiceDialog = ({ open, onOpenChange, invoice, onSave, type }) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto relative">
+        <HelpButton
+          position="top-right"
+          helpTextAr={type === 'in' 
+            ? "هنا يمكنك إدخال أو تعديل فاتورة وارد. أدخل التاريخ، المبلغ، العملة، والوصف. يمكنك إضافة عناصر من المخزون وربط الفاتورة بشريك (مورد). يمكنك أيضاً إرفاق ملفات مثل صورة الفاتورة."
+            : "هنا يمكنك إدخال أو تعديل فاتورة صادر. أدخل التاريخ، المبلغ، العملة، والوصف. يمكنك إضافة عناصر من المخزون وربط الفاتورة بشريك (عميل). يمكنك تحديد طريقة الدفع (كاش، حوالة، أو دين)."}
+          helpTextEn={type === 'in'
+            ? "Here you can add or edit an incoming invoice. Enter the date, amount, currency, and description. You can add items from inventory and link the invoice to a partner (vendor). You can also attach files like invoice images."
+            : "Here you can add or edit an outgoing invoice. Enter the date, amount, currency, and description. You can add items from inventory and link the invoice to a partner (customer). You can specify payment method (cash, transfer, or credit)."}
+          helpTextTr={type === 'in'
+            ? "Burada gelen bir fatura ekleyebilir veya düzenleyebilirsiniz. Tarih, tutar, para birimi ve açıklamayı girin. Envanterden öğeler ekleyebilir ve faturayı bir ortakla (tedarikçi) bağlayabilirsiniz. Fatura görüntüleri gibi dosyalar da ekleyebilirsiniz."
+            : "Burada giden bir fatura ekleyebilir veya düzenleyebilirsiniz. Tarih, tutar, para birimi ve açıklamayı girin. Envanterden öğeler ekleyebilir ve faturayı bir ortakla (müşteri) bağlayabilirsiniz. Ödeme yöntemini (nakit, transfer veya kredi) belirtebilirsiniz."}
+        />
         <DialogHeader>
           <DialogTitle>
             {invoice ? t('common.edit') : t('common.add')} {type === 'in' ? t('common.invoicesIn') : t('common.invoicesOut')}
@@ -269,9 +282,11 @@ const InvoiceDialog = ({ open, onOpenChange, invoice, onSave, type }) => {
                 onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
               >
-                <option value="TRY">₺ ليرة تركية (TRY)</option>
                 <option value="USD">$ دولار أمريكي (USD)</option>
+                <option value="TRY">₺ ليرة تركية (TRY)</option>
                 <option value="SYP">£S ليرة سورية (SYP)</option>
+                <option value="SAR">﷼ ريال سعودي (SAR)</option>
+                <option value="EUR">€ يورو (EUR)</option>
               </select>
             </div>
 

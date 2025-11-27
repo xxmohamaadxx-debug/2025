@@ -13,7 +13,7 @@ const DailyExpenseDialog = ({ open, onOpenChange, expense, onSave }) => {
   const [formData, setFormData] = useState({
     expense_date: new Date().toISOString().split('T')[0],
     amount: '',
-    currency: 'TRY',
+    currency: 'USD',
     category: '',
     description: '',
     payment_method: 'cash',
@@ -41,7 +41,7 @@ const DailyExpenseDialog = ({ open, onOpenChange, expense, onSave }) => {
         setFormData({
           expense_date: new Date().toISOString().split('T')[0],
           amount: '',
-          currency: 'TRY',
+          currency: 'USD',
           category: '',
           description: '',
           payment_method: 'cash',
@@ -145,9 +145,11 @@ const DailyExpenseDialog = ({ open, onOpenChange, expense, onSave }) => {
                 onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
               >
-                <option value="TRY">TRY - ليرة تركية</option>
-                <option value="USD">USD - دولار</option>
-                <option value="SYP">SYP - ليرة سورية</option>
+                <option value="USD">$ دولار أمريكي (USD)</option>
+                <option value="TRY">₺ ليرة تركية (TRY)</option>
+                <option value="SYP">£S ليرة سورية (SYP)</option>
+                <option value="SAR">﷼ ريال سعودي (SAR)</option>
+                <option value="EUR">€ يورو (EUR)</option>
               </select>
             </div>
 

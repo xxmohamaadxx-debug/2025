@@ -5,6 +5,7 @@ import { InteractiveButton } from '@/components/ui/InteractiveButton';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { CURRENCIES } from '@/lib/constants';
+import HelpButton from '@/components/ui/HelpButton';
 
 const ContractorProjectItemDialog = ({ open, onOpenChange, item, projects, units, products, onSave }) => {
   const { t } = useLanguage();
@@ -17,7 +18,7 @@ const ContractorProjectItemDialog = ({ open, onOpenChange, item, projects, units
     quantity: '',
     unit_id: '',
     unit_price: '',
-    currency: 'TRY',
+    currency: 'USD',
     sort_order: 0,
     notes: ''
   });
@@ -45,7 +46,7 @@ const ContractorProjectItemDialog = ({ open, onOpenChange, item, projects, units
         quantity: '',
         unit_id: '',
         unit_price: '',
-        currency: 'TRY',
+        currency: 'USD',
         sort_order: 0,
         notes: ''
       });
@@ -78,7 +79,13 @@ const ContractorProjectItemDialog = ({ open, onOpenChange, item, projects, units
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto relative">
+        <HelpButton
+          position="top-right"
+          helpTextAr="هنا يمكنك إدخال أو تعديل بند من جدول الكميات (BOQ) للمشروع. حدد المشروع، أدخل كود البند، الاسم، الكمية، الوحدة، سعر الوحدة، والعملة. يمكنك ربط البند بمنتج من المخزون إذا كان متوفراً."
+          helpTextEn="Here you can add or edit a Bill of Quantities (BOQ) item for the project. Select the project, enter the item code, name, quantity, unit, unit price, and currency. You can link the item to an inventory product if available."
+          helpTextTr="Burada proje için bir Miktar Listesi (BOQ) öğesi ekleyebilir veya düzenleyebilirsiniz. Projeyi seçin, öğe kodunu, adını, miktarını, birimini, birim fiyatını ve para birimini girin. Öğeyi mevcut ise bir envanter ürününe bağlayabilirsiniz."}
+        />
         <DialogHeader>
           <DialogTitle>
             {item ? 'تعديل بند الكميات' : 'إضافة بند كميات جديد'}
@@ -210,9 +217,11 @@ const ContractorProjectItemDialog = ({ open, onOpenChange, item, projects, units
                 onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
               >
-                <option value="TRY">TRY - ليرة تركية</option>
-                <option value="USD">USD - دولار</option>
-                <option value="SYP">SYP - ليرة سورية</option>
+                <option value="USD">$ دولار أمريكي (USD)</option>
+                <option value="TRY">₺ ليرة تركية (TRY)</option>
+                <option value="SYP">£S ليرة سورية (SYP)</option>
+                <option value="SAR">﷼ ريال سعودي (SAR)</option>
+                <option value="EUR">€ يورو (EUR)</option>
               </select>
             </div>
 

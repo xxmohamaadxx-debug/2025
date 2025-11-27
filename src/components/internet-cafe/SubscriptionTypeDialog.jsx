@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { InteractiveButton } from '@/components/ui/InteractiveButton';
+import HelpButton from '@/components/ui/HelpButton';
 
 const SubscriptionTypeDialog = ({ open, onOpenChange, subscriptionType, onSave }) => {
   const [formData, setFormData] = useState({
@@ -12,7 +13,7 @@ const SubscriptionTypeDialog = ({ open, onOpenChange, subscriptionType, onSave }
     peak_hours_start: '',
     peak_hours_end: '',
     price: '',
-    currency: 'TRY',
+    currency: 'USD',
     renewal_policy: '',
     late_fee_percent: '',
     late_fee_amount: '',
@@ -48,7 +49,7 @@ const SubscriptionTypeDialog = ({ open, onOpenChange, subscriptionType, onSave }
         peak_hours_start: '',
         peak_hours_end: '',
         price: '',
-        currency: 'TRY',
+        currency: 'USD',
         renewal_policy: '',
         late_fee_percent: '',
         late_fee_amount: '',
@@ -76,7 +77,13 @@ const SubscriptionTypeDialog = ({ open, onOpenChange, subscriptionType, onSave }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto relative">
+        <HelpButton
+          position="top-right"
+          helpTextAr="هنا يمكنك إدخال أو تعديل نوع اشتراك إنترنت. حدد الاسم، مدة الاشتراك (بالأيام أو الساعات)، حد السرعة، حد البيانات (GB)، ساعات الذروة، السعر، العملة، وسياسة التجديد. يمكنك إضافة رسوم تأخير."
+          helpTextEn="Here you can add or edit an internet subscription type. Specify the name, subscription duration (in days or hours), speed limit, data limit (GB), peak hours, price, currency, and renewal policy. You can add late fees."
+          helpTextTr="Burada bir internet abonelik türü ekleyebilir veya düzenleyebilirsiniz. Adı, abonelik süresini (gün veya saat cinsinden), hız limitini, veri limitini (GB), yoğun saatleri, fiyatı, para birimini ve yenileme politikasını belirtin. Gecikme ücretleri ekleyebilirsiniz."}
+        />
         <DialogHeader>
           <DialogTitle>
             {subscriptionType ? 'تعديل نوع اشتراك' : 'إضافة نوع اشتراك جديد'}
@@ -168,9 +175,11 @@ const SubscriptionTypeDialog = ({ open, onOpenChange, subscriptionType, onSave }
                 onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
               >
-                <option value="TRY">TRY</option>
-                <option value="USD">USD</option>
-                <option value="SYP">SYP</option>
+                <option value="USD">$ دولار أمريكي (USD)</option>
+                <option value="TRY">₺ ليرة تركية (TRY)</option>
+                <option value="SYP">£S ليرة سورية (SYP)</option>
+                <option value="SAR">﷼ ريال سعودي (SAR)</option>
+                <option value="EUR">€ يورو (EUR)</option>
               </select>
             </div>
             <div>
