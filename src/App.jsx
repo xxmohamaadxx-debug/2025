@@ -74,11 +74,19 @@ function PrivateRoute({ children, roles = [] }) {
   if (loading) return <LoadingSpinner />;
   if (!user) return <Navigate to="/login" replace />;
   
-  // حماية من الوصول عند انتهاء الاشتراك (ماعدا المدير والصفحات المسموحة)
-  const allowedPathsWhenExpired = ['/subscription', '/settings'];
+  // حماية من الوصول عند انتهاء الاشتراك أو تعليق البيانات (ماعدا المدير والصفحات المسموحة)
+  const allowedPathsWhenExpired = ['/subscription', '/settings', '/login', '/register'];
   const isPathAllowed = allowedPathsWhenExpired.some(path => location.pathname.startsWith(path));
   
-  if (!user.isSuperAdmin && tenant?.isExpired && !isPathAllowed) {
+  // التحقق من تعليق البيانات
+  if (!user.isSuperAdmin && tenant?.data_suspended && !isPathAllowed) {
+    return (
+      <Navigate to="/subscription" replace state={{ suspended: true }} />
+    );
+  }
+  
+  // التحقق من انتهاء الصلاحية
+  if (!user.isSuperAdmin && tenant?.isExpired && !tenant?.data_suspended && !isPathAllowed) {
     return <Navigate to="/subscription" replace />;
   }
   

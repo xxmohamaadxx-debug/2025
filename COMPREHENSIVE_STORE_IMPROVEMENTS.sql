@@ -831,8 +831,430 @@ CREATE INDEX IF NOT EXISTS idx_debts_settled ON debts(settled_at) WHERE settled_
 CREATE INDEX IF NOT EXISTS idx_payments_receipt ON payments(receipt_number) WHERE receipt_number IS NOT NULL;
 
 -- ============================================
+-- القسم 10: نظام تعليق البيانات والحذف التلقائي عند انتهاء الصلاحية
+-- ============================================
+
+-- إضافة حقل لتتبع حالة التعليق
+ALTER TABLE tenants
+ADD COLUMN IF NOT EXISTS data_suspended BOOLEAN DEFAULT false,
+ADD COLUMN IF NOT EXISTS suspension_date TIMESTAMPTZ,
+ADD COLUMN IF NOT EXISTS deletion_scheduled_date TIMESTAMPTZ,
+ADD COLUMN IF NOT EXISTS deletion_warning_sent BOOLEAN DEFAULT false;
+
+-- جدول تنبيهات انتهاء الصلاحية
+CREATE TABLE IF NOT EXISTS subscription_notifications (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE NOT NULL,
+    notification_type TEXT NOT NULL CHECK (notification_type IN ('expiring_soon', 'expired', 'suspended', 'deletion_warning', 'deleted')),
+    days_remaining INTEGER,
+    message TEXT,
+    sent_at TIMESTAMPTZ DEFAULT NOW(),
+    read_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_subscription_notifications_tenant ON subscription_notifications(tenant_id, sent_at DESC);
+
+-- Function للتحقق من صلاحية المتجر وتعليق البيانات
+CREATE OR REPLACE FUNCTION check_and_suspend_expired_tenants()
+RETURNS TABLE(
+    tenant_id UUID,
+    is_expired BOOLEAN,
+    days_overdue INTEGER,
+    should_suspend BOOLEAN,
+    should_delete BOOLEAN
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        t.id,
+        (t.subscription_expires_at < NOW()) as is_expired,
+        GREATEST(0, EXTRACT(DAY FROM (NOW() - t.subscription_expires_at))::INTEGER) as days_overdue,
+        (t.subscription_expires_at < NOW() AND NOT COALESCE(t.data_suspended, false)) as should_suspend,
+        (t.subscription_expires_at < NOW() - INTERVAL '5 days' AND NOT COALESCE(t.data_suspended, false)) as should_delete
+    FROM tenants t
+    WHERE t.subscription_expires_at IS NOT NULL
+        AND t.subscription_expires_at < NOW()
+        AND NOT t.data_suspended;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function لتعليق بيانات المتجر
+CREATE OR REPLACE FUNCTION suspend_tenant_data(p_tenant_id UUID)
+RETURNS BOOLEAN AS $$
+DECLARE
+    tenant_record RECORD;
+BEGIN
+    SELECT * INTO tenant_record
+    FROM tenants
+    WHERE id = p_tenant_id;
+    
+    IF NOT FOUND THEN
+        RETURN false;
+    END IF;
+    
+    -- تعليق البيانات
+    UPDATE tenants
+    SET data_suspended = true,
+        suspension_date = NOW(),
+        subscription_status = 'suspended',
+        updated_at = NOW()
+    WHERE id = p_tenant_id;
+    
+    -- تعطيل جميع مستخدمي المتجر
+    UPDATE users
+    SET is_active = false,
+        updated_at = NOW()
+    WHERE tenant_id = p_tenant_id
+        AND is_super_admin = false;
+    
+    -- إنشاء إشعار
+    INSERT INTO subscription_notifications (
+        tenant_id,
+        notification_type,
+        message,
+        sent_at
+    ) VALUES (
+        p_tenant_id,
+        'suspended',
+        'تم تعليق بيانات متجرك بسبب انتهاء صلاحية الاشتراك. يرجى التجديد للاستمرار في استخدام النظام.',
+        NOW()
+    );
+    
+    RETURN true;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function لحذف بيانات المتجر تلقائياً بعد 5 أيام
+CREATE OR REPLACE FUNCTION delete_expired_tenant_data(p_tenant_id UUID)
+RETURNS BOOLEAN AS $$
+DECLARE
+    tenant_record RECORD;
+    days_overdue INTEGER;
+BEGIN
+    SELECT *, 
+           EXTRACT(DAY FROM (NOW() - subscription_expires_at))::INTEGER as days_overdue
+    INTO tenant_record
+    FROM tenants
+    WHERE id = p_tenant_id;
+    
+    IF NOT FOUND THEN
+        RETURN false;
+    END IF;
+    
+    -- التحقق من أن المتجر منتهي الصلاحية لأكثر من 5 أيام
+    IF tenant_record.subscription_expires_at IS NULL OR 
+       tenant_record.subscription_expires_at > NOW() - INTERVAL '5 days' THEN
+        RETURN false;
+    END IF;
+    
+    -- إنشاء إشعار قبل الحذف (إذا لم يُرسل من قبل)
+    IF NOT COALESCE(tenant_record.deletion_warning_sent, false) THEN
+        INSERT INTO subscription_notifications (
+            tenant_id,
+            notification_type,
+            message,
+            sent_at
+        ) VALUES (
+            p_tenant_id,
+            'deletion_warning',
+            'تحذير: سيتم حذف بيانات متجرك تلقائياً خلال 24 ساعة إذا لم يتم تجديد الاشتراك.',
+            NOW()
+        );
+        
+        UPDATE tenants
+        SET deletion_warning_sent = true,
+            deletion_scheduled_date = NOW() + INTERVAL '1 day',
+            updated_at = NOW()
+        WHERE id = p_tenant_id;
+        
+        RETURN false; -- لم يتم الحذف بعد، فقط تم التحذير
+    END IF;
+    
+    -- التحقق من أن تاريخ الحذف المحدد قد حان
+    IF tenant_record.deletion_scheduled_date IS NOT NULL AND 
+       tenant_record.deletion_scheduled_date > NOW() THEN
+        RETURN false; -- لم يحن وقت الحذف بعد
+    END IF;
+    
+    -- حذف جميع بيانات المتجر (CASCADE سيتولى الحذف)
+    -- ملاحظة: في PostgreSQL، ON DELETE CASCADE سيتولى حذف جميع السجلات المرتبطة
+    
+    -- إنشاء إشعار نهائي
+    INSERT INTO subscription_notifications (
+        tenant_id,
+        notification_type,
+        message,
+        sent_at
+    ) VALUES (
+        p_tenant_id,
+        'deleted',
+        'تم حذف بيانات متجرك تلقائياً بسبب عدم التجديد بعد 5 أيام من انتهاء الصلاحية.',
+        NOW()
+    );
+    
+    -- حذف المتجر (سيحذف جميع البيانات المرتبطة بسبب CASCADE)
+    DELETE FROM tenants WHERE id = p_tenant_id;
+    
+    RETURN true;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function للتحقق من صلاحية المستخدم عند تسجيل الدخول
+CREATE OR REPLACE FUNCTION check_user_access(p_user_id UUID)
+RETURNS JSONB AS $$
+DECLARE
+    user_record RECORD;
+    tenant_record RECORD;
+    result JSONB;
+BEGIN
+    SELECT * INTO user_record
+    FROM users
+    WHERE id = p_user_id;
+    
+    IF NOT FOUND THEN
+        RETURN jsonb_build_object(
+            'allowed' => false,
+            'reason' => 'user_not_found'
+        );
+    END IF;
+    
+    -- Super Admin دائماً مسموح
+    IF COALESCE(user_record.is_super_admin, false) = true THEN
+        RETURN jsonb_build_object(
+            'allowed' => true,
+            'reason' => 'super_admin'
+        );
+    END IF;
+    
+    -- التحقق من صلاحية المتجر
+    IF user_record.tenant_id IS NOT NULL THEN
+        SELECT * INTO tenant_record
+        FROM tenants
+        WHERE id = user_record.tenant_id;
+        
+        IF FOUND THEN
+            -- التحقق من انتهاء الصلاحية
+            IF tenant_record.subscription_expires_at IS NOT NULL AND 
+               tenant_record.subscription_expires_at < NOW() THEN
+                
+                -- تعليق البيانات إذا لم تكن معلقة
+                IF NOT COALESCE(tenant_record.data_suspended, false) THEN
+                    PERFORM suspend_tenant_data(user_record.tenant_id);
+                END IF;
+                
+                RETURN jsonb_build_object(
+                    'allowed' => false,
+                    'reason' => 'subscription_expired',
+                    'expires_at' => tenant_record.subscription_expires_at,
+                    'suspended' => true
+                );
+            END IF;
+            
+            -- التحقق من تعليق البيانات
+            IF COALESCE(tenant_record.data_suspended, false) = true THEN
+                RETURN jsonb_build_object(
+                    'allowed' => false,
+                    'reason' => 'data_suspended',
+                    'suspension_date' => tenant_record.suspension_date
+                );
+            END IF;
+        END IF;
+    END IF;
+    
+    -- التحقق من حالة المستخدم
+    IF COALESCE(user_record.is_active, true) = false THEN
+        RETURN jsonb_build_object(
+            'allowed' => false,
+            'reason' => 'user_inactive'
+        );
+    END IF;
+    
+    RETURN jsonb_build_object(
+        'allowed' => true,
+        'reason' => 'valid'
+    );
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function دورية للتحقق من المتاجر المنتهية الصلاحية
+CREATE OR REPLACE FUNCTION process_expired_tenants()
+RETURNS TABLE(
+    processed_count INTEGER,
+    suspended_count INTEGER,
+    deleted_count INTEGER
+) AS $$
+DECLARE
+    expired_tenants RECORD;
+    v_suspended_count INTEGER := 0;
+    v_deleted_count INTEGER := 0;
+BEGIN
+    -- معالجة المتاجر المنتهية الصلاحية
+    FOR expired_tenants IN 
+        SELECT * FROM check_and_suspend_expired_tenants()
+    LOOP
+        -- تعليق البيانات
+        IF expired_tenants.should_suspend THEN
+            PERFORM suspend_tenant_data(expired_tenants.tenant_id);
+            v_suspended_count := v_suspended_count + 1;
+        END IF;
+        
+        -- حذف البيانات بعد 5 أيام
+        IF expired_tenants.should_delete THEN
+            IF delete_expired_tenant_data(expired_tenants.tenant_id) THEN
+                v_deleted_count := v_deleted_count + 1;
+            END IF;
+        END IF;
+    END LOOP;
+    
+    RETURN QUERY SELECT 
+        (v_suspended_count + v_deleted_count)::INTEGER as processed_count,
+        v_suspended_count,
+        v_deleted_count;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger للتحقق من صلاحية المتجر عند تحديث subscription_expires_at
+CREATE OR REPLACE FUNCTION check_tenant_expiry_on_update()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- إذا تم تجديد الاشتراك، إلغاء التعليق
+    IF NEW.subscription_expires_at > NOW() AND 
+       OLD.subscription_expires_at <= NOW() AND
+       COALESCE(NEW.data_suspended, false) = true THEN
+        NEW.data_suspended := false;
+        NEW.suspension_date := NULL;
+        NEW.deletion_scheduled_date := NULL;
+        NEW.deletion_warning_sent := false;
+        NEW.subscription_status := 'active';
+        
+        -- تفعيل جميع مستخدمي المتجر
+        UPDATE users
+        SET is_active = true,
+            updated_at = NOW()
+        WHERE tenant_id = NEW.id
+            AND is_super_admin = false;
+    END IF;
+    
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trigger_check_tenant_expiry_on_update ON tenants;
+CREATE TRIGGER trigger_check_tenant_expiry_on_update
+    BEFORE UPDATE OF subscription_expires_at ON tenants
+    FOR EACH ROW
+    EXECUTE FUNCTION check_tenant_expiry_on_update();
+
+-- Function للتحقق من صلاحية المتجر قبل أي عملية
+CREATE OR REPLACE FUNCTION ensure_tenant_active(p_tenant_id UUID)
+RETURNS BOOLEAN AS $$
+DECLARE
+    tenant_record RECORD;
+BEGIN
+    IF p_tenant_id IS NULL THEN
+        RETURN false;
+    END IF;
+    
+    SELECT * INTO tenant_record
+    FROM tenants
+    WHERE id = p_tenant_id;
+    
+    IF NOT FOUND THEN
+        RETURN false;
+    END IF;
+    
+    -- التحقق من انتهاء الصلاحية
+    IF tenant_record.subscription_expires_at IS NOT NULL AND 
+       tenant_record.subscription_expires_at < NOW() THEN
+        -- تعليق البيانات إذا لم تكن معلقة
+        IF NOT COALESCE(tenant_record.data_suspended, false) THEN
+            PERFORM suspend_tenant_data(p_tenant_id);
+        END IF;
+        RETURN false;
+    END IF;
+    
+    -- التحقق من تعليق البيانات
+    IF COALESCE(tenant_record.data_suspended, false) = true THEN
+        RETURN false;
+    END IF;
+    
+    RETURN true;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger لمنع إدخال البيانات للمتاجر المعلقة
+CREATE OR REPLACE FUNCTION prevent_data_entry_for_suspended_tenant()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NOT ensure_tenant_active(NEW.tenant_id) THEN
+        RAISE EXCEPTION 'تم تعليق بيانات هذا المتجر بسبب انتهاء صلاحية الاشتراك. يرجى التجديد للاستمرار.';
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- تطبيق Trigger على الجداول الرئيسية
+DROP TRIGGER IF EXISTS trigger_prevent_invoices_in_suspended ON invoices_in;
+CREATE TRIGGER trigger_prevent_invoices_in_suspended
+    BEFORE INSERT OR UPDATE ON invoices_in
+    FOR EACH ROW
+    EXECUTE FUNCTION prevent_data_entry_for_suspended_tenant();
+
+DROP TRIGGER IF EXISTS trigger_prevent_invoices_out_suspended ON invoices_out;
+CREATE TRIGGER trigger_prevent_invoices_out_suspended
+    BEFORE INSERT OR UPDATE ON invoices_out
+    FOR EACH ROW
+    EXECUTE FUNCTION prevent_data_entry_for_suspended_tenant();
+
+DROP TRIGGER IF EXISTS trigger_prevent_inventory_suspended ON inventory_items;
+CREATE TRIGGER trigger_prevent_inventory_suspended
+    BEFORE INSERT OR UPDATE ON inventory_items
+    FOR EACH ROW
+    EXECUTE FUNCTION prevent_data_entry_for_suspended_tenant();
+
+DROP TRIGGER IF EXISTS trigger_prevent_partners_suspended ON partners;
+CREATE TRIGGER trigger_prevent_partners_suspended
+    BEFORE INSERT OR UPDATE ON partners
+    FOR EACH ROW
+    EXECUTE FUNCTION prevent_data_entry_for_suspended_tenant();
+
+DROP TRIGGER IF EXISTS trigger_prevent_employees_suspended ON employees;
+CREATE TRIGGER trigger_prevent_employees_suspended
+    BEFORE INSERT OR UPDATE ON employees
+    FOR EACH ROW
+    EXECUTE FUNCTION prevent_data_entry_for_suspended_tenant();
+
+-- تطبيق على جداول المقاولين
+DROP TRIGGER IF EXISTS trigger_prevent_contractor_projects_suspended ON contractor_projects;
+CREATE TRIGGER trigger_prevent_contractor_projects_suspended
+    BEFORE INSERT OR UPDATE ON contractor_projects
+    FOR EACH ROW
+    EXECUTE FUNCTION prevent_data_entry_for_suspended_tenant();
+
+DROP TRIGGER IF EXISTS trigger_prevent_project_items_suspended ON project_items;
+CREATE TRIGGER trigger_prevent_project_items_suspended
+    BEFORE INSERT OR UPDATE ON project_items
+    FOR EACH ROW
+    EXECUTE FUNCTION prevent_data_entry_for_suspended_tenant();
+
+-- تطبيق على جداول المحروقات
+DROP TRIGGER IF EXISTS trigger_prevent_fuel_products_suspended ON fuel_products;
+CREATE TRIGGER trigger_prevent_fuel_products_suspended
+    BEFORE INSERT OR UPDATE ON fuel_products
+    FOR EACH ROW
+    EXECUTE FUNCTION prevent_data_entry_for_suspended_tenant();
+
+-- ============================================
+-- القسم 11: فهارس إضافية للأداء
+-- ============================================
+
+CREATE INDEX IF NOT EXISTS idx_tenants_expiry_suspended ON tenants(subscription_expires_at, data_suspended) WHERE subscription_expires_at IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_users_tenant_active ON users(tenant_id, is_active) WHERE tenant_id IS NOT NULL;
+
+-- ============================================
 -- تأكيد نجاح التحديث
 -- ============================================
 
-SELECT 'تم تحديث قاعدة البيانات بنجاح! جميع الجداول والوظائف والـ Triggers جاهزة.' as status;
+SELECT 'تم تحديث قاعدة البيانات بنجاح! جميع الجداول والوظائف والـ Triggers جاهزة. تم إضافة نظام تعليق البيانات والحذف التلقائي.' as status;
 

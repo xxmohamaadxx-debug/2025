@@ -102,30 +102,64 @@ export const AuthProvider = ({ children }) => {
           isStoreOwner: profile.role === ROLES.STORE_OWNER,
         };
 
-        // Check Subscription Expiry
-        if (tenantInfo && !userData.isSuperAdmin && tenantInfo.subscription_expires_at) {
+        // Check Subscription Expiry and Data Suspension
+        if (tenantInfo && !userData.isSuperAdmin) {
           try {
-            const expiresAt = new Date(tenantInfo.subscription_expires_at);
-            const now = new Date();
-            if (!isNaN(expiresAt.getTime())) {
-              const diffDays = Math.ceil((expiresAt - now) / (1000 * 60 * 60 * 24));
+            // Check if data is suspended
+            if (tenantInfo.data_suspended) {
+              const suspensionDate = tenantInfo.suspension_date 
+                ? new Date(tenantInfo.suspension_date).toLocaleDateString('ar-SA')
+                : 'غير محدد';
               
-              tenantInfo.daysRemaining = diffDays;
-              tenantInfo.isExpired = diffDays <= 0;
+              tenantInfo.isSuspended = true;
+              
+              toast({
+                title: "تم تعليق بيانات المتجر",
+                description: `تم تعليق بيانات متجرك بسبب انتهاء صلاحية الاشتراك بتاريخ ${suspensionDate}. يرجى التواصل مع المدير للتجديد.`,
+                variant: "destructive",
+                duration: 15000
+              });
+            }
+            
+            // Check subscription expiry
+            if (tenantInfo.subscription_expires_at) {
+              const expiresAt = new Date(tenantInfo.subscription_expires_at);
+              const now = new Date();
+              if (!isNaN(expiresAt.getTime())) {
+                const diffDays = Math.ceil((expiresAt - now) / (1000 * 60 * 60 * 24));
+                
+                tenantInfo.daysRemaining = diffDays;
+                tenantInfo.isExpired = diffDays <= 0;
+                
+                // Check if deletion is scheduled
+                if (tenantInfo.deletion_scheduled_date) {
+                  const deletionDate = new Date(tenantInfo.deletion_scheduled_date);
+                  const daysUntilDeletion = Math.ceil((deletionDate - now) / (1000 * 60 * 60 * 24));
+                  
+                  if (daysUntilDeletion <= 1 && daysUntilDeletion > 0) {
+                    toast({
+                      title: "تحذير نهائي: حذف البيانات",
+                      description: `سيتم حذف بيانات متجرك تلقائياً خلال ${Math.ceil(daysUntilDeletion * 24)} ساعة إذا لم يتم التجديد!`,
+                      variant: "destructive",
+                      duration: 20000
+                    });
+                  }
+                }
 
-              if (tenantInfo.isExpired) {
-                toast({
-                  title: "انتهت صلاحية الاشتراك",
-                  description: "انتهت صلاحية اشتراك متجرك. يرجى التواصل مع المدير للتجديد.",
-                  variant: "destructive",
-                  duration: 10000
-                });
-              } else if (diffDays <= 7) {
-                toast({
-                  title: "قرب انتهاء الاشتراك",
-                  description: `سينتهي اشتراكك خلال ${diffDays} يوم. يرجى التجديد قريباً.`,
-                  variant: "warning"
-                });
+                if (tenantInfo.isExpired && !tenantInfo.data_suspended) {
+                  toast({
+                    title: "انتهت صلاحية الاشتراك",
+                    description: "انتهت صلاحية اشتراك متجرك. سيتم تعليق البيانات قريباً. يرجى التواصل مع المدير للتجديد.",
+                    variant: "destructive",
+                    duration: 10000
+                  });
+                } else if (diffDays <= 7 && diffDays > 0 && !tenantInfo.data_suspended) {
+                  toast({
+                    title: "قرب انتهاء الاشتراك",
+                    description: `سينتهي اشتراكك خلال ${diffDays} يوم. يرجى التجديد قريباً.`,
+                    variant: "warning"
+                  });
+                }
               }
             }
           } catch (expiryError) {
@@ -156,6 +190,25 @@ export const AuthProvider = ({ children }) => {
       const user = await neonService.verifyPassword(email, password);
       if (!user) {
         throw new Error('البريد الإلكتروني أو كلمة المرور غير صحيحة');
+      }
+
+      // التحقق من صلاحية المستخدم والوصول (إذا كانت الدالة متوفرة)
+      try {
+        const accessCheck = await neonService.checkUserAccess?.(user.id);
+        if (accessCheck && !accessCheck.allowed) {
+          if (accessCheck.reason === 'subscription_expired' || accessCheck.reason === 'data_suspended') {
+            throw new Error('تم تعليق حسابك بسبب انتهاء صلاحية الاشتراك. يرجى التواصل مع المدير للتجديد.');
+          } else if (accessCheck.reason === 'user_inactive') {
+            throw new Error('حسابك غير نشط. يرجى التواصل مع المدير.');
+          }
+        }
+      } catch (accessError) {
+        // إذا كانت الدالة غير متوفرة، نتابع بشكل عادي
+        if (!accessError.message.includes('تم تعليق') && !accessError.message.includes('غير نشط')) {
+          console.warn('Access check not available:', accessError);
+        } else {
+          throw accessError;
+        }
       }
 
       // حفظ في localStorage

@@ -313,7 +313,7 @@ const ReportsPage = () => {
                 <li>SYP: {(financialData ? (financialData.income.SYP - financialData.expense.SYP) : 0).toFixed(2)}</li>
               </ul>
             </div>
-          </div>
+          </GlassCard>
         </div>
       </div>
     </>

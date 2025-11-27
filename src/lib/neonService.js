@@ -2790,4 +2790,80 @@ export const neonService = {
       throw error;
     }
   },
+
+  // التحقق من صلاحية المستخدم والوصول
+  checkUserAccess: async (userId) => {
+    if (!userId) {
+      return { allowed: false, reason: 'user_not_found' };
+    }
+    
+    try {
+      const result = await sql`
+        SELECT * FROM check_user_access(${userId}::UUID) as access_result
+      `;
+      
+      if (result && result[0] && result[0].access_result) {
+        return result[0].access_result;
+      }
+      
+      // Fallback: التحقق اليدوي إذا لم تكن الدالة متوفرة
+      const userResult = await sql`SELECT * FROM users WHERE id = ${userId} LIMIT 1`;
+      const user = userResult[0];
+      
+      if (!user) {
+        return { allowed: false, reason: 'user_not_found' };
+      }
+      
+      if (user.is_super_admin) {
+        return { allowed: true, reason: 'super_admin' };
+      }
+      
+      if (!user.is_active) {
+        return { allowed: false, reason: 'user_inactive' };
+      }
+      
+      if (user.tenant_id) {
+        const tenantResult = await sql`SELECT * FROM tenants WHERE id = ${user.tenant_id} LIMIT 1`;
+        const tenant = tenantResult[0];
+        
+        if (tenant) {
+          if (tenant.subscription_expires_at && new Date(tenant.subscription_expires_at) < new Date()) {
+            return { 
+              allowed: false, 
+              reason: 'subscription_expired',
+              expires_at: tenant.subscription_expires_at,
+              suspended: tenant.data_suspended || false
+            };
+          }
+          
+          if (tenant.data_suspended) {
+            return { 
+              allowed: false, 
+              reason: 'data_suspended',
+              suspension_date: tenant.suspension_date
+            };
+          }
+        }
+      }
+      
+      return { allowed: true, reason: 'valid' };
+    } catch (error) {
+      console.error('checkUserAccess error:', error);
+      // في حالة الخطأ، نسمح بالوصول لتجنب حجب المستخدمين
+      return { allowed: true, reason: 'error_fallback' };
+    }
+  },
+
+  // معالجة المتاجر المنتهية الصلاحية (للاستدعاء من Admin Panel)
+  processExpiredTenants: async () => {
+    try {
+      const result = await sql`
+        SELECT * FROM process_expired_tenants() as result
+      `;
+      return result[0]?.result || { processed_count: 0, suspended_count: 0, deleted_count: 0 };
+    } catch (error) {
+      console.error('processExpiredTenants error:', error);
+      return { processed_count: 0, suspended_count: 0, deleted_count: 0 };
+    }
+  },
 };
