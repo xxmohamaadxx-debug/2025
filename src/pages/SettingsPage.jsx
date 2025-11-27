@@ -8,11 +8,13 @@ import { Button } from '@/components/ui/button';
 import { Globe, Moon, Sun, User, Shield, Store, DollarSign, RefreshCw } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { initCurrencyService, getAllExchangeRates, setExchangeRate, updateExchangeRates, enableAutoUpdate, disableAutoUpdate } from '@/lib/currencyService';
+import { neonService } from '@/lib/neonService';
+import ImageUploader from '@/components/ImageUploader';
 
 const SettingsPage = () => {
   const { t, locale, setLocale } = useLanguage();
   const { isDark, toggleTheme } = useTheme();
-  const { user } = useAuth();
+  const { user, tenant } = useAuth();
   const [exchangeRates, setExchangeRates] = useState({
     SYP_TO_USD: 15000,
     TRY_TO_USD: 32,
@@ -155,7 +157,33 @@ const SettingsPage = () => {
             {t('settings.profile')}
           </h2>
         </div>
-        <div className="p-6 space-y-4">
+        <div className="p-6 space-y-6">
+          <div>
+            <ImageUploader
+              currentImage={user?.avatar_url || null}
+              onImageChange={async (base64Image) => {
+                try {
+                  if (base64Image) {
+                    await neonService.updateUser(user.id, { avatar_url: base64Image }, user.tenant_id);
+                    toast({
+                      title: 'تم الحفظ',
+                      description: 'تم تحديث الصورة الشخصية بنجاح'
+                    });
+                    // Refresh user data
+                    window.location.reload();
+                  }
+                } catch (error) {
+                  toast({
+                    title: 'خطأ',
+                    description: 'فشل تحديث الصورة الشخصية',
+                    variant: 'destructive'
+                  });
+                }
+              }}
+              label="الصورة الشخصية"
+              maxSizeMB={2}
+            />
+          </div>
           <div className="grid md:grid-cols-2 gap-4">
              <div>
                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 rtl:text-right">{t('settings.fullName')}</label>
@@ -268,7 +296,35 @@ const SettingsPage = () => {
             {t('settings.organization')}
           </h2>
         </div>
-        <div className="p-6 space-y-4">
+        <div className="p-6 space-y-6">
+          {tenant && (
+            <div>
+              <ImageUploader
+                currentImage={tenant?.logo_url || null}
+                onImageChange={async (base64Image) => {
+                  try {
+                    if (base64Image && tenant?.id) {
+                      await neonService.updateTenant(tenant.id, { logo_url: base64Image });
+                      toast({
+                        title: 'تم الحفظ',
+                        description: 'تم تحديث شعار المتجر بنجاح'
+                      });
+                      // Refresh tenant data
+                      window.location.reload();
+                    }
+                  } catch (error) {
+                    toast({
+                      title: 'خطأ',
+                      description: 'فشل تحديث شعار المتجر',
+                      variant: 'destructive'
+                    });
+                  }
+                }}
+                label="شعار المتجر"
+                maxSizeMB={2}
+              />
+            </div>
+          )}
           <div className="grid md:grid-cols-2 gap-4">
              <div>
                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 rtl:text-right">{t('settings.tenantId')}</label>

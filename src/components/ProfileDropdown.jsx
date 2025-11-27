@@ -156,11 +156,22 @@ const ProfileDropdown = ({ user }) => {
             <div className="text-xs text-gray-500">{user?.role || 'Admin'}</div>
           </div>
           <motion.div 
-            className="h-10 w-10 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center border-2 border-white dark:border-gray-700 shadow-lg"
+            className="h-10 w-10 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center border-2 border-white dark:border-gray-700 shadow-lg overflow-hidden"
             whileHover={{ rotate: 360 }}
             transition={{ duration: 0.5 }}
           >
-            <User className="h-5 w-5 text-white" />
+            {user?.avatar_url ? (
+              <img 
+                src={user.avatar_url} 
+                alt={user?.name || 'User'} 
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                  e.target.nextSibling.style.display = 'flex';
+                }}
+              />
+            ) : null}
+            <User className={`h-5 w-5 text-white ${user?.avatar_url ? 'hidden' : ''}`} />
           </motion.div>
         </motion.button>
 
@@ -172,7 +183,7 @@ const ProfileDropdown = ({ user }) => {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="fixed inset-0 z-40"
+                className="fixed inset-0 z-[45] bg-transparent"
                 onClick={() => setIsOpen(false)}
               />
               {/* Close button inside dropdown */}
@@ -181,7 +192,7 @@ const ProfileDropdown = ({ user }) => {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -10, scale: 0.95 }}
                 transition={{ duration: 0.2 }}
-                className="absolute top-full mt-2 rtl:left-0 ltr:right-0 z-50 w-64 bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl rounded-xl shadow-2xl border border-gray-200/50 dark:border-gray-700/50 overflow-hidden"
+                className="absolute top-full mt-2 rtl:left-0 ltr:right-0 z-[50] w-64 bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl rounded-xl shadow-2xl border border-gray-200/50 dark:border-gray-700/50 overflow-hidden"
               >
                 <div className="p-4 border-b border-gray-200 dark:border-gray-700 relative">
                   {/* Close button */}

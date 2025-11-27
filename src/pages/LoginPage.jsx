@@ -40,9 +40,9 @@ const LoginPage = () => {
 
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+    <div className="fixed inset-0 w-full h-full overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
       {/* Animated Background */}
-      <div className="absolute inset-0 overflow-hidden">
+      <div className="absolute inset-0 w-full h-full overflow-hidden">
         <motion.div
           className="absolute -top-40 -right-40 w-96 h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20"
           animate={{

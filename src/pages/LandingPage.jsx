@@ -565,8 +565,14 @@ const LandingPage = () => {
                     ⭐ {t('subscription.bestValue') || 'الأكثر شعبية'}
                   </motion.div>
                 )}
-                <h3 className="text-3xl font-black text-white mb-3 group-hover:text-orange-300 transition-colors">
-                  {plan.name}
+                <h3 className="text-3xl font-black mb-3 group-hover:text-orange-300 transition-colors">
+                  {plan.name === 'تجريبي' ? (
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-400">
+                      {plan.name}
+                    </span>
+                  ) : (
+                    <span className="text-white">{plan.name}</span>
+                  )}
                 </h3>
                 {plan.priceValue > 0 && (
                   <p className="text-purple-200 mb-6">{plan.duration}</p>
@@ -583,10 +589,10 @@ const LandingPage = () => {
                     </div>
                   ) : (
                     <div className="flex flex-col items-start gap-1">
-                      <span className="text-5xl font-black text-white drop-shadow-lg">
+                      <span className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-400 via-emerald-400 to-teal-400 drop-shadow-lg">
                         {plan.price}
                       </span>
-                      <span className="text-lg text-purple-200 font-medium opacity-90">
+                      <span className="text-lg text-green-300 font-medium opacity-90">
                         {plan.duration}
                       </span>
                     </div>
