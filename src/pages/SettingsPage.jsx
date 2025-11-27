@@ -7,7 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Globe, Moon, Sun, User, Shield, Store, DollarSign, RefreshCw } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
-import currencyService, { initCurrencyService, getAllExchangeRates, setExchangeRate, updateExchangeRates, enableAutoUpdate, disableAutoUpdate } from '@/lib/currencyService';
+import { initCurrencyService, getAllExchangeRates, setExchangeRate, updateExchangeRates, enableAutoUpdate, disableAutoUpdate } from '@/lib/currencyService';
 
 const SettingsPage = () => {
   const { t, locale, setLocale } = useLanguage();

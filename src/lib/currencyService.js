@@ -193,7 +193,20 @@ export const initCurrencyService = async () => {
   return exchangeRates;
 };
 
-// تصدير الوظائف
+// تصدير الوظائف (تصدير مباشر فقط)
+export {
+  convertCurrency,
+  getExchangeRate,
+  getAllExchangeRates,
+  setExchangeRate,
+  updateExchangeRates,
+  initCurrencyService,
+  enableAutoUpdate,
+  disableAutoUpdate,
+  loadExchangeRates
+};
+
+// تصدير كـ default object للتوافق
 export default {
   convertCurrency,
   getExchangeRate,
