@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import Logo from '@/components/Logo';
 import Notifications from '@/components/Notifications';
+import ProfileDropdown from '@/components/ProfileDropdown';
 import { isOnline, syncOfflineData, getPendingCount } from '@/lib/offlineService';
 import { neonService } from '@/lib/neonService';
 import { toast } from '@/components/ui/use-toast';
@@ -289,15 +290,7 @@ const TopNav = ({ onMenuClick, isOffline: propIsOffline = false, pendingSyncCoun
         
         <Notifications />
         
-        <div className="flex items-center gap-3 pl-4 rtl:pr-4 rtl:pl-0 border-l rtl:border-r rtl:border-l-0 border-gray-200 dark:border-gray-700">
-          <div className="text-right rtl:text-left hidden sm:block">
-            <div className="text-sm font-semibold text-gray-900 dark:text-white">{user?.name || 'User'}</div>
-            <div className="text-xs text-gray-500">{user?.role || 'Admin'}</div>
-          </div>
-          <div className="h-9 w-9 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center border border-gray-200 dark:border-gray-600">
-            <User className="h-5 w-5 text-gray-500 dark:text-gray-400" />
-          </div>
-        </div>
+        <ProfileDropdown user={user} />
       </div>
     </header>
   );

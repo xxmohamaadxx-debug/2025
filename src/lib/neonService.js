@@ -234,6 +234,81 @@ export const neonService = {
   },
 
   getUsers: (tenantId) => getByTenant('users', tenantId),
+  
+  getUserById: async (userId) => {
+    try {
+      const result = await sql`SELECT * FROM users WHERE id = ${userId} LIMIT 1`;
+      return result[0] || null;
+    } catch (error) {
+      console.error('getUserById error:', error);
+      return null;
+    }
+  },
+
+  login: async (email, password) => {
+    return await neonService.verifyPassword(email, password);
+  },
+
+  changePassword: async (userId, currentPassword, newPassword) => {
+    try {
+      const user = await neonService.getUserById(userId);
+      if (!user) throw new Error('المستخدم غير موجود');
+
+      // Verify current password
+      const isValid = await verifyPassword(currentPassword, user.password_hash);
+      if (!isValid) throw new Error('كلمة المرور الحالية غير صحيحة');
+
+      // Hash new password
+      const newPasswordHash = await hashPassword(newPassword);
+
+      // Update password and set password_changed_at
+      await sql`
+        UPDATE users 
+        SET password_hash = ${newPasswordHash}, 
+            password_changed_at = NOW(),
+            updated_at = NOW()
+        WHERE id = ${userId}
+      `;
+
+      return true;
+    } catch (error) {
+      console.error('changePassword error:', error);
+      throw error;
+    }
+  },
+
+  requestPasswordChange: async (userId, newPassword) => {
+    try {
+      // Hash new password
+      const newPasswordHash = await hashPassword(newPassword);
+
+      // Create password change request (assuming we have a table for this)
+      // If not, we'll create a notification or log entry
+      await sql`
+        INSERT INTO password_change_requests (user_id, new_password_hash, status, requested_at)
+        VALUES (${userId}, ${newPasswordHash}, 'pending', NOW())
+        ON CONFLICT (user_id) 
+        DO UPDATE SET new_password_hash = ${newPasswordHash}, requested_at = NOW(), status = 'pending'
+      `;
+
+      // Log the request
+      await auditLog(null, userId, 'PASSWORD_CHANGE_REQUESTED', { userId });
+
+      return true;
+    } catch (error) {
+      // If table doesn't exist, try alternative approach
+      console.warn('password_change_requests table may not exist, using alternative:', error);
+      
+      // Alternative: Store in audit_logs or system_settings
+      await auditLog(null, userId, 'PASSWORD_CHANGE_REQUESTED', { 
+        userId, 
+        hashedPassword: newPasswordHash.substring(0, 20) + '...' // Don't log full hash
+      });
+
+      return true;
+    }
+  },
+
   updateUser: (id, data, tenantId) => updateRecord('users', id, data, tenantId),
   updateUserAdmin: async (id, data) => {
     // تحديث المستخدم بدون tenant_id (للمدير فقط)

@@ -25,14 +25,18 @@ const Logo = ({ size = 'md', showText = true, className = '', noLink = false }) 
       transition={{ type: "spring", stiffness: 300 }}
     >
       <motion.div
-        className={`relative ${sizeClasses[size]} rounded-2xl bg-gradient-to-br from-orange-500 via-pink-500 to-purple-500 flex items-center justify-center text-white font-black shadow-2xl overflow-hidden group`}
-        style={{ transformStyle: 'preserve-3d' }}
+        className={`relative ${sizeClasses[size]} rounded-2xl bg-gradient-to-br from-orange-500 via-pink-500 to-purple-500 flex items-center justify-center text-white font-black shadow-2xl overflow-hidden group border-2 border-white/30 backdrop-blur-sm`}
+        style={{ 
+          transformStyle: 'preserve-3d',
+          background: 'linear-gradient(135deg, #FF8C00 0%, #EC4899 50%, #A855F7 100%)',
+          filter: 'drop-shadow(0 0 10px rgba(255, 255, 255, 0.5)) drop-shadow(0 0 20px rgba(255, 140, 0, 0.3))'
+        }}
         whileHover={{ rotateY: 15, rotateX: 5 }}
         animate={{
           boxShadow: [
-            '0 10px 30px rgba(255, 140, 0, 0.4)',
-            '0 10px 40px rgba(236, 72, 153, 0.6)',
-            '0 10px 30px rgba(255, 140, 0, 0.4)',
+            '0 10px 30px rgba(255, 140, 0, 0.5), 0 0 0 3px rgba(255, 255, 255, 0.2)',
+            '0 10px 40px rgba(236, 72, 153, 0.7), 0 0 0 3px rgba(255, 255, 255, 0.3)',
+            '0 10px 30px rgba(255, 140, 0, 0.5), 0 0 0 3px rgba(255, 255, 255, 0.2)',
           ],
         }}
         transition={{
@@ -70,12 +74,20 @@ const Logo = ({ size = 'md', showText = true, className = '', noLink = false }) 
           }}
         />
         
+        {/* Dark overlay for contrast */}
+        <div className="absolute inset-0 bg-black/20 z-[5]" />
+        
         {/* Logo Image or Letter */}
         <motion.img 
           src="/logo.png" 
           alt="نظام إبراهيم للمحاسبة" 
-          className={`${sizeClasses[size]} object-contain flex-shrink-0 relative z-10`}
-          style={{ maxWidth: '100%', height: 'auto', objectFit: 'contain' }}
+          className={`${sizeClasses[size]} object-contain flex-shrink-0 relative z-10 brightness-110 contrast-125`}
+          style={{ 
+            maxWidth: '100%', 
+            height: 'auto', 
+            objectFit: 'contain',
+            filter: 'drop-shadow(0 0 8px rgba(255, 255, 255, 0.8))'
+          }}
           onError={(e) => {
             e.target.style.display = 'none';
             const fallback = e.target.parentElement?.querySelector('.logo-fallback');
@@ -83,10 +95,10 @@ const Logo = ({ size = 'md', showText = true, className = '', noLink = false }) 
           }}
         />
         <motion.div 
-          className="logo-fallback relative z-10 text-xl font-black hidden"
+          className="logo-fallback relative z-10 text-xl font-black hidden items-center justify-center"
           style={{ display: 'none' }}
         >
-          I
+          <span className="drop-shadow-[0_0_8px_rgba(255,255,255,0.9)]">I</span>
         </motion.div>
       </motion.div>
       
