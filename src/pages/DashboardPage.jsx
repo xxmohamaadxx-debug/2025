@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { neonService } from '@/lib/neonService';
 import { TrendingUp, TrendingDown, Wallet, Users, AlertTriangle, Activity, CheckCircle } from 'lucide-react';
+import ActiveUsersCard from '@/components/ActiveUsersCard';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, ArcElement } from 'chart.js';
 import { Line } from 'react-chartjs-2';
 import { motion } from 'framer-motion';
@@ -421,7 +422,7 @@ const DashboardPage = () => {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.2 }}
-                className="text-3xl sm:text-5xl font-black text-white bg-gradient-to-r from-orange-300 via-pink-300 to-purple-300 bg-clip-text text-transparent drop-shadow-2xl mb-2"
+                className="text-2xl sm:text-4xl font-black text-white bg-gradient-to-r from-orange-300 via-pink-300 to-purple-300 bg-clip-text text-transparent drop-shadow-2xl mb-1"
               >
                 {t('dashboard.welcome')} {user?.name || 'المستخدم'} 👋
               </motion.h1>
@@ -429,7 +430,7 @@ const DashboardPage = () => {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.3 }}
-                className="text-purple-200 text-base mt-2 font-medium flex items-center gap-2"
+                className="text-purple-200 text-sm mt-1 font-medium flex items-center gap-2"
               >
                 <motion.span
                   animate={{ scale: [1, 1.2, 1] }}
@@ -538,22 +539,8 @@ const DashboardPage = () => {
           );
         })}
         
-        {/* الموظفون النشطون - بطاقة واحدة */}
-        {(() => {
-          const totalCards = Object.keys(stats.incomeByCurrency).length + 
-                           Object.keys(stats.expensesByCurrency).length + 
-                           Object.keys(stats.incomeByCurrency).length;
-          return (
-            <KPICard 
-              t={t} 
-              title={t('dashboard.activeEmployees')} 
-              value={stats.employees} 
-              icon={Users} 
-              color="bg-orange-500"
-              index={totalCards}
-            />
-          );
-        })()}
+        {/* الموظفون النشطون - بطاقة متقدمة */}
+        <ActiveUsersCard t={t} />
         
         {/* الربح/الخسارة اليومية */}
         {stats.todayProfitLoss && (
@@ -690,6 +677,16 @@ const DashboardPage = () => {
               />
             </motion.div>
           </div>
+        </motion.div>
+
+        {/* Advanced Financial Box with ApexCharts */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="mt-6"
+        >
+          <AdvancedFinancialBox t={t} />
         </motion.div>
 
         <motion.div 

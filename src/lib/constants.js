@@ -14,9 +14,11 @@ export const SUBSCRIPTION_PLANS = {
 };
 
 export const CURRENCIES = {
-  TRY: { code: 'TRY', symbol: '₺', name: 'Turkish Lira' },
-  USD: { code: 'USD', symbol: '$', name: 'US Dollar' },
-  SYP: { code: 'SYP', symbol: '£S', name: 'Syrian Pound' },
+  TRY: { code: 'TRY', symbol: '₺', name: 'Turkish Lira', nameAr: 'الليرة التركية' },
+  USD: { code: 'USD', symbol: '$', name: 'US Dollar', nameAr: 'الدولار الأمريكي' },
+  SYP: { code: 'SYP', symbol: '£S', name: 'Syrian Pound', nameAr: 'الليرة السورية' },
+  SAR: { code: 'SAR', symbol: '﷼', name: 'Saudi Riyal', nameAr: 'الريال السعودي' },
+  EUR: { code: 'EUR', symbol: '€', name: 'Euro', nameAr: 'اليورو' },
 };
 
 export const LANGUAGES = {

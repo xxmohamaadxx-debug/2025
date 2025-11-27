@@ -33,6 +33,8 @@
     "jspdf-autotable": "^5.0.2",
     "lucide-react": "^0.469.0",
     "react": "^19.0.0",
+    "react-apexcharts": "^1.4.1",
+    "apexcharts": "^3.49.0",
     "react-chartjs-2": "^5.2.0",
     "react-dom": "^19.0.0",
     "react-helmet": "^6.1.0",

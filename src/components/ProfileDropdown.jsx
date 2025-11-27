@@ -167,6 +167,7 @@ const ProfileDropdown = ({ user }) => {
         <AnimatePresence>
           {isOpen && (
             <>
+              {/* Click outside to close */}
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -174,6 +175,7 @@ const ProfileDropdown = ({ user }) => {
                 className="fixed inset-0 z-40"
                 onClick={() => setIsOpen(false)}
               />
+              {/* Close button inside dropdown */}
               <motion.div
                 initial={{ opacity: 0, y: -10, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -181,8 +183,16 @@ const ProfileDropdown = ({ user }) => {
                 transition={{ duration: 0.2 }}
                 className="absolute top-full mt-2 rtl:left-0 ltr:right-0 z-50 w-64 bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl rounded-xl shadow-2xl border border-gray-200/50 dark:border-gray-700/50 overflow-hidden"
               >
-                <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-                  <div className="text-sm font-semibold text-gray-900 dark:text-white">{user?.name}</div>
+                <div className="p-4 border-b border-gray-200 dark:border-gray-700 relative">
+                  {/* Close button */}
+                  <button
+                    onClick={() => setIsOpen(false)}
+                    className="absolute top-2 left-2 rtl:right-2 rtl:left-auto p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+                    aria-label="إغلاق"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                  <div className="text-sm font-semibold text-gray-900 dark:text-white pr-6">{user?.name}</div>
                   <div className="text-xs text-gray-500 dark:text-gray-400">{user?.email}</div>
                   {user?.isSuperAdmin && (
                     <div className="mt-2 flex items-center gap-1 text-xs text-purple-600 dark:text-purple-400">

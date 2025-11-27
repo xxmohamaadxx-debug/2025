@@ -163,6 +163,9 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('userEmail', user.email);
       localStorage.setItem('userName', user.name);
 
+      // تحديث last_seen
+      await neonService.updateUserLastSeen?.(user.id);
+
       await fetchProfile(user);
       return { user };
     } catch (error) {

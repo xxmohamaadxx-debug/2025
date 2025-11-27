@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, X, Check, AlertCircle, Info, MessageCircle, CreditCard } from 'lucide-react';
+import { Bell, X, Check, AlertCircle, Info, MessageCircle, CreditCard, Sparkles } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { neonService } from '@/lib/neonService';
 import { formatDateAR, getRelativeTimeAR } from '@/lib/dateUtils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const Notifications = () => {
   const { user } = useAuth();
@@ -98,29 +99,69 @@ const Notifications = () => {
 
   return (
     <>
-      <button
+      <motion.button
         onClick={() => setIsOpen(true)}
-        className="relative p-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.9 }}
+        className="relative p-2 text-gray-500 hover:text-orange-500 dark:hover:text-orange-400 transition-colors rounded-lg hover:bg-orange-50 dark:hover:bg-orange-900/20"
       >
-        <Bell className="h-5 w-5" />
+        <motion.div
+          animate={unreadCount > 0 ? {
+            rotate: [0, -10, 10, -10, 0],
+          } : {}}
+          transition={{ duration: 0.5, repeat: unreadCount > 0 ? Infinity : 0, repeatDelay: 2 }}
+        >
+          <Bell className="h-5 w-5" />
+        </motion.div>
         {unreadCount > 0 && (
-          <span className="absolute top-0 right-0 h-5 w-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold">
+          <motion.span
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            className="absolute -top-1 -right-1 h-5 w-5 bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs rounded-full flex items-center justify-center font-bold shadow-lg border-2 border-white dark:border-gray-800"
+          >
             {unreadCount > 9 ? '9+' : unreadCount}
-          </span>
+          </motion.span>
         )}
-      </button>
+        {unreadCount > 0 && (
+          <motion.div
+            className="absolute inset-0 rounded-lg bg-red-500/20"
+            animate={{
+              scale: [1, 1.2, 1],
+              opacity: [0.5, 0, 0.5],
+            }}
+            transition={{
+              duration: 2,
+              repeat: Infinity,
+            }}
+          />
+        )}
+      </motion.button>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="max-w-md max-h-[80vh] overflow-hidden flex flex-col">
+        <DialogContent className="max-w-md max-h-[80vh] overflow-hidden flex flex-col bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl border border-gray-200/50 dark:border-gray-700/50">
           <DialogHeader>
             <div className="flex items-center justify-between">
-              <DialogTitle>الإشعارات</DialogTitle>
+              <div className="flex items-center gap-2">
+                <motion.div
+                  animate={unreadCount > 0 ? { rotate: [0, 360] } : {}}
+                  transition={{ duration: 1, repeat: unreadCount > 0 ? Infinity : 0, repeatDelay: 2 }}
+                >
+                  <Sparkles className="h-5 w-5 text-orange-500" />
+                </motion.div>
+                <DialogTitle className="text-lg font-bold">الإشعارات</DialogTitle>
+                {unreadCount > 0 && (
+                  <span className="px-2 py-0.5 bg-red-500 text-white text-xs rounded-full font-bold">
+                    {unreadCount}
+                  </span>
+                )}
+              </div>
               {unreadCount > 0 && (
                 <Button
                   size="sm"
                   variant="outline"
                   onClick={handleMarkAllAsRead}
                   disabled={loading}
+                  className="hover:bg-green-50 dark:hover:bg-green-900/20"
                 >
                   <Check className="h-4 w-4 ml-2" />
                   تحديد الكل كمقروء
@@ -136,15 +177,19 @@ const Notifications = () => {
                 <p>لا توجد إشعارات</p>
               </div>
             ) : (
-              notifications.map((notification) => (
-                <div
+              notifications.map((notification, index) => (
+                <motion.div
                   key={notification.id}
-                  className={`p-4 rounded-lg border transition-colors cursor-pointer ${
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                  className={`p-4 rounded-lg border transition-all cursor-pointer ${
                     notification.is_read
                       ? 'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700'
-                      : 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'
+                      : 'bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border-blue-200 dark:border-blue-800 shadow-sm'
                   }`}
                   onClick={() => !notification.is_read && handleMarkAsRead(notification.id)}
+                  whileHover={{ scale: 1.02, x: 5 }}
                 >
                   <div className="flex gap-3">
                     <div className="flex-shrink-0 mt-1">
@@ -167,7 +212,7 @@ const Notifications = () => {
                       </p>
                     </div>
                   </div>
-                </div>
+                </motion.div>
               ))
             )}
           </div>

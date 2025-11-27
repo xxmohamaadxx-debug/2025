@@ -140,7 +140,7 @@ const TopNav = ({ onMenuClick, isOffline: propIsOffline = false, pendingSyncCoun
   }, [isLangMenuOpen]);
 
   return (
-    <header className="h-16 bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-700/50 px-4 md:px-6 flex items-center justify-between sticky top-0 z-10 transition-all shadow-sm">
+    <header className="h-16 bg-gradient-to-r from-slate-900/95 via-purple-900/80 to-slate-900/95 dark:from-gray-900/95 dark:via-purple-950/90 dark:to-gray-900/95 backdrop-blur-xl border-b border-orange-500/20 dark:border-orange-400/20 px-4 md:px-6 flex items-center justify-between sticky top-0 z-40 transition-all shadow-lg shadow-black/20">
       <div className="flex items-center gap-4 flex-1">
         <button 
           onClick={onMenuClick}

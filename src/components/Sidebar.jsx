@@ -25,7 +25,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
   
   // لا نحتاج navItemClass بعد الآن - سنستخدم motion.div مباشرة
 
-  // جلب أنواع المتاجر للمستخدم الحالي
+  // جلب أنواع المتاجر والإعدادات للمستخدم الحالي
   useEffect(() => {
     const loadStoreTypes = async () => {
       if (!user?.tenant_id) {
@@ -35,6 +35,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
       
       try {
         setLoadingStoreTypes(true);
+        // جلب أنواع المتاجر
         const types = await neonService.getTenantStoreTypes(user.tenant_id);
         // التأكد من أن البيانات في الصيغة الصحيحة
         const formattedTypes = (types || []).map(type => ({
@@ -43,6 +44,18 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           code: type.store_type_code || type.code || ''
         }));
         setStoreTypes(formattedTypes);
+        
+        // جلب إعدادات الأقسام المرئية (إذا كانت متوفرة)
+        try {
+          const sectionSettings = await neonService.getTenantSectionSettings?.(user.tenant_id);
+          if (sectionSettings && sectionSettings.length > 0) {
+            // حفظ الإعدادات في state إذا لزم الأمر
+            // يمكن استخدامها لتصفية الأقسام
+          }
+        } catch (e) {
+          // الدالة قد لا تكون موجودة بعد - لا مشكلة
+          console.log('Section settings not available yet');
+        }
       } catch (error) {
         console.error('Load store types error:', error);
         setStoreTypes([]);
@@ -54,7 +67,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     if (user?.tenant_id && !user?.isSuperAdmin) {
       loadStoreTypes();
     } else if (user?.isSuperAdmin) {
-      // Super Admin لا يحتاج تحميل الأنواع
+      // Super Admin يرى كل شيء
       setStoreTypes([]);
     }
   }, [user?.tenant_id, user?.isSuperAdmin]);
@@ -133,11 +146,11 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
       <div 
         className="relative h-full w-full overflow-hidden"
         style={{
-          background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.98) 0%, rgba(30, 27, 75, 0.98) 50%, rgba(15, 23, 42, 0.98) 100%)',
+          background: 'linear-gradient(180deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 27, 75, 0.95) 50%, rgba(15, 23, 42, 0.95) 100%)',
           backdropFilter: 'blur(20px) saturate(180%)',
           WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-          borderRight: '1px solid rgba(255, 140, 0, 0.15)',
-          boxShadow: 'inset -10px 0 30px -15px rgba(255, 140, 0, 0.3), 10px 0 60px rgba(0, 0, 0, 0.6), 0 0 100px rgba(255, 140, 0, 0.1)',
+          borderRight: '1px solid rgba(255, 140, 0, 0.2)',
+          boxShadow: 'inset -10px 0 30px -15px rgba(255, 140, 0, 0.2), 10px 0 60px rgba(0, 0, 0, 0.5), 0 0 100px rgba(255, 140, 0, 0.05)',
         }}
       >
         {/* Animated Neon Border Sweep */}

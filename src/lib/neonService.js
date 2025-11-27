@@ -2117,4 +2117,91 @@ export const neonService = {
       return false;
     }
   },
+
+  // Tenant Section Settings
+  getTenantSectionSettings: async (tenantId) => {
+    try {
+      const result = await sql`
+        SELECT section_code, is_visible, display_order
+        FROM tenant_section_settings
+        WHERE tenant_id = ${tenantId} AND is_visible = true
+        ORDER BY display_order
+      `;
+      return result || [];
+    } catch (error) {
+      console.error('getTenantSectionSettings error:', error);
+      return [];
+    }
+  },
+
+  updateTenantSectionSettings: async (tenantId, settings) => {
+    try {
+      // حذف الإعدادات القديمة
+      await sql`DELETE FROM tenant_section_settings WHERE tenant_id = ${tenantId}`;
+      
+      // إضافة الإعدادات الجديدة
+      if (settings && settings.length > 0) {
+        for (const setting of settings) {
+          await sql`
+            INSERT INTO tenant_section_settings (tenant_id, section_code, is_visible, display_order)
+            VALUES (${tenantId}, ${setting.section_code}, ${setting.is_visible || true}, ${setting.display_order || 0})
+            ON CONFLICT (tenant_id, section_code) 
+            DO UPDATE SET is_visible = ${setting.is_visible || true}, display_order = ${setting.display_order || 0}
+          `;
+        }
+      }
+      return true;
+    } catch (error) {
+      console.error('updateTenantSectionSettings error:', error);
+      throw error;
+    }
+  },
+
+  // Update user last seen
+  updateUserLastSeen: async (userId) => {
+    try {
+      await sql`UPDATE users SET last_seen = NOW() WHERE id = ${userId}`;
+      return true;
+    } catch (error) {
+      console.error('updateUserLastSeen error:', error);
+      return false;
+    }
+  },
+
+  // Get active users
+  getActiveUsers: async (tenantId, minutesThreshold = 5) => {
+    try {
+      const result = await sql`
+        SELECT 
+          u.id,
+          u.name,
+          u.email,
+          u.role,
+          u.last_seen,
+          u.last_login,
+          u.avatar_url,
+          CASE 
+            WHEN u.last_seen IS NOT NULL AND u.last_seen > NOW() - (${minutesThreshold} || ' minutes')::INTERVAL THEN true
+            WHEN u.last_seen IS NULL AND u.last_login IS NOT NULL AND u.last_login > NOW() - (${minutesThreshold} || ' minutes')::INTERVAL THEN true
+            ELSE false
+          END as is_online
+        FROM users u
+        WHERE u.tenant_id = ${tenantId}
+          AND u.is_active = true
+          AND (
+            (u.last_seen IS NOT NULL AND u.last_seen > NOW() - (${minutesThreshold} || ' minutes')::INTERVAL)
+            OR (u.last_seen IS NULL AND u.last_login IS NOT NULL AND u.last_login > NOW() - (${minutesThreshold} || ' minutes')::INTERVAL)
+          )
+        ORDER BY 
+          CASE 
+            WHEN u.last_seen IS NOT NULL THEN u.last_seen
+            ELSE u.last_login
+          END DESC
+      `;
+      return result || [];
+    } catch (error) {
+      console.error('getActiveUsers error:', error);
+      return [];
+    }
+  },
 };

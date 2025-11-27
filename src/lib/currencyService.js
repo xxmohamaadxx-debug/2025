@@ -14,6 +14,8 @@ const EXCHANGE_API_URLS = {
 let exchangeRates = {
   SYP_TO_USD: 15000, // سعر افتراضي (سيتم تحديثه)
   TRY_TO_USD: 32, // سعر افتراضي (سيتم تحديثه)
+  SAR_TO_USD: 0.2667, // الريال السعودي
+  EUR_TO_USD: 1.08, // اليورو
   lastUpdate: null,
   autoUpdate: true
 };
@@ -70,8 +72,15 @@ export const updateExchangeRates = async () => {
 // تحديث يدوي للأسعار
 export const setExchangeRate = (fromCurrency, toCurrency, rate) => {
   const key = `${fromCurrency}_TO_${toCurrency}`;
-  if (exchangeRates.hasOwnProperty(key)) {
-    exchangeRates[key] = parseFloat(rate) || 0;
+  // دعم العملات الجديدة
+  if (exchangeRates.hasOwnProperty(key) || 
+      (fromCurrency === 'SAR' && toCurrency === 'USD') ||
+      (fromCurrency === 'EUR' && toCurrency === 'USD')) {
+    if (!exchangeRates.hasOwnProperty(key)) {
+      exchangeRates[key] = parseFloat(rate) || 0;
+    } else {
+      exchangeRates[key] = parseFloat(rate) || 0;
+    }
     exchangeRates.lastUpdate = new Date().toISOString();
     saveExchangeRates();
     return true;
@@ -96,6 +105,10 @@ export const convertCurrency = (amount, fromCurrency, toCurrency) => {
     usdAmount = amountNum / exchangeRates.SYP_TO_USD;
   } else if (fromCurrency === 'TRY') {
     usdAmount = amountNum / exchangeRates.TRY_TO_USD;
+  } else if (fromCurrency === 'SAR') {
+    usdAmount = amountNum / exchangeRates.SAR_TO_USD;
+  } else if (fromCurrency === 'EUR') {
+    usdAmount = amountNum / exchangeRates.EUR_TO_USD;
   } else {
     return amountNum; // عملة غير مدعومة
   }
@@ -107,6 +120,10 @@ export const convertCurrency = (amount, fromCurrency, toCurrency) => {
     return usdAmount * exchangeRates.SYP_TO_USD;
   } else if (toCurrency === 'TRY') {
     return usdAmount * exchangeRates.TRY_TO_USD;
+  } else if (toCurrency === 'SAR') {
+    return usdAmount * exchangeRates.SAR_TO_USD;
+  } else if (toCurrency === 'EUR') {
+    return usdAmount * exchangeRates.EUR_TO_USD;
   }
   
   return amountNum;
@@ -121,22 +138,37 @@ export const getExchangeRate = (fromCurrency, toCurrency) => {
     return exchangeRates[key];
   }
   
-  // حساب عكسي
-  if (fromCurrency === 'USD' && toCurrency === 'SYP') {
-    return exchangeRates.SYP_TO_USD;
-  } else if (fromCurrency === 'USD' && toCurrency === 'TRY') {
-    return exchangeRates.TRY_TO_USD;
-  } else if (fromCurrency === 'SYP' && toCurrency === 'USD') {
-    return 1 / exchangeRates.SYP_TO_USD;
-  } else if (fromCurrency === 'TRY' && toCurrency === 'USD') {
-    return 1 / exchangeRates.TRY_TO_USD;
-  } else if (fromCurrency === 'SYP' && toCurrency === 'TRY') {
-    return (exchangeRates.SYP_TO_USD / exchangeRates.TRY_TO_USD);
-  } else if (fromCurrency === 'TRY' && toCurrency === 'SYP') {
-    return (exchangeRates.TRY_TO_USD / exchangeRates.SYP_TO_USD);
+  // تحويل عبر USD
+  let fromToUsd = 1;
+  let usdToTarget = 1;
+  
+  // تحويل من العملة المصدر إلى USD
+  if (fromCurrency === 'USD') {
+    fromToUsd = 1;
+  } else if (fromCurrency === 'SYP') {
+    fromToUsd = 1 / exchangeRates.SYP_TO_USD;
+  } else if (fromCurrency === 'TRY') {
+    fromToUsd = 1 / exchangeRates.TRY_TO_USD;
+  } else if (fromCurrency === 'SAR') {
+    fromToUsd = 1 / exchangeRates.SAR_TO_USD;
+  } else if (fromCurrency === 'EUR') {
+    fromToUsd = 1 / exchangeRates.EUR_TO_USD;
   }
   
-  return 1;
+  // تحويل من USD إلى العملة المستهدفة
+  if (toCurrency === 'USD') {
+    usdToTarget = 1;
+  } else if (toCurrency === 'SYP') {
+    usdToTarget = exchangeRates.SYP_TO_USD;
+  } else if (toCurrency === 'TRY') {
+    usdToTarget = exchangeRates.TRY_TO_USD;
+  } else if (toCurrency === 'SAR') {
+    usdToTarget = exchangeRates.SAR_TO_USD;
+  } else if (toCurrency === 'EUR') {
+    usdToTarget = exchangeRates.EUR_TO_USD;
+  }
+  
+  return fromToUsd * usdToTarget;
 };
 
 // الحصول على جميع الأسعار
