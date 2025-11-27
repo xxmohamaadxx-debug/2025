@@ -1,12 +1,12 @@
 [build]
-  command = "npm install --legacy-peer-deps && npm run build"
+  command = "npm ci --legacy-peer-deps && npm run build"
   publish = "dist"
   
 [build.environment]
   NODE_VERSION = "18"
-  NPM_FLAGS = "--legacy-peer-deps"
+  NPM_FLAGS = "--legacy-peer-deps --include=dev"
   NODE_OPTIONS = "--max-old-space-size=6144"
-  CI = "false"
+  CI = "true"
   NPM_CONFIG_LOGLEVEL = "warn"
   NETLIFY_NODE_VERSION = "18"
   FORCE_COLOR = "0"

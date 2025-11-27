@@ -477,3 +477,24 @@ export const exportReportPDF = async (title, data, columns, tenantName, logoPath
   const fileName = `report_${Date.now()}.pdf`;
   doc.save(fileName);
 };
+
+// طباعة PDF (فتح نافذة الطباعة)
+export const printInvoice = async (invoice, type, tenantName, logoPath = '/logo.png', language = 'ar', invoiceItems = []) => {
+  const doc = await generateInvoicePDF(invoice, type, tenantName, logoPath, language, invoiceItems);
+  // إنشاء blob من PDF
+  const pdfBlob = doc.output('blob');
+  const pdfUrl = URL.createObjectURL(pdfBlob);
+  
+  // فتح PDF في نافذة جديدة وطباعته
+  const printWindow = window.open(pdfUrl, '_blank');
+  if (printWindow) {
+    printWindow.onload = () => {
+      printWindow.print();
+    };
+  }
+  
+  // تنظيف URL بعد الطباعة
+  setTimeout(() => {
+    URL.revokeObjectURL(pdfUrl);
+  }, 1000);
+};

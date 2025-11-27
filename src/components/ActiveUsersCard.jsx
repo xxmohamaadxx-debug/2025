@@ -39,7 +39,7 @@ const ActiveUsersCard = ({ t }) => {
       
       // Filter active users (online in last 5 minutes)
       const now = new Date();
-      const activeUsersList = allUsers
+      const filteredActiveUsers = allUsers
         .filter(u => {
           if (!u.is_active) return false;
           
@@ -62,7 +62,7 @@ const ActiveUsersCard = ({ t }) => {
           return bTime - aTime;
         });
       
-      setActiveUsers(activeUsersList);
+      setActiveUsers(filteredActiveUsers);
     } catch (error) {
       console.error('Load active users error:', error);
       setActiveUsers([]);
