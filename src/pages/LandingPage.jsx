@@ -5,18 +5,18 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { neonService } from '@/lib/neonService';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Shield, Database, Smartphone, TrendingUp, Users, Store, 
   Wifi, Fuel, Building2, CheckCircle, Download, LogIn, 
   MessageCircle, Star, Lock, Zap, BarChart, CreditCard,
-  Phone, Mail, Clock, Headphones, Rocket, Sparkles
+  Phone, Mail, Clock, Headphones, Rocket, Sparkles, Globe, ChevronDown
 } from 'lucide-react';
 import Logo from '@/components/Logo';
 import { toast } from '@/components/ui/use-toast';
 
 const LandingPage = () => {
-  const { t } = useLanguage();
+  const { t, locale, setLocale } = useLanguage();
   const navigate = useNavigate();
   const [storeTypes, setStoreTypes] = useState([]);
   const [appSettings, setAppSettings] = useState({});
@@ -30,6 +30,26 @@ const LandingPage = () => {
     subscription_duration: 'trial'
   });
   const [loading, setLoading] = useState(true);
+  const [isLangMenuOpen, setIsLangMenuOpen] = useState(false);
+
+  const languages = [
+    { code: 'ar', name: 'العربية', flag: '🇸🇦' },
+    { code: 'en', name: 'English', flag: '🇬🇧' },
+    { code: 'tr', name: 'Türkçe', flag: '🇹🇷' }
+  ];
+
+  const currentLanguage = languages.find(lang => lang.code === locale) || languages[0];
+
+  // Close language menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (isLangMenuOpen && !event.target.closest('.language-selector-container')) {
+        setIsLangMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isLangMenuOpen]);
 
   useEffect(() => {
     loadData();
@@ -208,6 +228,64 @@ const LandingPage = () => {
               animate={{ opacity: 1, x: 0 }}
               className="flex items-center gap-3"
             >
+              {/* Language Selector */}
+              <div className="relative language-selector-container">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setIsLangMenuOpen(!isLangMenuOpen)}
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg glass border border-white/20 hover:border-orange-400/50 text-white transition-all duration-300"
+                >
+                  <Globe className="h-4 w-4" />
+                  <span className="text-sm font-medium hidden sm:inline">
+                    {currentLanguage.flag} {currentLanguage.name}
+                  </span>
+                  <span className="text-sm font-medium sm:hidden">
+                    {currentLanguage.flag}
+                  </span>
+                  <ChevronDown className={`h-4 w-4 transition-transform duration-300 ${isLangMenuOpen ? 'rotate-180' : ''}`} />
+                </motion.button>
+                
+                <AnimatePresence>
+                  {isLangMenuOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                      transition={{ duration: 0.2 }}
+                      className="absolute top-full mt-2 rtl:left-0 ltr:right-0 z-50 w-48 glass border border-white/20 rounded-xl shadow-2xl overflow-hidden"
+                    >
+                      {languages.map((lang) => (
+                        <motion.button
+                          key={lang.code}
+                          whileHover={{ x: 5, backgroundColor: 'rgba(255, 140, 0, 0.2)' }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => {
+                            setLocale(lang.code);
+                            setIsLangMenuOpen(false);
+                          }}
+                          className={`w-full flex items-center gap-3 px-4 py-3 text-left rtl:text-right transition-all duration-200 ${
+                            locale === lang.code
+                              ? 'bg-gradient-to-r from-orange-500/30 to-pink-500/30 text-white font-semibold'
+                              : 'text-white/90 hover:bg-white/10'
+                          }`}
+                        >
+                          <span className="text-xl">{lang.flag}</span>
+                          <span className="flex-1">{lang.name}</span>
+                          {locale === lang.code && (
+                            <motion.div
+                              initial={{ scale: 0 }}
+                              animate={{ scale: 1 }}
+                              className="w-2 h-2 rounded-full bg-orange-400"
+                            />
+                          )}
+                        </motion.button>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
               <Button
                 onClick={() => setTrialDialogOpen(true)}
                 className="bg-gradient-to-r from-orange-500 via-pink-500 to-purple-500 text-white hidden sm:flex shadow-xl hover:shadow-2xl hover:shadow-orange-500/50 transition-all hover:scale-105 border-0"

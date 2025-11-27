@@ -4,6 +4,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { neonService } from '@/lib/neonService';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   LayoutDashboard, FileText, ShoppingCart, Package, 
   Users, Settings, LogOut, Shield, BarChart, 
@@ -11,6 +12,7 @@ import {
   Wifi, Fuel, Store, Building2, Bell
 } from 'lucide-react';
 import Logo from '@/components/Logo';
+import NavItem from './NavItem';
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
   const location = useLocation();
@@ -21,22 +23,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
   
   const isActive = (path) => location.pathname === path;
   
-  const navItemClass = (path) => {
-    const isActivePath = isActive(path);
-    return `
-      group relative flex items-center px-4 py-3 mb-2 rounded-xl 
-      transition-all duration-300 ease-out
-      ${isActivePath 
-        ? 'bg-gradient-to-r from-orange-500/30 via-pink-500/20 to-purple-500/20 text-white font-semibold shadow-lg shadow-orange-500/20 transform scale-[1.02]' 
-        : 'text-gray-300 hover:text-white hover:bg-gradient-to-r hover:from-orange-500/10 hover:via-pink-500/5 hover:to-purple-500/10 hover:shadow-md hover:shadow-orange-500/10'}
-      before:absolute before:inset-0 before:rounded-xl before:bg-gradient-to-r before:from-orange-500/0 before:via-pink-500/0 before:to-purple-500/0
-      before:opacity-0 hover:before:opacity-100 before:transition-opacity before:duration-300
-      after:absolute after:left-0 after:top-1/2 after:-translate-y-1/2 after:w-1 after:h-0 
-      after:bg-gradient-to-b after:from-orange-500 after:to-pink-500 after:rounded-r-full
-      after:transition-all after:duration-300
-      ${isActivePath ? 'after:h-8' : 'after:h-0 group-hover:after:h-6'}
-    `;
-  };
+  // لا نحتاج navItemClass بعد الآن - سنستخدم motion.div مباشرة
 
   // جلب أنواع المتاجر للمستخدم الحالي
   useEffect(() => {
@@ -109,40 +96,135 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
   const isFuelStation = shouldShowSection(['fuel', 'general_with_fuel']);
   const isContractor = shouldShowSection(['contractor']);
 
+  const getSidebarVariants = () => {
+    if (typeof window === 'undefined') return { open: { x: 0 }, closed: { x: 0 } };
+    const isDesktop = window.innerWidth >= 1024;
+    const isRTL = document.documentElement.dir === 'rtl';
+    return {
+      open: { 
+        x: 0, 
+        opacity: 1,
+        transition: { type: "spring", stiffness: 300, damping: 30 }
+      },
+      closed: { 
+        x: isDesktop ? 0 : (isRTL ? 256 : -256), 
+        opacity: 1,
+        transition: { type: "spring", stiffness: 300, damping: 30 }
+      }
+    };
+  };
+  
+  const sidebarVariants = getSidebarVariants();
+
   return (
-    <div className={`
-      fixed inset-y-0 rtl:right-0 ltr:left-0 z-30 w-64 
-      bg-gradient-to-br from-gray-900 via-gray-800 to-black dark:from-gray-950 dark:via-gray-900 dark:to-black
-      backdrop-blur-xl bg-opacity-95
-      border-l rtl:border-r rtl:border-l-0 
-      border-transparent
-      shadow-2xl shadow-black/50
-      transform transition-all duration-300 ease-in-out
-      lg:relative lg:translate-x-0 lg:static
-      ${isOpen ? 'translate-x-0' : 'rtl:translate-x-full ltr:-translate-x-full lg:translate-x-0'}
-      before:absolute before:inset-0 before:bg-gradient-to-br before:from-orange-500/10 before:via-pink-500/5 before:to-purple-500/10 before:opacity-50
-      after:absolute after:inset-0 after:bg-[radial-gradient(circle_at_20%_50%,rgba(255,140,0,0.1),transparent_50%)] after:pointer-events-none
-    `}
-    style={{
-      backgroundImage: 'linear-gradient(135deg, rgba(255,140,0,0.05) 0%, rgba(236,72,153,0.05) 50%, rgba(168,85,247,0.05) 100%)'
-    }}>
-      <div className="p-4 md:p-6 flex justify-between items-center border-b border-orange-500/20 relative z-10 bg-gradient-to-r from-orange-500/5 to-transparent">
-        <Link 
-          to="/dashboard" 
-          className="flex items-center gap-2 group relative" 
-          onClick={handleLinkClick}
+    <motion.div
+      initial={false}
+      animate={isOpen ? 'open' : 'closed'}
+      variants={sidebarVariants}
+      className={`
+        fixed inset-y-0 rtl:right-0 ltr:left-0 z-30 w-64 
+        lg:relative lg:translate-x-0 lg:static
+      `}
+      style={{
+        perspective: '1000px',
+      }}
+    >
+      {/* 3D Container with Advanced Glassmorphism & Neon Effects */}
+      <div 
+        className="relative h-full w-full overflow-hidden"
+        style={{
+          background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.98) 0%, rgba(30, 27, 75, 0.98) 50%, rgba(15, 23, 42, 0.98) 100%)',
+          backdropFilter: 'blur(20px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+          borderRight: '1px solid rgba(255, 140, 0, 0.15)',
+          boxShadow: 'inset -10px 0 30px -15px rgba(255, 140, 0, 0.3), 10px 0 60px rgba(0, 0, 0, 0.6), 0 0 100px rgba(255, 140, 0, 0.1)',
+        }}
+      >
+        {/* Animated Neon Border Sweep */}
+        <motion.div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: 'linear-gradient(90deg, transparent, rgba(255, 140, 0, 0.4), rgba(236, 72, 153, 0.4), transparent)',
+            opacity: 0.6,
+          }}
+          animate={{
+            x: ['-100%', '200%'],
+          }}
+          transition={{
+            duration: 4,
+            repeat: Infinity,
+            ease: 'linear',
+          }}
+        />
+        
+        {/* Glowing Particles Background */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          {[...Array(25)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute w-1.5 h-1.5 rounded-full"
+              style={{
+                background: 'radial-gradient(circle, rgba(255, 140, 0, 1), transparent)',
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+                boxShadow: '0 0 15px rgba(255, 140, 0, 0.8), 0 0 30px rgba(255, 140, 0, 0.4)',
+              }}
+              animate={{
+                y: [0, -40, 0],
+                opacity: [0.1, 1, 0.1],
+                scale: [1, 2, 1],
+              }}
+              transition={{
+                duration: 4 + Math.random() * 3,
+                repeat: Infinity,
+                delay: Math.random() * 3,
+                ease: 'easeInOut',
+              }}
+            />
+          ))}
+        </div>
+        {/* Header with 3D Effect */}
+        <motion.div 
+          className="p-4 md:p-6 flex justify-between items-center border-b border-orange-500/20 relative z-10"
+          style={{
+            background: 'linear-gradient(135deg, rgba(255, 140, 0, 0.1) 0%, rgba(236, 72, 153, 0.05) 100%)',
+            backdropFilter: 'blur(10px)',
+          }}
         >
-          <div className="absolute inset-0 bg-gradient-to-r from-orange-500/20 to-pink-500/20 rounded-lg opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-300 -z-10"></div>
-          <Logo size="md" showText={true} className="flex-shrink-0 transform group-hover:scale-110 transition-transform duration-300" />
-        </Link>
-        <button 
-          onClick={() => setIsOpen(false)} 
-          className="lg:hidden text-gray-400 hover:text-white p-2 rounded-lg hover:bg-orange-500/20 backdrop-blur-sm transition-all duration-300 hover:scale-110 hover:rotate-90"
-          aria-label="إغلاق القائمة"
-        >
-          <X className="h-5 w-5" />
-        </button>
-      </div>
+          <motion.div
+            whileHover={{ scale: 1.05, rotateY: 5 }}
+            whileTap={{ scale: 0.95 }}
+            style={{ transformStyle: 'preserve-3d' }}
+          >
+            <Link 
+              to="/dashboard" 
+              className="flex items-center gap-2 group relative" 
+              onClick={handleLinkClick}
+            >
+              <motion.div
+                className="absolute inset-0 bg-gradient-to-r from-orange-500/30 to-pink-500/30 rounded-lg blur-xl"
+                animate={{
+                  opacity: [0.3, 0.6, 0.3],
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: 'easeInOut',
+                }}
+              />
+              <Logo size="md" showText={true} className="flex-shrink-0 relative z-10" />
+            </Link>
+          </motion.div>
+          <motion.button 
+            onClick={() => setIsOpen(false)} 
+            className="lg:hidden text-gray-400 hover:text-white p-2 rounded-lg hover:bg-orange-500/20 backdrop-blur-sm relative z-10"
+            whileHover={{ scale: 1.2, rotate: 90 }}
+            whileTap={{ scale: 0.9 }}
+            aria-label="إغلاق القائمة"
+          >
+            <X className="h-5 w-5" />
+          </motion.button>
+        </motion.div>
 
       <nav className="flex-1 px-2 sm:px-4 overflow-y-auto h-[calc(100vh-80px)] pb-4">
         {/* Admin Panel - فقط للمشرفين */}
@@ -151,87 +233,134 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
              <div className="px-4 mb-2 mt-4 text-xs font-semibold text-purple-500 dark:text-purple-400 uppercase tracking-wider">
                {t('common.adminPanel')}
              </div>
-             <Link to="/admin" className={navItemClass('/admin')} onClick={handleLinkClick}>
-                <Shield className="h-5 w-5 ltr:mr-3 rtl:ml-3 text-purple-500 dark:text-purple-400" />
-                <span className="font-medium">{t('common.adminPanel')}</span>
-             </Link>
-             <Link to="/admin-settings" className={navItemClass('/admin-settings')} onClick={handleLinkClick}>
-                <Settings className="h-5 w-5 ltr:mr-3 rtl:ml-3 text-purple-500 dark:text-purple-400" />
-                <span className="font-medium">إعدادات المدير</span>
-             </Link>
+             <NavItem
+               to="/admin"
+               icon={Shield}
+               label={t('common.adminPanel')}
+               isActive={isActive('/admin')}
+               onClick={handleLinkClick}
+               delay={0.05}
+             />
+             <NavItem
+               to="/admin-settings"
+               icon={Settings}
+               label="إعدادات المدير"
+               isActive={isActive('/admin-settings')}
+               onClick={handleLinkClick}
+               delay={0.1}
+             />
           </>
         )}
 
         <div className="px-4 mb-2 mt-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">{t('nav.overview') || 'نظرة عامة'}</div>
         
-        <Link to="/dashboard" className={navItemClass('/dashboard')} onClick={handleLinkClick}>
-          <LayoutDashboard className="h-5 w-5 ltr:mr-3 rtl:ml-3" />
-          {t('common.dashboard')}
-        </Link>
-
-        <Link to="/invoices-in" className={navItemClass('/invoices-in')} onClick={handleLinkClick}>
-          <FileText className="h-5 w-5 ltr:mr-3 rtl:ml-3" />
-          {t('common.invoicesIn')}
-        </Link>
-
-        <Link to="/invoices-out" className={navItemClass('/invoices-out')} onClick={handleLinkClick}>
-          <ShoppingCart className="h-5 w-5 ltr:mr-3 rtl:ml-3" />
-          {t('common.invoicesOut')}
-        </Link>
-
-        <Link to="/inventory" className={navItemClass('/inventory')} onClick={handleLinkClick}>
-          <Package className="h-5 w-5 ltr:mr-3 rtl:ml-3" />
-          {t('common.inventory')}
-        </Link>
+        <NavItem
+          to="/dashboard"
+          icon={LayoutDashboard}
+          label={t('common.dashboard')}
+          isActive={isActive('/dashboard')}
+          onClick={handleLinkClick}
+          delay={0.15}
+        />
+        <NavItem
+          to="/invoices-in"
+          icon={FileText}
+          label={t('common.invoicesIn')}
+          isActive={isActive('/invoices-in')}
+          onClick={handleLinkClick}
+          delay={0.2}
+        />
+        <NavItem
+          to="/invoices-out"
+          icon={ShoppingCart}
+          label={t('common.invoicesOut')}
+          isActive={isActive('/invoices-out')}
+          onClick={handleLinkClick}
+          delay={0.25}
+        />
+        <NavItem
+          to="/inventory"
+          icon={Package}
+          label={t('common.inventory')}
+          isActive={isActive('/inventory')}
+          onClick={handleLinkClick}
+          delay={0.3}
+        />
 
         <div className="px-4 mb-2 mt-6 text-xs font-semibold text-gray-400 uppercase tracking-wider">{t('nav.management') || 'إدارة'}</div>
 
-        <Link to="/daily-transactions" className={navItemClass('/daily-transactions')} onClick={handleLinkClick}>
-          <Activity className="h-5 w-5 ltr:mr-3 rtl:ml-3" />
-          الحركة اليومية
-        </Link>
-
-        <Link to="/customers" className={navItemClass('/customers')} onClick={handleLinkClick}>
-          <Users className="h-5 w-5 ltr:mr-3 rtl:ml-3" />
-          العملاء والديون
-        </Link>
-
-        <Link to="/partners" className={navItemClass('/partners')} onClick={handleLinkClick}>
-          <Users className="h-5 w-5 ltr:mr-3 rtl:ml-3" />
-          {t('common.partners')}
-        </Link>
-        
-        <Link to="/employees" className={navItemClass('/employees')} onClick={handleLinkClick}>
-          <Briefcase className="h-5 w-5 ltr:mr-3 rtl:ml-3" />
-          {t('common.employees')}
-        </Link>
-
+        <NavItem
+          to="/daily-transactions"
+          icon={Activity}
+          label="الحركة اليومية"
+          isActive={isActive('/daily-transactions')}
+          onClick={handleLinkClick}
+          delay={0.35}
+        />
+        <NavItem
+          to="/customers"
+          icon={Users}
+          label="العملاء والديون"
+          isActive={isActive('/customers')}
+          onClick={handleLinkClick}
+          delay={0.4}
+        />
+        <NavItem
+          to="/partners"
+          icon={Users}
+          label={t('common.partners')}
+          isActive={isActive('/partners')}
+          onClick={handleLinkClick}
+          delay={0.45}
+        />
+        <NavItem
+          to="/employees"
+          icon={Briefcase}
+          label={t('common.employees')}
+          isActive={isActive('/employees')}
+          onClick={handleLinkClick}
+          delay={0.5}
+        />
         {(user?.isStoreOwner || user?.isSuperAdmin) && (
-          <Link to="/store-users" className={navItemClass('/store-users')} onClick={handleLinkClick}>
-            <Users className="h-5 w-5 ltr:mr-3 rtl:ml-3" />
-            {t('common.storeUsers')}
-          </Link>
+          <NavItem
+            to="/store-users"
+            icon={Users}
+            label={t('common.storeUsers')}
+            isActive={isActive('/store-users')}
+            onClick={handleLinkClick}
+            delay={0.55}
+          />
         )}
-
-        <Link to="/reports" className={navItemClass('/reports')} onClick={handleLinkClick}>
-          <BarChart className="h-5 w-5 ltr:mr-3 rtl:ml-3" />
-          {t('common.reports')}
-        </Link>
+        <NavItem
+          to="/reports"
+          icon={BarChart}
+          label={t('common.reports')}
+          isActive={isActive('/reports')}
+          onClick={handleLinkClick}
+          delay={0.6}
+        />
 
         {/* صالات الإنترنت - تظهر فقط إذا كان نوع المتجر يدعمها */}
         {(isInternetCafe || user?.isSuperAdmin) && (
           <>
             <div className="px-4 mb-2 mt-6 text-xs font-semibold text-gray-400 uppercase tracking-wider">صالات الإنترنت</div>
             
-            <Link to="/subscribers" className={navItemClass('/subscribers')} onClick={handleLinkClick}>
-              <Users className="h-5 w-5 ltr:mr-3 rtl:ml-3" />
-              المشتركين
-            </Link>
-
-            <Link to="/internet-usage" className={navItemClass('/internet-usage')} onClick={handleLinkClick}>
-              <Wifi className="h-5 w-5 ltr:mr-3 rtl:ml-3" />
-              استخدام الإنترنت
-            </Link>
+            <NavItem
+              to="/subscribers"
+              icon={Users}
+              label="المشتركين"
+              isActive={isActive('/subscribers')}
+              onClick={handleLinkClick}
+              delay={0.65}
+            />
+            <NavItem
+              to="/internet-usage"
+              icon={Wifi}
+              label="استخدام الإنترنت"
+              isActive={isActive('/internet-usage')}
+              onClick={handleLinkClick}
+              delay={0.7}
+            />
           </>
         )}
 
@@ -240,10 +369,14 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           <>
             <div className="px-4 mb-2 mt-6 text-xs font-semibold text-gray-400 uppercase tracking-wider">محطات المحروقات</div>
             
-            <Link to="/fuel-station" className={navItemClass('/fuel-station')} onClick={handleLinkClick}>
-              <Fuel className="h-5 w-5 ltr:mr-3 rtl:ml-3" />
-              متجر المحروقات
-            </Link>
+            <NavItem
+              to="/fuel-station"
+              icon={Fuel}
+              label="متجر المحروقات"
+              isActive={isActive('/fuel-station')}
+              onClick={handleLinkClick}
+              delay={0.75}
+            />
           </>
         )}
 
@@ -252,69 +385,117 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           <>
             <div className="px-4 mb-2 mt-6 text-xs font-semibold text-gray-400 uppercase tracking-wider">متجر المقاولين</div>
             
-            <Link to="/contractor-projects" className={navItemClass('/contractor-projects')} onClick={handleLinkClick}>
-              <Building2 className="h-5 w-5 ltr:mr-3 rtl:ml-3" />
-              المشاريع
-            </Link>
-
-            <Link to="/contractor-project-items" className={navItemClass('/contractor-project-items')} onClick={handleLinkClick}>
-              <FileText className="h-5 w-5 ltr:mr-3 rtl:ml-3" />
-              بنود الكميات (BOQ)
-            </Link>
+            <NavItem
+              to="/contractor-projects"
+              icon={Building2}
+              label="المشاريع"
+              isActive={isActive('/contractor-projects')}
+              onClick={handleLinkClick}
+              delay={0.8}
+            />
+            <NavItem
+              to="/contractor-project-items"
+              icon={FileText}
+              label="بنود الكميات (BOQ)"
+              isActive={isActive('/contractor-project-items')}
+              onClick={handleLinkClick}
+              delay={0.85}
+            />
           </>
         )}
 
         {user?.isSuperAdmin && (
-          <Link to="/store-types" className={navItemClass('/store-types')} onClick={handleLinkClick}>
-            <Store className="h-5 w-5 ltr:mr-3 rtl:ml-3 text-purple-500 dark:text-purple-400" />
-            أنواع المتاجر
-          </Link>
+          <NavItem
+            to="/store-types"
+            icon={Store}
+            label="أنواع المتاجر"
+            isActive={isActive('/store-types')}
+            onClick={handleLinkClick}
+            delay={0.9}
+          />
         )}
 
-        <div className="px-4 mb-2 mt-6 text-xs font-semibold text-gray-400 uppercase tracking-wider">{t('nav.system') || 'النظام'}</div>
-
-        <Link to="/subscription" className={navItemClass('/subscription')} onClick={handleLinkClick}>
-          <CreditCard className="h-5 w-5 ltr:mr-3 rtl:ml-3" />
-          {t('common.subscription')}
-        </Link>
-
-        <Link to="/notification-settings" className={navItemClass('/notification-settings')} onClick={handleLinkClick}>
-          <Bell className="h-5 w-5 ltr:mr-3 rtl:ml-3" />
-          إعدادات الإشعارات
-        </Link>
-
-        <Link to="/support" className={navItemClass('/support')} onClick={handleLinkClick}>
-          <MessageCircle className="h-5 w-5 ltr:mr-3 rtl:ml-3" />
-          الدعم والمساعدة
-        </Link>
-
-        {(user?.isStoreOwner || user?.isSuperAdmin) && (
-          <Link to="/backup" className={navItemClass('/backup')} onClick={handleLinkClick}>
-            <Database className="h-5 w-5 ltr:mr-3 rtl:ml-3" />
-            النسخ الاحتياطي
-          </Link>
-        )}
-
-        <Link to="/settings" className={navItemClass('/settings')} onClick={handleLinkClick}>
-          <Settings className="h-5 w-5 ltr:mr-3 rtl:ml-3" />
-          {t('common.settings')}
-        </Link>
-
-        <div className="pt-4 pb-8 border-t border-orange-500/20 mt-4 relative z-10">
-          <button 
-            onClick={logout}
-            className="group flex items-center w-full px-4 py-3 text-sm text-red-400 hover:text-white rounded-xl transition-all duration-300 relative overflow-hidden
-                       hover:bg-gradient-to-r hover:from-red-500/20 hover:via-pink-500/10 hover:to-red-500/20
-                       before:absolute before:inset-0 before:bg-gradient-to-r before:from-red-500/0 before:to-pink-500/0 
-                       before:opacity-0 hover:before:opacity-100 before:transition-opacity before:duration-300
-                       hover:shadow-lg hover:shadow-red-500/20 hover:scale-[1.02]"
-          >
-            <LogOut className="h-5 w-5 ltr:mr-3 rtl:ml-3 transform group-hover:rotate-12 transition-transform duration-300" />
-            <span className="relative z-10">{t('common.logout')}</span>
-          </button>
+        <div className="px-4 mb-2 mt-6 text-xs font-semibold text-gray-400 uppercase tracking-wider relative z-10">
+          {t('nav.system') || 'النظام'}
         </div>
+
+        <NavItem
+          to="/subscription"
+          icon={CreditCard}
+          label={t('common.subscription')}
+          isActive={isActive('/subscription')}
+          onClick={handleLinkClick}
+          delay={0.95}
+        />
+        <NavItem
+          to="/notification-settings"
+          icon={Bell}
+          label="إعدادات الإشعارات"
+          isActive={isActive('/notification-settings')}
+          onClick={handleLinkClick}
+          delay={1.0}
+        />
+        <NavItem
+          to="/support"
+          icon={MessageCircle}
+          label="الدعم والمساعدة"
+          isActive={isActive('/support')}
+          onClick={handleLinkClick}
+          delay={1.05}
+        />
+        {(user?.isStoreOwner || user?.isSuperAdmin) && (
+          <NavItem
+            to="/backup"
+            icon={Database}
+            label="النسخ الاحتياطي"
+            isActive={isActive('/backup')}
+            onClick={handleLinkClick}
+            delay={1.1}
+          />
+        )}
+        <NavItem
+          to="/settings"
+          icon={Settings}
+          label={t('common.settings')}
+          isActive={isActive('/settings')}
+          onClick={handleLinkClick}
+          delay={1.15}
+        />
+
+        {/* Logout Button with Advanced Animation */}
+        <motion.div 
+          className="pt-4 pb-8 border-t border-orange-500/20 mt-4 relative z-10"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1.2, duration: 0.3 }}
+        >
+          <motion.button 
+            onClick={logout}
+            whileHover={{ 
+              scale: 1.02,
+              x: 5,
+              boxShadow: '0 10px 30px rgba(239, 68, 68, 0.3)'
+            }}
+            whileTap={{ scale: 0.98 }}
+            className="group flex items-center w-full px-4 py-3 text-sm text-red-400 hover:text-white rounded-xl transition-all duration-300 relative overflow-hidden
+                       hover:bg-gradient-to-r hover:from-red-500/30 hover:via-pink-500/20 hover:to-red-500/30"
+          >
+            <motion.div
+              className="absolute inset-0 bg-gradient-to-r from-red-500/0 via-pink-500/0 to-red-500/0 opacity-0 group-hover:opacity-100 blur-xl"
+              transition={{ duration: 0.3 }}
+            />
+            <motion.div
+              whileHover={{ rotate: 12 }}
+              transition={{ type: "spring", stiffness: 300 }}
+            >
+              <LogOut className="h-5 w-5 ltr:mr-3 rtl:ml-3 relative z-10" />
+            </motion.div>
+            <span className="relative z-10 font-medium">{t('common.logout')}</span>
+          </motion.button>
+        </motion.div>
       </nav>
-    </div>
+      </div>
+    </motion.div>
   );
 };
 

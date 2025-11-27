@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { Search, User, Menu, Shield, Wifi, WifiOff, Cloud, CloudOff, Loader2, RefreshCw } from 'lucide-react';
+import { Search, User, Menu, Shield, Wifi, WifiOff, Cloud, CloudOff, Loader2, RefreshCw, Globe, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import Logo from '@/components/Logo';
@@ -10,14 +10,24 @@ import Notifications from '@/components/Notifications';
 import { isOnline, syncOfflineData, getPendingCount } from '@/lib/offlineService';
 import { neonService } from '@/lib/neonService';
 import { toast } from '@/components/ui/use-toast';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const TopNav = ({ onMenuClick, isOffline: propIsOffline = false, pendingSyncCount: propPendingSyncCount = 0 }) => {
   const { user } = useAuth();
-  const { t } = useLanguage();
+  const { t, locale, setLocale } = useLanguage();
   const [isOffline, setIsOffline] = useState(() => typeof window !== 'undefined' ? !navigator.onLine : false);
   const [pendingSyncCount, setPendingSyncCount] = useState(propPendingSyncCount);
   const [isSyncing, setIsSyncing] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState(() => typeof window !== 'undefined' && navigator.onLine ? 'online' : 'offline');
+  const [isLangMenuOpen, setIsLangMenuOpen] = useState(false);
+
+  const languages = [
+    { code: 'ar', name: 'العربية', flag: '🇸🇦' },
+    { code: 'en', name: 'English', flag: '🇬🇧' },
+    { code: 'tr', name: 'Türkçe', flag: '🇹🇷' }
+  ];
+
+  const currentLanguage = languages.find(lang => lang.code === locale) || languages[0];
 
   useEffect(() => {
     const handleOnline = async () => {
@@ -117,8 +127,19 @@ const TopNav = ({ onMenuClick, isOffline: propIsOffline = false, pendingSyncCoun
     }
   };
 
+  // Close language menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (isLangMenuOpen && !event.target.closest('.language-selector-container')) {
+        setIsLangMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isLangMenuOpen]);
+
   return (
-    <header className="h-16 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 md:px-6 flex items-center justify-between sticky top-0 z-10 transition-colors">
+    <header className="h-16 bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-700/50 px-4 md:px-6 flex items-center justify-between sticky top-0 z-10 transition-all shadow-sm">
       <div className="flex items-center gap-4 flex-1">
         <button 
           onClick={onMenuClick}
@@ -144,6 +165,64 @@ const TopNav = ({ onMenuClick, isOffline: propIsOffline = false, pendingSyncCoun
       </div>
 
       <div className="flex items-center gap-2 md:gap-4">
+        {/* Language Selector */}
+        <div className="relative">
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setIsLangMenuOpen(!isLangMenuOpen)}
+            className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gradient-to-r from-orange-500/10 to-pink-500/10 hover:from-orange-500/20 hover:to-pink-500/20 border border-orange-500/20 hover:border-orange-500/40 transition-all duration-300 backdrop-blur-sm"
+          >
+            <Globe className="h-4 w-4 text-orange-500" />
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300 hidden sm:inline">
+              {currentLanguage.flag} {currentLanguage.name}
+            </span>
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300 sm:hidden">
+              {currentLanguage.flag}
+            </span>
+            <ChevronDown className={`h-4 w-4 text-gray-500 transition-transform duration-300 ${isLangMenuOpen ? 'rotate-180' : ''}`} />
+          </motion.button>
+          
+          <AnimatePresence>
+            {isLangMenuOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                transition={{ duration: 0.2 }}
+                className="absolute top-full mt-2 rtl:left-0 ltr:right-0 z-50 w-48 bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl rounded-xl shadow-2xl border border-gray-200/50 dark:border-gray-700/50 overflow-hidden"
+              >
+                {languages.map((lang) => (
+                  <motion.button
+                    key={lang.code}
+                    whileHover={{ x: 5, backgroundColor: 'rgba(255, 140, 0, 0.1)' }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => {
+                      setLocale(lang.code);
+                      setIsLangMenuOpen(false);
+                    }}
+                    className={`w-full flex items-center gap-3 px-4 py-3 text-left rtl:text-right transition-all duration-200 ${
+                      locale === lang.code
+                        ? 'bg-gradient-to-r from-orange-500/20 to-pink-500/20 text-orange-600 dark:text-orange-400 font-semibold'
+                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50'
+                    }`}
+                  >
+                    <span className="text-xl">{lang.flag}</span>
+                    <span className="flex-1">{lang.name}</span>
+                    {locale === lang.code && (
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        className="w-2 h-2 rounded-full bg-orange-500"
+                      />
+                    )}
+                  </motion.button>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
         {/* Connection Status Indicator with Animation */}
         <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all duration-300 ${
           connectionStatus === 'online' 

@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from '@/components/Sidebar';
 import TopNav from '@/components/TopNav';
+import BottomNav from '@/components/BottomNav';
 import { initOfflineService, isOnline, syncOfflineData, getPendingCount } from '@/lib/offlineService';
 import { useAuth } from '@/contexts/AuthContext';
 import { neonService } from '@/lib/neonService';
@@ -160,12 +161,15 @@ const MainLayout = ({ children }) => {
             {pendingSyncCount > 0 && ` (${pendingSyncCount} عنصر في انتظار الرفع)`}
           </div>
         )}
-        <main className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6 scroll-smooth">
+        <main className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6 scroll-smooth pb-20 lg:pb-6">
           <div className="max-w-7xl mx-auto w-full">
             {children}
           </div>
         </main>
       </div>
+      
+      {/* Bottom Navigation for Mobile */}
+      <BottomNav />
     </div>
   );
 };
