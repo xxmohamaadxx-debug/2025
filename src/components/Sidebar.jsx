@@ -105,7 +105,8 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
   };
 
   // تحديد الأقسام لكل نوع متجر - فقط إذا كان نوع المتجر يطابق
-  const isInternetCafe = shouldShowSection(['internet_cafe', 'internet_cafe_accessories']);
+  const isInternetCafe = shouldShowSection(['internet_cafe']);
+  const isMobileAccessories = shouldShowSection(['internet_cafe_accessories', 'mobile_accessories']);
   const isFuelStation = shouldShowSection(['fuel', 'general_with_fuel']);
   const isContractor = shouldShowSection(['contractor']);
 
@@ -433,8 +434,8 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           </>
         )}
 
-        {/* متجر إكسسوارات الجوال - يظهر إذا كان نوع المتجر يدعمه */}
-        {(isInternetCafe || user?.isSuperAdmin) && (
+        {/* متجر إكسسوارات الجوال - يظهر فقط إذا كان نوع المتجر يدعمه */}
+        {(isMobileAccessories || user?.isSuperAdmin) && (
           <>
             <div className="px-4 mb-2 mt-6 text-xs font-semibold text-gray-400 uppercase tracking-wider">متجر إكسسوارات الجوال</div>
             

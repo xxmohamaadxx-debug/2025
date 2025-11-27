@@ -14,6 +14,7 @@
   VITE_BUILD_MODE = "production"
   NPM_CONFIG_PRODUCTION = "false"
   NETLIFY_USE_YARN = "false"
+  SKIP_PREBUILD_CHECK = "true"
   
 [build.processing]
   skip_processing = false
