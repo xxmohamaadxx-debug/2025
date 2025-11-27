@@ -274,7 +274,7 @@ export default defineConfig({
 				manualChunks: {
 					'react-vendor': ['react', 'react-dom', 'react-router-dom'],
 					'ui-vendor': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-toast'],
-					'charts': ['chart.js', 'react-chartjs-2'],
+					'charts': ['chart.js', 'react-chartjs-2', 'apexcharts', 'react-apexcharts'],
 				},
 				chunkSizeWarningLimit: 1000,
 			},

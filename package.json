@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "vite --host :: --port 3000",
-    "prebuild": "node tools/generate-llms.js || echo Skipping llms generation",
+    "prebuild": "node tools/generate-llms.js || exit 0",
     "build": "vite build",
     "preview": "vite preview --host :: --port 3000"
   },
@@ -49,8 +49,8 @@
     "@babel/traverse": "^7.27.0",
     "@babel/types": "^7.27.0",
     "@types/node": "^20.17.10",
-    "@types/react": "^18.3.18",
-    "@types/react-dom": "^18.3.5",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.20",
     "eslint": "^8.57.1",
