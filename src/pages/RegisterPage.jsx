@@ -5,9 +5,10 @@ import { Helmet } from 'react-helmet';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
-import { Mail, Lock, User, Building, MessageCircle } from 'lucide-react';
+import { Mail, User, Building, MessageCircle } from 'lucide-react';
 import { CONTACT_INFO } from '@/lib/constants';
 import Logo from '@/components/Logo';
+import PasswordInput from '@/components/ui/PasswordInput';
 
 const RegisterPage = () => {
   const navigate = useNavigate();
@@ -110,20 +111,15 @@ const RegisterPage = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              {t('auth.password')}
-            </label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-              <input
-                type="password"
-                required
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 transition-all"
-                placeholder="••••••••"
-              />
-            </div>
+            <PasswordInput
+              id="password"
+              label={t('auth.password')}
+              placeholder="••••••••"
+              value={formData.password}
+              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+              required
+              className="dark:bg-gray-700 dark:text-gray-100 border-gray-300 dark:border-gray-600"
+            />
           </div>
 
           <Button

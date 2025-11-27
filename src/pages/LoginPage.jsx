@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { Helmet } from 'react-helmet';
 import Logo from '@/components/Logo';
+import PasswordInput from '@/components/ui/PasswordInput';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -193,16 +194,13 @@ const LoginPage = () => {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.5 }}
                   >
-                    <label htmlFor="password" className="block text-xs sm:text-sm font-bold text-white mb-2">{t('auth.password')}</label>
-                    <motion.input
+                    <PasswordInput
                       id="password"
-                      type="password"
-                      required
-                      whileFocus={{ scale: 1.01 }}
-                      className="w-full px-4 sm:px-5 py-2.5 sm:py-3 text-sm sm:text-base rounded-xl border-2 border-white/20 bg-white/10 backdrop-blur-sm text-white placeholder-purple-300 focus:border-orange-400 focus:bg-white/20 focus:ring-4 focus:ring-orange-500/30 transition-all outline-none font-medium"
+                      label={t('auth.password')}
                       placeholder={t('auth.password')}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
+                      required
                     />
                   </motion.div>
                 </div>

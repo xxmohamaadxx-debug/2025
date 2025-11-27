@@ -42,13 +42,13 @@ const FuelStationPage = () => {
       setLoading(true);
       
       if (activeTab === 'types') {
-        const types = await neonService.getFuelTypes(user.tenant_id);
+        const types = await neonService.getFuelTypes(user.tenant_id).catch(() => []);
         setFuelTypes(types || []);
       } else if (activeTab === 'transactions') {
-        const trans = await neonService.getFuelTransactions(user.tenant_id, null, filterDate, filterDate);
+        const trans = await neonService.getFuelTransactions(user.tenant_id, null, filterDate, filterDate).catch(() => []);
         setTransactions(trans || []);
       } else if (activeTab === 'inventory') {
-        const inv = await neonService.getFuelInventory(user.tenant_id);
+        const inv = await neonService.getFuelInventory(user.tenant_id).catch(() => []);
         setInventory(inv || []);
       }
     } catch (error) {

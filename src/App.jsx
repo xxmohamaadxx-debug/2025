@@ -61,6 +61,12 @@ const ProductBundlesPage = React.lazy(() => import('@/pages/store/ProductBundles
 // Reports
 const ComprehensiveReportsPage = React.lazy(() => import('@/pages/reports/ComprehensiveReportsPage'));
 
+// Messages
+const MessagesPage = React.lazy(() => import('@/pages/MessagesPage'));
+
+// Daily Expenses
+const DailyExpensesPage = React.lazy(() => import('@/pages/DailyExpensesPage'));
+
 const LoadingSpinner = () => (
   <div className="flex h-screen items-center justify-center bg-gray-50 dark:bg-gray-900">
     <Loader2 className="h-10 w-10 animate-spin text-orange-500" />
@@ -196,8 +202,10 @@ function App() {
                   <Route path="/settings" element={<PrivateRoute roles={['ANY']}><MainLayout><SubscriptionWarning /><SettingsPage /></MainLayout></PrivateRoute>} />
                   <Route path="/subscription" element={<PrivateRoute roles={['ANY']}><MainLayout><SubscriptionWarning /><SubscriptionPage /></MainLayout></PrivateRoute>} />
                   <Route path="/support" element={<PrivateRoute roles={['ANY']}><MainLayout><SubscriptionWarning /><SupportPage /></MainLayout></PrivateRoute>} />
+                  <Route path="/messages" element={<PrivateRoute roles={['ANY']}><MainLayout><SubscriptionWarning /><MessagesPage /></MainLayout></PrivateRoute>} />
                   <Route path="/backup" element={<PrivateRoute roles={['STORE_OWNER', 'SUPER_ADMIN']}><MainLayout><SubscriptionWarning /><BackupPage /></MainLayout></PrivateRoute>} />
                   <Route path="/daily-transactions" element={<PrivateRoute roles={['ANY']}><MainLayout><SubscriptionWarning /><DailyTransactionsPage /></MainLayout></PrivateRoute>} />
+                  <Route path="/daily-expenses" element={<PrivateRoute roles={['ANY']}><MainLayout><SubscriptionWarning /><DailyExpensesPage /></MainLayout></PrivateRoute>} />
                   <Route path="/customers" element={<PrivateRoute roles={['ANY']}><MainLayout><SubscriptionWarning /><CustomersPage /></MainLayout></PrivateRoute>} />
                   <Route path="/subscribers" element={<PrivateRoute roles={['ANY']}><MainLayout><SubscriptionWarning /><SubscribersPage /></MainLayout></PrivateRoute>} />
                   <Route path="/internet-usage" element={<PrivateRoute roles={['ANY']}><MainLayout><SubscriptionWarning /><InternetUsagePage /></MainLayout></PrivateRoute>} />

@@ -9,14 +9,14 @@ import {
   LayoutDashboard, FileText, ShoppingCart, Package, 
   Users, Settings, LogOut, Shield, BarChart, 
   CreditCard, Briefcase, X, MessageCircle, Database, Activity,
-  Wifi, Fuel, Store, Building2, Bell
+  Wifi, Fuel, Store, Building2, Bell, Receipt
 } from 'lucide-react';
 import Logo from '@/components/Logo';
 import NavItem from './NavItem';
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
   const location = useLocation();
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const { user, tenant, logout } = useAuth();
   const [storeTypes, setStoreTypes] = useState([]);
   const [loadingStoreTypes, setLoadingStoreTypes] = useState(false);
@@ -530,6 +530,14 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           isActive={isActive('/support')}
           onClick={handleLinkClick}
           delay={1.05}
+        />
+        <NavItem
+          to="/messages"
+          icon={MessageCircle}
+          label={locale === 'ar' ? 'المراسلة' : locale === 'en' ? 'Messages' : 'Mesajlar'}
+          isActive={isActive('/messages')}
+          onClick={handleLinkClick}
+          delay={1.08}
         />
         {(user?.isStoreOwner || user?.isSuperAdmin) && (
           <NavItem

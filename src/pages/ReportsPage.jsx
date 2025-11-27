@@ -64,45 +64,14 @@ const ReportsPage = () => {
     loadReports();
   }, [user?.tenant_id]);
 
+  // تم إلغاء PDF - استخدام Excel فقط
   const handleExportPDF = async () => {
-    try {
-      const { startDate, endDate } = getPeriodDates(selectedPeriod);
-      const reportData = generateReport(invoicesIn, invoicesOut, {
-        startDate,
-        endDate,
-        currency: filterCurrency || undefined,
-        category: filterCategory || undefined,
-        locale: locale
-      });
-
-      const columns = [
-        { header: t('reports.type') || 'النوع', accessor: (row) => row.type },
-        { header: t('common.date'), accessor: (row) => row.date ? formatDateAR(row.date) : '-' },
-        { header: t('common.description'), accessor: (row) => row.description || '-' },
-        { header: t('common.amount'), accessor: (row) => parseFloat(row.amount || 0).toLocaleString('ar-EG') },
-        { header: t('common.currency'), accessor: (row) => row.currency || '-' },
-        { header: t('common.category'), accessor: (row) => row.category || '-' },
-        { header: t('reports.partner') || 'الطرف', accessor: (row) => row.partner || '-' }
-      ];
-
-      await exportReportPDF(
-        `${t('common.reports')} - ${t(`reports.${selectedPeriod}`) || selectedPeriod}`,
-        reportData,
-        columns,
-        tenant?.name,
-        '/logo.png',
-        locale
-      );
-
-      toast({ title: t('reports.reportGenerated') || 'تم تصدير التقرير بنجاح' });
-    } catch (error) {
-      console.error('Export PDF error:', error);
-      toast({ 
-        title: 'خطأ', 
-        description: 'حدث خطأ في تصدير التقرير',
-        variant: 'destructive' 
-      });
-    }
+    toast({ 
+      title: 'تنبيه', 
+      description: 'تم إلغاء تصدير PDF. يرجى استخدام تصدير Excel.',
+      variant: 'default' 
+    });
+    handleExportExcel();
   };
 
   const handleExportExcel = () => {
@@ -201,20 +170,12 @@ const ReportsPage = () => {
           
           <div className="flex flex-wrap gap-2">
             <Button
-              onClick={handleExportPDF}
-              variant="outline"
-              className="bg-white dark:bg-gray-800"
-            >
-              <FileText className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
-              {t('reports.exportPDF')}
-            </Button>
-            <Button
               onClick={handleExportExcel}
               variant="outline"
               className="bg-white dark:bg-gray-800"
             >
               <FileSpreadsheet className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
-              {t('reports.exportExcel')}
+              {t('reports.exportExcel') || 'تصدير Excel'}
             </Button>
           </div>
         </div>
@@ -284,12 +245,12 @@ const ReportsPage = () => {
           </GlassCard>
           <GlassCard>
             <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">{t('reports.totalExpenses')}</h3>
-            <p className="text-2xl font-bold text-red-600">{totalExpenses.toLocaleString('ar-EG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+            <p className="text-2xl font-bold text-red-600">{totalExpenses.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
           </GlassCard>
           <GlassCard>
             <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">{t('reports.netProfit')}</h3>
             <p className={`text-2xl font-bold ${netProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {netProfit.toLocaleString('ar-EG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              {netProfit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </p>
           </GlassCard>
         </div>

@@ -1127,6 +1127,58 @@ export const neonService = {
     }
   },
 
+  // ========== المصاريف اليومية ==========
+  getDailyExpenses: async (tenantId, date = null) => {
+    if (!tenantId) return [];
+    try {
+      let query;
+      if (date) {
+        query = sql`
+          SELECT de.*, u.name as created_by_name, emp.name as employee_name
+          FROM daily_expenses de
+          LEFT JOIN users u ON de.created_by = u.id
+          LEFT JOIN users emp ON de.employee_id = emp.id
+          WHERE de.tenant_id = ${tenantId} AND de.expense_date = ${date}
+          ORDER BY de.expense_date DESC, de.created_at DESC
+        `;
+      } else {
+        query = sql`
+          SELECT de.*, u.name as created_by_name, emp.name as employee_name
+          FROM daily_expenses de
+          LEFT JOIN users u ON de.created_by = u.id
+          LEFT JOIN users emp ON de.employee_id = emp.id
+          WHERE de.tenant_id = ${tenantId}
+          ORDER BY de.expense_date DESC, de.created_at DESC
+          LIMIT 500
+        `;
+      }
+      return await query;
+    } catch (error) {
+      console.error('getDailyExpenses error:', error);
+      return [];
+    }
+  },
+
+  createDailyExpense: async (data, tenantId) => {
+    try {
+      return await createRecord('daily_expenses', {
+        ...data,
+        expense_date: data.expense_date || new Date().toISOString().split('T')[0],
+      }, tenantId);
+    } catch (error) {
+      console.error('createDailyExpense error:', error);
+      throw error;
+    }
+  },
+
+  updateDailyExpense: async (id, data, tenantId) => {
+    return updateRecord('daily_expenses', id, data, tenantId);
+  },
+
+  deleteDailyExpense: async (id, tenantId) => {
+    return deleteRecord('daily_expenses', id, tenantId);
+  },
+
   // Customer Summary (تقرير العملاء)
   getCustomerSummary: async (tenantId) => {
     if (!tenantId) return [];
@@ -1478,6 +1530,19 @@ export const neonService = {
   getFuelTransactions: async (tenantId, fuelTypeId = null, startDate = null, endDate = null) => {
     if (!tenantId) return [];
     try {
+      // التحقق من وجود الجدول أولاً
+      const tableExists = await sql`
+        SELECT EXISTS (
+          SELECT FROM information_schema.tables 
+          WHERE table_schema = 'public' 
+          AND table_name = 'fuel_transactions'
+        )
+      `;
+      
+      if (!tableExists[0]?.exists) {
+        return [];
+      }
+      
       let query;
       if (fuelTypeId && startDate && endDate) {
         query = sql`
@@ -1529,10 +1594,71 @@ export const neonService = {
   getFuelInventory: async (tenantId) => {
     if (!tenantId) return [];
     try {
+      // التحقق من وجود الدالة أولاً
+      const funcExists = await sql`
+        SELECT EXISTS (
+          SELECT 1 FROM pg_proc p
+          JOIN pg_namespace n ON p.pronamespace = n.oid
+          WHERE n.nspname = 'public' AND p.proname = 'get_fuel_inventory'
+        ) as exists
+      `;
+      
+      if (funcExists[0]?.exists) {
+        const result = await sql`
+          SELECT * FROM get_fuel_inventory(${tenantId}::UUID)
+        `;
+        return result || [];
+      }
+      
+      // Fallback: حساب يدوي
       const result = await sql`
-        SELECT * FROM current_fuel_inventory
-        WHERE tenant_id = ${tenantId}
-        ORDER BY fuel_name
+        SELECT 
+          ft.tenant_id,
+          ft.fuel_type_id,
+          ftp.name_ar as fuel_name,
+          ftp.name_en as fuel_name_en,
+          ftp.code as fuel_code,
+          ftp.unit,
+          ftp.min_stock_level,
+          COALESCE(
+            SUM(CASE 
+              WHEN ft.transaction_type = 'purchase' THEN ft.quantity
+              WHEN ft.transaction_type = 'sale' THEN -ft.quantity
+              WHEN ft.transaction_type = 'adjustment' THEN ft.quantity
+              WHEN ft.transaction_type = 'loss' THEN -ft.quantity
+              ELSE 0
+            END), 
+            0
+          ) as quantity,
+          CASE 
+            WHEN COALESCE(
+              SUM(CASE 
+                WHEN ft.transaction_type = 'purchase' THEN ft.quantity
+                WHEN ft.transaction_type = 'sale' THEN -ft.quantity
+                WHEN ft.transaction_type = 'adjustment' THEN ft.quantity
+                WHEN ft.transaction_type = 'loss' THEN -ft.quantity
+                ELSE 0
+              END), 
+              0
+            ) <= ftp.min_stock_level THEN 'low_stock'
+            WHEN COALESCE(
+              SUM(CASE 
+                WHEN ft.transaction_type = 'purchase' THEN ft.quantity
+                WHEN ft.transaction_type = 'sale' THEN -ft.quantity
+                WHEN ft.transaction_type = 'adjustment' THEN ft.quantity
+                WHEN ft.transaction_type = 'loss' THEN -ft.quantity
+                ELSE 0
+              END), 
+              0
+            ) >= (ftp.min_stock_level * 3) THEN 'high_stock'
+            ELSE 'normal'
+          END as stock_status,
+          MAX(CASE WHEN ft.transaction_type = 'purchase' THEN ft.transaction_date END) as last_purchase_date,
+          MAX(CASE WHEN ft.transaction_type = 'sale' THEN ft.transaction_date END) as last_sale_date
+        FROM fuel_types ftp
+        LEFT JOIN fuel_transactions ft ON ft.fuel_type_id = ftp.id AND ft.tenant_id = ${tenantId}
+        WHERE ftp.tenant_id = ${tenantId} AND ftp.is_active = true
+        GROUP BY ft.tenant_id, ft.fuel_type_id, ftp.id, ftp.name_ar, ftp.name_en, ftp.code, ftp.unit, ftp.min_stock_level
       `;
       return result || [];
     } catch (error) {
@@ -1544,19 +1670,32 @@ export const neonService = {
   getFuelPrices: async (tenantId, fuelTypeId = null) => {
     if (!tenantId) return [];
     try {
+      // التحقق من وجود الجدول أولاً
+      const tableExists = await sql`
+        SELECT EXISTS (
+          SELECT FROM information_schema.tables 
+          WHERE table_schema = 'public' 
+          AND table_name = 'fuel_daily_prices'
+        )
+      `;
+      
+      if (!tableExists[0]?.exists) {
+        return [];
+      }
+      
       let query;
       if (fuelTypeId) {
         query = sql`
-          SELECT * FROM fuel_prices 
-          WHERE tenant_id = ${tenantId} AND fuel_type_id = ${fuelTypeId} AND is_active = true
-          ORDER BY effective_date DESC
+          SELECT * FROM fuel_daily_prices 
+          WHERE tenant_id = ${tenantId} AND fuel_type_id = ${fuelTypeId}
+          ORDER BY price_date DESC
           LIMIT 1
         `;
       } else {
         query = sql`
-          SELECT * FROM fuel_prices 
-          WHERE tenant_id = ${tenantId} AND is_active = true
-          ORDER BY effective_date DESC
+          SELECT * FROM fuel_daily_prices 
+          WHERE tenant_id = ${tenantId}
+          ORDER BY price_date DESC
         `;
       }
       const result = await query;
@@ -1568,18 +1707,20 @@ export const neonService = {
   },
 
   createFuelPrice: async (data, tenantId) => {
-    // تعطيل الأسعار القديمة أولاً
-    if (data.fuel_type_id && data.price_type) {
-      await sql`
-        UPDATE fuel_prices 
-        SET is_active = false, end_date = CURRENT_DATE
-        WHERE tenant_id = ${tenantId} 
-        AND fuel_type_id = ${data.fuel_type_id} 
-        AND price_type = ${data.price_type}
-        AND is_active = true
+    try {
+      // استخدام fuel_daily_prices بدلاً من fuel_prices
+      const result = await sql`
+        INSERT INTO fuel_daily_prices (tenant_id, fuel_type_id, price_date, unit_price, currency, notes)
+        VALUES (${tenantId}, ${data.fuel_type_id}, ${data.price_date || new Date().toISOString().split('T')[0]}, ${data.unit_price}, ${data.currency || 'TRY'}, ${data.notes || ''})
+        ON CONFLICT (tenant_id, fuel_type_id, price_date) 
+        DO UPDATE SET unit_price = EXCLUDED.unit_price, currency = EXCLUDED.currency, notes = EXCLUDED.notes, updated_at = NOW()
+        RETURNING *
       `;
+      return result[0];
+    } catch (error) {
+      console.error('createFuelPrice error:', error);
+      throw error;
     }
-    return createRecord('fuel_prices', data, tenantId);
   },
 
   // ============================================
@@ -2849,21 +2990,8 @@ export const neonService = {
     }
     
     try {
-      // محاولة استخدام الدالة من قاعدة البيانات (إذا كانت موجودة)
-      try {
-        const result = await sql`
-          SELECT * FROM check_user_access(${userId}::UUID) as access_result
-        `;
-        
-        if (result && result[0] && result[0].access_result) {
-          return result[0].access_result;
-        }
-      } catch (funcError) {
-        // الدالة غير موجودة، نستخدم التحقق اليدوي
-        console.log('check_user_access function not available, using manual check');
-      }
-      
-      // Fallback: التحقق اليدوي إذا لم تكن الدالة متوفرة
+      // استخدام التحقق اليدوي فقط لتجنب الأخطاء
+      // لا نحاول استدعاء الدالة من قاعدة البيانات
       const userResult = await sql`SELECT * FROM users WHERE id = ${userId} LIMIT 1`;
       const user = userResult[0];
       
@@ -2908,6 +3036,178 @@ export const neonService = {
       console.error('checkUserAccess error:', error);
       // في حالة الخطأ، نسمح بالوصول لتجنب حجب المستخدمين
       return { allowed: true, reason: 'error_fallback' };
+    }
+  },
+
+  // ========== نظام المراسلة ==========
+  
+  // إرسال رسالة
+  sendMessage: async (tenantId, senderId, receiverId, messageText) => {
+    try {
+      const result = await sql`
+        INSERT INTO messages (tenant_id, sender_id, receiver_id, message_text)
+        VALUES (${tenantId}, ${senderId}, ${receiverId}, ${messageText})
+        RETURNING *
+      `;
+      return result[0];
+    } catch (error) {
+      console.error('sendMessage error:', error);
+      throw error;
+    }
+  },
+
+  // الحصول على المحادثات
+  getUserConversations: async (userId, tenantId) => {
+    try {
+      const result = await sql`
+        SELECT * FROM get_user_conversations(${userId}::UUID, ${tenantId}::UUID)
+      `;
+      return result || [];
+    } catch (error) {
+      console.error('getUserConversations error:', error);
+      // Fallback: استعلام يدوي
+      try {
+        const conversations = await sql`
+          SELECT DISTINCT
+            CASE 
+              WHEN sender_id = ${userId} THEN receiver_id
+              ELSE sender_id
+            END as other_user_id,
+            u.name as other_user_name,
+            u.email as other_user_email,
+            (u.role = 'Store Owner' OR u.role = 'store_owner')::BOOLEAN as is_store_owner
+          FROM messages m
+          JOIN users u ON u.id = CASE 
+            WHEN m.sender_id = ${userId} THEN m.receiver_id
+            ELSE m.sender_id
+          END
+          WHERE m.tenant_id = ${tenantId}
+          AND (m.sender_id = ${userId} OR m.receiver_id = ${userId})
+          ORDER BY other_user_name
+        `;
+        return conversations || [];
+      } catch (fallbackError) {
+        console.error('getUserConversations fallback error:', fallbackError);
+        return [];
+      }
+    }
+  },
+
+  // الحصول على رسائل محادثة معينة
+  getConversationMessages: async (userId, otherUserId, tenantId, limit = 50, offset = 0) => {
+    try {
+      const result = await sql`
+        SELECT * FROM get_conversation_messages(
+          ${userId}::UUID, 
+          ${otherUserId}::UUID, 
+          ${tenantId}::UUID,
+          ${limit}::INTEGER,
+          ${offset}::INTEGER
+        )
+        ORDER BY created_at ASC
+      `;
+      return result || [];
+    } catch (error) {
+      console.error('getConversationMessages error:', error);
+      // Fallback: استعلام يدوي
+      try {
+        const messages = await sql`
+          SELECT 
+            id,
+            sender_id,
+            receiver_id,
+            message_text,
+            is_read,
+            created_at,
+            (sender_id = ${userId})::BOOLEAN as is_sender
+          FROM messages
+          WHERE tenant_id = ${tenantId}
+          AND (
+            (sender_id = ${userId} AND receiver_id = ${otherUserId}) OR
+            (sender_id = ${otherUserId} AND receiver_id = ${userId})
+          )
+          ORDER BY created_at ASC
+          LIMIT ${limit}
+          OFFSET ${offset}
+        `;
+        return messages || [];
+      } catch (fallbackError) {
+        console.error('getConversationMessages fallback error:', fallbackError);
+        return [];
+      }
+    }
+  },
+
+  // تحديد الرسائل كمقروءة
+  markMessagesAsRead: async (userId, otherUserId, tenantId) => {
+    try {
+      const result = await sql`
+        SELECT mark_messages_as_read(
+          ${userId}::UUID,
+          ${otherUserId}::UUID,
+          ${tenantId}::UUID
+        ) as updated_count
+      `;
+      return result[0]?.updated_count || 0;
+    } catch (error) {
+      console.error('markMessagesAsRead error:', error);
+      // Fallback: تحديث يدوي
+      try {
+        const result = await sql`
+          UPDATE messages
+          SET is_read = true, read_at = NOW()
+          WHERE tenant_id = ${tenantId}
+          AND receiver_id = ${userId}
+          AND sender_id = ${otherUserId}
+          AND is_read = false
+          RETURNING id
+        `;
+        return result.length;
+      } catch (fallbackError) {
+        console.error('markMessagesAsRead fallback error:', fallbackError);
+        return 0;
+      }
+    }
+  },
+
+  // الحصول على عدد الرسائل غير المقروءة
+  getUnreadMessageCount: async (userId, tenantId) => {
+    try {
+      const result = await sql`
+        SELECT COUNT(*) as count
+        FROM messages
+        WHERE tenant_id = ${tenantId}
+        AND receiver_id = ${userId}
+        AND is_read = false
+      `;
+      return parseInt(result[0]?.count || 0);
+    } catch (error) {
+      console.error('getUnreadMessageCount error:', error);
+      return 0;
+    }
+  },
+
+  // حذف الرسائل القديمة (أكثر من 15 يوم)
+  deleteOldMessages: async () => {
+    try {
+      const result = await sql`
+        SELECT * FROM auto_delete_old_messages() as deleted_count
+      `;
+      return result[0]?.deleted_count || 0;
+    } catch (error) {
+      console.error('deleteOldMessages error:', error);
+      // Fallback: حذف يدوي
+      try {
+        const result = await sql`
+          DELETE FROM messages
+          WHERE created_at < NOW() - INTERVAL '15 days'
+          RETURNING id
+        `;
+        return result.length;
+      } catch (fallbackError) {
+        console.error('deleteOldMessages fallback error:', fallbackError);
+        return 0;
+      }
     }
   },
 

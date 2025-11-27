@@ -193,17 +193,25 @@ export const AuthProvider = ({ children }) => {
       }
 
       // التحقق من صلاحية المستخدم والوصول (إذا كانت الدالة متوفرة)
+      // نستخدم try-catch لتجاهل الخطأ إذا كانت الدالة غير موجودة
       try {
-        const accessCheck = await neonService.checkUserAccess?.(user.id);
-        if (accessCheck && !accessCheck.allowed) {
-          if (accessCheck.reason === 'subscription_expired' || accessCheck.reason === 'data_suspended') {
-            throw new Error('تم تعليق حسابك بسبب انتهاء صلاحية الاشتراك. يرجى التواصل مع المدير للتجديد.');
-          } else if (accessCheck.reason === 'user_inactive') {
-            throw new Error('حسابك غير نشط. يرجى التواصل مع المدير.');
+        if (neonService.checkUserAccess && typeof neonService.checkUserAccess === 'function') {
+          const accessCheck = await neonService.checkUserAccess(user.id);
+          if (accessCheck && !accessCheck.allowed) {
+            if (accessCheck.reason === 'subscription_expired' || accessCheck.reason === 'data_suspended') {
+              throw new Error('تم تعليق حسابك بسبب انتهاء صلاحية الاشتراك. يرجى التواصل مع المدير للتجديد.');
+            } else if (accessCheck.reason === 'user_inactive') {
+              throw new Error('حسابك غير نشط. يرجى التواصل مع المدير.');
+            }
           }
         }
       } catch (accessError) {
-        // إذا كانت الدالة غير متوفرة، نتابع بشكل عادي
+        // إذا كانت الدالة غير متوفرة أو حدث خطأ، نتحقق من رسالة الخطأ
+        if (accessError.message && !accessError.message.includes('does not exist') && !accessError.message.includes('function')) {
+          // إذا كان الخطأ ليس متعلقاً بعدم وجود الدالة، نرمي الخطأ
+          throw accessError;
+        }
+        // إذا كانت الدالة غير متوفرة، نتابع بشكل عادي بدون خطأ
         if (!accessError.message.includes('تم تعليق') && !accessError.message.includes('غير نشط')) {
           console.warn('Access check not available:', accessError);
         } else {

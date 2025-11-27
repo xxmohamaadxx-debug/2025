@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { InteractiveButton } from '@/components/ui/InteractiveButton';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ROLES } from '@/lib/constants';
+import PasswordInput from '@/components/ui/PasswordInput';
+import HelpButton from '@/components/ui/HelpButton';
 
 const UserDialog = ({ open, onOpenChange, user, onSave }) => {
   const { t } = useLanguage();
@@ -49,7 +51,13 @@ const UserDialog = ({ open, onOpenChange, user, onSave }) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md relative">
+        <HelpButton
+          position="top-right"
+          helpTextAr="هنا يمكنك إدخال أو تعديل بيانات المستخدم. الاسم والبريد الإلكتروني مطلوبان. يمكنك تعيين الصلاحيات للمستخدم (تعديل البيانات، حذف البيانات، إنشاء مستخدمين)."
+          helpTextEn="Here you can add or edit user data. Name and email are required. You can assign permissions to the user (edit data, delete data, create users)."
+          helpTextTr="Burada kullanıcı verilerini ekleyebilir veya düzenleyebilirsiniz. Ad ve e-posta gereklidir. Kullanıcıya izinler atayabilirsiniz (veri düzenleme, veri silme, kullanıcı oluşturma)."
+        />
         <DialogHeader>
           <DialogTitle>{user ? t('common.edit') : t('common.add')} {t('users.user')}</DialogTitle>
           <DialogDescription>
@@ -80,14 +88,14 @@ const UserDialog = ({ open, onOpenChange, user, onSave }) => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1 rtl:text-right">{t('users.password')}</label>
-            <input
-              type="password"
-              required={!user}
-              className="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
+            <PasswordInput
+              id="password"
+              label={t('users.password')}
+              placeholder={t('users.password')}
               value={formData.password}
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              placeholder={t('users.password')}
+              required={!user}
+              className="dark:bg-gray-700 dark:text-gray-100 border-gray-300 dark:border-gray-600"
             />
           </div>
           <div>
