@@ -41,6 +41,7 @@ const FuelStationPage = React.lazy(() => import('@/pages/FuelStationPage'));
 const StoreTypesPage = React.lazy(() => import('@/pages/StoreTypesPage'));
 const ContractorProjectsPage = React.lazy(() => import('@/pages/ContractorProjectsPage'));
 const ContractorProjectItemsPage = React.lazy(() => import('@/pages/ContractorProjectItemsPage'));
+const NotificationSettingsPage = React.lazy(() => import('@/pages/NotificationSettingsPage'));
 const LandingPage = React.lazy(() => import('@/pages/LandingPage'));
 const NotFoundPage = React.lazy(() => import('@/pages/NotFoundPage'));
 
