@@ -19,6 +19,10 @@ const AdvancedFinancialBox = ({ t }) => {
       EUR: 0
     },
     totalUSD: 0,
+    debtsOwed: { try: 0, usd: 0, syp: 0, sar: 0, eur: 0 },
+    debtsDue: { try: 0, usd: 0, syp: 0, sar: 0, eur: 0 },
+    totalDebtsOwedUSD: 0,
+    totalDebtsDueUSD: 0,
     loading: true
   });
   const [chartType, setChartType] = useState('pie'); // pie, bar, line
@@ -33,7 +37,15 @@ const AdvancedFinancialBox = ({ t }) => {
     if (!user?.tenant_id) return;
     
     try {
-      const box = await neonService.getFinancialBox(user.tenant_id);
+      // محاولة الحصول على البيانات مع الديون
+      let box;
+      try {
+        box = await neonService.getFinancialBoxWithDebts?.(user.tenant_id);
+      } catch (e) {
+        // إذا فشلت، استخدم getFinancialBox العادي
+        box = await neonService.getFinancialBox(user.tenant_id);
+      }
+      
       if (box) {
         const balances = {
           TRY: parseFloat(box.try_balance || 0),
@@ -43,6 +55,10 @@ const AdvancedFinancialBox = ({ t }) => {
           EUR: parseFloat(box.eur_balance || 0)
         };
 
+        // حساب إجمالي الديون
+        const debtsOwed = box.debts_owed || { try: 0, usd: 0, syp: 0, sar: 0, eur: 0 };
+        const debtsDue = box.debts_due || { try: 0, usd: 0, syp: 0, sar: 0, eur: 0 };
+
         // Calculate total in USD
         const totalUSD = 
           balances.USD +
@@ -51,7 +67,29 @@ const AdvancedFinancialBox = ({ t }) => {
           convertCurrency(balances.SAR, 'SAR', 'USD') +
           convertCurrency(balances.EUR, 'EUR', 'USD');
 
-        setFinancialData({ balances, totalUSD, loading: false });
+        const totalDebtsOwedUSD = 
+          debtsOwed.usd +
+          convertCurrency(debtsOwed.try, 'TRY', 'USD') +
+          convertCurrency(debtsOwed.syp, 'SYP', 'USD') +
+          convertCurrency(debtsOwed.sar, 'SAR', 'USD') +
+          convertCurrency(debtsOwed.eur, 'EUR', 'USD');
+
+        const totalDebtsDueUSD = 
+          debtsDue.usd +
+          convertCurrency(debtsDue.try, 'TRY', 'USD') +
+          convertCurrency(debtsDue.syp, 'SYP', 'USD') +
+          convertCurrency(debtsDue.sar, 'SAR', 'USD') +
+          convertCurrency(debtsDue.eur, 'EUR', 'USD');
+
+        setFinancialData({ 
+          balances, 
+          totalUSD, 
+          debtsOwed,
+          debtsDue,
+          totalDebtsOwedUSD,
+          totalDebtsDueUSD,
+          loading: false 
+        });
       }
     } catch (error) {
       console.error('Load financial data error:', error);
@@ -265,6 +303,45 @@ const AdvancedFinancialBox = ({ t }) => {
           </motion.button>
         ))}
       </div>
+
+      {/* Debts Section */}
+      {(financialData.totalDebtsOwedUSD > 0 || financialData.totalDebtsDueUSD > 0) && (
+        <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+          <h4 className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">
+            الديون
+          </h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {financialData.totalDebtsOwedUSD > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="p-4 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-2 border-blue-200 dark:border-blue-800"
+              >
+                <p className="text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2">
+                  الديون المطلوبة من العملاء (دائن)
+                </p>
+                <p className="text-xl font-black text-blue-700 dark:text-blue-400">
+                  ${financialData.totalDebtsOwedUSD.toLocaleString('ar-EG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </p>
+              </motion.div>
+            )}
+            {financialData.totalDebtsDueUSD > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="p-4 rounded-xl bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border-2 border-amber-200 dark:border-amber-800"
+              >
+                <p className="text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2">
+                  الديون المستحقة علينا (مدين)
+                </p>
+                <p className="text-xl font-black text-amber-700 dark:text-amber-400">
+                  ${financialData.totalDebtsDueUSD.toLocaleString('ar-EG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </p>
+              </motion.div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Chart */}
       {typeof window !== 'undefined' ? (

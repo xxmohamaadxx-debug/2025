@@ -26,6 +26,9 @@ const InvoiceDialog = ({ open, onOpenChange, invoice, onSave, type }) => {
     category: '',
     partner_id: null,
     language: 'ar',
+    payment_method: 'cash',
+    is_credit: false,
+    credit_amount: 0,
   });
 
   // تحميل الشركاء والمخزون
@@ -195,6 +198,9 @@ const InvoiceDialog = ({ open, onOpenChange, invoice, onSave, type }) => {
         category: '',
         partner_id: null,
         language: 'ar',
+        payment_method: 'cash',
+        is_credit: false,
+        credit_amount: 0,
       });
       setAttachments([]);
       setInvoiceItems([]);
@@ -332,6 +338,37 @@ const InvoiceDialog = ({ open, onOpenChange, invoice, onSave, type }) => {
                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
               />
             </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                طريقة الدفع
+              </label>
+              <select
+                value={formData.payment_method}
+                onChange={(e) => setFormData({ ...formData, payment_method: e.target.value, is_credit: e.target.value === 'credit' })}
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
+              >
+                <option value="cash">نقد</option>
+                <option value="card">بطاقة</option>
+                <option value="transfer">تحويل</option>
+                <option value="credit">ذمة</option>
+              </select>
+            </div>
+
+            {formData.is_credit || formData.payment_method === 'credit' ? (
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  مبلغ الذمة ({formData.currency})
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={formData.credit_amount || formData.amount}
+                  onChange={(e) => setFormData({ ...formData, credit_amount: e.target.value, is_credit: true })}
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
+                />
+              </div>
+            ) : null}
           </div>
 
           <div>

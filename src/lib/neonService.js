@@ -2288,4 +2288,531 @@ export const neonService = {
       };
     }
   },
+
+  // ============================================
+  // نظام صالة الإنترنت - Internet Cafe System
+  // ============================================
+
+  // أنواع الاشتراكات
+  getSubscriptionTypes: (tenantId) => getByTenant('subscription_types', tenantId, { orderBy: { column: 'name', ascending: true } }),
+  
+  createSubscriptionType: async (data, tenantId) => {
+    try {
+      return await createRecord('subscription_types', data, tenantId);
+    } catch (error) {
+      console.error('createSubscriptionType error:', error);
+      throw error;
+    }
+  },
+  
+  updateSubscriptionType: (id, data, tenantId) => updateRecord('subscription_types', id, data, tenantId),
+  
+  deleteSubscriptionType: (id, tenantId) => deleteRecord('subscription_types', id, tenantId),
+
+  // المشتركين
+  getSubscribers: (tenantId) => getByTenant('internet_cafe_subscribers', tenantId, { orderBy: { column: 'created_at', ascending: false } }),
+  
+  getSubscriber: async (id, tenantId) => {
+    try {
+      const result = await sql`SELECT * FROM internet_cafe_subscribers WHERE id = ${id} AND tenant_id = ${tenantId} LIMIT 1`;
+      return result[0] || null;
+    } catch (error) {
+      console.error('getSubscriber error:', error);
+      return null;
+    }
+  },
+  
+  createSubscriber: async (data, tenantId) => {
+    try {
+      // توليد رقم مشترك فريد
+      if (!data.subscriber_number) {
+        const countResult = await sql`SELECT COUNT(*) as count FROM internet_cafe_subscribers WHERE tenant_id = ${tenantId}`;
+        const count = parseInt(countResult[0]?.count || 0) + 1;
+        data.subscriber_number = `SUB-${String(count).padStart(6, '0')}`;
+      }
+      return await createRecord('internet_cafe_subscribers', data, tenantId);
+    } catch (error) {
+      console.error('createSubscriber error:', error);
+      throw error;
+    }
+  },
+  
+  updateSubscriber: (id, data, tenantId) => updateRecord('internet_cafe_subscribers', id, data, tenantId),
+  
+  deleteSubscriber: (id, tenantId) => deleteRecord('internet_cafe_subscribers', id, tenantId),
+
+  // تجديد الاشتراك
+  renewSubscription: async (subscriberId, additionalDays = 30, startFromToday = true, tenantId) => {
+    try {
+      const result = await sql`
+        SELECT renew_subscription(${subscriberId}::UUID, ${additionalDays}, ${startFromToday}) as renewed
+      `;
+      if (result[0]?.renewed) {
+        return await neonService.getSubscriber(subscriberId, tenantId);
+      }
+      throw new Error('Failed to renew subscription');
+    } catch (error) {
+      console.error('renewSubscription error:', error);
+      throw error;
+    }
+  },
+
+  // الجلسات
+  getSessions: (tenantId) => getByTenant('internet_sessions', tenantId, { orderBy: { column: 'start_time', ascending: false } }),
+  
+  getSession: async (id, tenantId) => {
+    try {
+      const result = await sql`SELECT * FROM internet_sessions WHERE id = ${id} AND tenant_id = ${tenantId} LIMIT 1`;
+      return result[0] || null;
+    } catch (error) {
+      console.error('getSession error:', error);
+      return null;
+    }
+  },
+  
+  createSession: async (data, tenantId) => {
+    try {
+      // توليد رقم جلسة فريد
+      if (!data.session_number) {
+        const countResult = await sql`SELECT COUNT(*) as count FROM internet_sessions WHERE tenant_id = ${tenantId} AND DATE(created_at) = CURRENT_DATE`;
+        const count = parseInt(countResult[0]?.count || 0) + 1;
+        const today = new Date().toISOString().split('T')[0].replace(/-/g, '');
+        data.session_number = `SES-${today}-${String(count).padStart(4, '0')}`;
+      }
+      return await createRecord('internet_sessions', data, tenantId);
+    } catch (error) {
+      console.error('createSession error:', error);
+      throw error;
+    }
+  },
+  
+  updateSession: (id, data, tenantId) => updateRecord('internet_sessions', id, data, tenantId),
+  
+  endSession: async (id, endTime, totalAmount, tenantId) => {
+    try {
+      const result = await sql`
+        UPDATE internet_sessions
+        SET 
+          end_time = ${endTime},
+          total_amount = ${totalAmount},
+          duration_minutes = EXTRACT(EPOCH FROM (${endTime}::TIMESTAMPTZ - start_time)) / 60,
+          updated_at = NOW()
+        WHERE id = ${id} AND tenant_id = ${tenantId}
+        RETURNING *
+      `;
+      return result[0] || null;
+    } catch (error) {
+      console.error('endSession error:', error);
+      throw error;
+    }
+  },
+  
+  deleteSession: (id, tenantId) => deleteRecord('internet_sessions', id, tenantId),
+
+  // الأجهزة
+  getDevices: (tenantId) => getByTenant('internet_cafe_devices', tenantId, { orderBy: { column: 'device_number', ascending: true } }),
+  
+  createDevice: async (data, tenantId) => {
+    try {
+      // توليد رقم جهاز فريد
+      if (!data.device_number) {
+        const countResult = await sql`SELECT COUNT(*) as count FROM internet_cafe_devices WHERE tenant_id = ${tenantId}`;
+        const count = parseInt(countResult[0]?.count || 0) + 1;
+        data.device_number = `DEV-${String(count).padStart(3, '0')}`;
+      }
+      return await createRecord('internet_cafe_devices', data, tenantId);
+    } catch (error) {
+      console.error('createDevice error:', error);
+      throw error;
+    }
+  },
+  
+  updateDevice: (id, data, tenantId) => updateRecord('internet_cafe_devices', id, data, tenantId),
+  
+  deleteDevice: (id, tenantId) => deleteRecord('internet_cafe_devices', id, tenantId),
+
+  // حركات الدائن/المدين
+  getCreditDebitTransactions: (tenantId) => getByTenant('credit_debit_transactions', tenantId, { orderBy: { column: 'created_at', ascending: false } }),
+  
+  createCreditDebitTransaction: async (data, tenantId) => {
+    try {
+      return await createRecord('credit_debit_transactions', data, tenantId);
+    } catch (error) {
+      console.error('createCreditDebitTransaction error:', error);
+      throw error;
+    }
+  },
+  
+  updateCreditDebitTransaction: (id, data, tenantId) => updateRecord('credit_debit_transactions', id, data, tenantId),
+  
+  markTransactionPaid: async (id, paidDate, tenantId) => {
+    try {
+      const result = await sql`
+        UPDATE credit_debit_transactions
+        SET is_paid = true, paid_date = ${paidDate}, updated_at = NOW()
+        WHERE id = ${id} AND tenant_id = ${tenantId}
+        RETURNING *
+      `;
+      return result[0] || null;
+    } catch (error) {
+      console.error('markTransactionPaid error:', error);
+      throw error;
+    }
+  },
+
+  // التقارير - صالة الإنترنت
+  getInternetCafeDailyReport: async (tenantId, date = null) => {
+    try {
+      const reportDate = date || new Date().toISOString().split('T')[0];
+      const result = await sql`
+        SELECT 
+          COUNT(*) as total_sessions,
+          SUM(duration_minutes) as total_minutes,
+          SUM(data_consumption_gb) as total_data_gb,
+          SUM(total_amount) as total_revenue,
+          AVG(total_amount) as avg_revenue_per_session,
+          COUNT(DISTINCT subscriber_id) FILTER (WHERE subscriber_id IS NOT NULL) as active_subscribers,
+          COUNT(DISTINCT device_id) as active_devices
+        FROM internet_sessions
+        WHERE tenant_id = ${tenantId} AND DATE(start_time) = ${reportDate}
+      `;
+      return result[0] || {
+        total_sessions: 0,
+        total_minutes: 0,
+        total_data_gb: 0,
+        total_revenue: 0,
+        avg_revenue_per_session: 0,
+        active_subscribers: 0,
+        active_devices: 0
+      };
+    } catch (error) {
+      console.error('getInternetCafeDailyReport error:', error);
+      return null;
+    }
+  },
+
+  getDebtsReport: async (tenantId) => {
+    try {
+      const result = await sql`
+        SELECT * FROM debts_report_view WHERE tenant_id = ${tenantId}
+      `;
+      return result || [];
+    } catch (error) {
+      console.error('getDebtsReport error:', error);
+      return [];
+    }
+  },
+
+  // تحديث الصندوق المالي مع الديون
+  getFinancialBoxWithDebts: async (tenantId) => {
+    try {
+      const financialBox = await neonService.getFinancialBox(tenantId);
+      
+      // حساب الديون المطلوبة من العملاء (دائن - لنا)
+      const debtsOwedResult = await sql`
+        SELECT 
+          COALESCE(SUM(CASE WHEN currency = 'TRY' THEN amount ELSE 0 END), 0) as try_debts,
+          COALESCE(SUM(CASE WHEN currency = 'USD' THEN amount ELSE 0 END), 0) as usd_debts,
+          COALESCE(SUM(CASE WHEN currency = 'SYP' THEN amount ELSE 0 END), 0) as syp_debts,
+          COALESCE(SUM(CASE WHEN currency = 'SAR' THEN amount ELSE 0 END), 0) as sar_debts,
+          COALESCE(SUM(CASE WHEN currency = 'EUR' THEN amount ELSE 0 END), 0) as eur_debts
+        FROM credit_debit_transactions
+        WHERE tenant_id = ${tenantId} 
+          AND transaction_type = 'credit' 
+          AND is_paid = false
+      `;
+      
+      // حساب الديون المستحقة علينا (مدين - علينا)
+      const debtsDueResult = await sql`
+        SELECT 
+          COALESCE(SUM(CASE WHEN currency = 'TRY' THEN amount ELSE 0 END), 0) as try_debts,
+          COALESCE(SUM(CASE WHEN currency = 'USD' THEN amount ELSE 0 END), 0) as usd_debts,
+          COALESCE(SUM(CASE WHEN currency = 'SYP' THEN amount ELSE 0 END), 0) as syp_debts,
+          COALESCE(SUM(CASE WHEN currency = 'SAR' THEN amount ELSE 0 END), 0) as sar_debts,
+          COALESCE(SUM(CASE WHEN currency = 'EUR' THEN amount ELSE 0 END), 0) as eur_debts
+        FROM credit_debit_transactions
+        WHERE tenant_id = ${tenantId} 
+          AND transaction_type = 'debit' 
+          AND is_paid = false
+      `;
+      
+      const debtsOwed = debtsOwedResult[0] || {};
+      const debtsDue = debtsDueResult[0] || {};
+      
+      return {
+        ...financialBox,
+        debts_owed: {
+          try: parseFloat(debtsOwed.try_debts || 0),
+          usd: parseFloat(debtsOwed.usd_debts || 0),
+          syp: parseFloat(debtsOwed.syp_debts || 0),
+          sar: parseFloat(debtsOwed.sar_debts || 0),
+          eur: parseFloat(debtsOwed.eur_debts || 0)
+        },
+        debts_due: {
+          try: parseFloat(debtsDue.try_debts || 0),
+          usd: parseFloat(debtsDue.usd_debts || 0),
+          syp: parseFloat(debtsDue.syp_debts || 0),
+          sar: parseFloat(debtsDue.sar_debts || 0),
+          eur: parseFloat(debtsDue.eur_debts || 0)
+        }
+      };
+    } catch (error) {
+      console.error('getFinancialBoxWithDebts error:', error);
+      return await neonService.getFinancialBox(tenantId);
+    }
+  },
+
+  // ============================================
+  // نظام متجر إكسسوارات الجوال - Mobile Accessories Store
+  // ============================================
+
+  // المنتجات
+  getProducts: (tenantId) => getByTenant('products', tenantId, { orderBy: { column: 'name', ascending: true } }),
+  
+  getProduct: async (id, tenantId) => {
+    try {
+      const result = await sql`SELECT * FROM products WHERE id = ${id} AND tenant_id = ${tenantId} LIMIT 1`;
+      return result[0] || null;
+    } catch (error) {
+      console.error('getProduct error:', error);
+      return null;
+    }
+  },
+  
+  createProduct: async (data, tenantId) => {
+    try {
+      return await createRecord('products', data, tenantId);
+    } catch (error) {
+      console.error('createProduct error:', error);
+      throw error;
+    }
+  },
+  
+  updateProduct: (id, data, tenantId) => updateRecord('products', id, data, tenantId),
+  
+  deleteProduct: (id, tenantId) => deleteRecord('products', id, tenantId),
+
+  // فواتير المبيعات
+  getSalesInvoices: (tenantId) => getByTenant('sales_invoices', tenantId, { orderBy: { column: 'date', ascending: false } }),
+  
+  getSalesInvoice: async (id, tenantId) => {
+    try {
+      const result = await sql`SELECT * FROM sales_invoices WHERE id = ${id} AND tenant_id = ${tenantId} LIMIT 1`;
+      return result[0] || null;
+    } catch (error) {
+      console.error('getSalesInvoice error:', error);
+      return null;
+    }
+  },
+  
+  createSalesInvoice: async (data, items = [], tenantId) => {
+    try {
+      // توليد رقم فاتورة
+      if (!data.invoice_number) {
+        const countResult = await sql`SELECT COUNT(*) as count FROM sales_invoices WHERE tenant_id = ${tenantId} AND DATE(created_at) = CURRENT_DATE`;
+        const count = parseInt(countResult[0]?.count || 0) + 1;
+        const today = new Date().toISOString().split('T')[0].replace(/-/g, '');
+        data.invoice_number = `SAL-${today}-${String(count).padStart(4, '0')}`;
+      }
+      
+      const invoice = await createRecord('sales_invoices', data, tenantId);
+      
+      // حفظ العناصر
+      if (items && items.length > 0 && invoice?.id) {
+        for (const item of items) {
+          await sql`
+            INSERT INTO sales_invoice_items (invoice_id, product_id, inventory_item_id, sku, name, quantity, unit_price, tax_rate, tax_amount, discount_rate, discount_amount, total_price, currency)
+            VALUES (${invoice.id}, ${item.product_id || null}, ${item.inventory_item_id || null}, ${item.sku || ''}, ${item.name || ''}, ${item.quantity}, ${item.unit_price || 0}, ${item.tax_rate || 0}, ${item.tax_amount || 0}, ${item.discount_rate || 0}, ${item.discount_amount || 0}, ${item.total_price || 0}, ${item.currency || 'TRY'})
+          `;
+        }
+      }
+      
+      return invoice;
+    } catch (error) {
+      console.error('createSalesInvoice error:', error);
+      throw error;
+    }
+  },
+  
+  updateSalesInvoice: (id, data, tenantId) => updateRecord('sales_invoices', id, data, tenantId),
+  
+  deleteSalesInvoice: (id, tenantId) => deleteRecord('sales_invoices', id, tenantId),
+
+  // فواتير المشتريات
+  getPurchaseInvoices: (tenantId) => getByTenant('purchase_invoices', tenantId, { orderBy: { column: 'date', ascending: false } }),
+  
+  createPurchaseInvoice: async (data, items = [], tenantId) => {
+    try {
+      // توليد رقم فاتورة
+      if (!data.invoice_number) {
+        const countResult = await sql`SELECT COUNT(*) as count FROM purchase_invoices WHERE tenant_id = ${tenantId} AND DATE(created_at) = CURRENT_DATE`;
+        const count = parseInt(countResult[0]?.count || 0) + 1;
+        const today = new Date().toISOString().split('T')[0].replace(/-/g, '');
+        data.invoice_number = `PUR-${today}-${String(count).padStart(4, '0')}`;
+      }
+      
+      const invoice = await createRecord('purchase_invoices', data, tenantId);
+      
+      // حفظ العناصر
+      if (items && items.length > 0 && invoice?.id) {
+        for (const item of items) {
+          await sql`
+            INSERT INTO purchase_invoice_items (invoice_id, product_id, sku, name, quantity, unit_cost, total_cost, currency, notes)
+            VALUES (${invoice.id}, ${item.product_id || null}, ${item.sku || ''}, ${item.name || ''}, ${item.quantity}, ${item.unit_cost || 0}, ${item.total_cost || 0}, ${item.currency || 'TRY'}, ${item.notes || ''})
+          `;
+        }
+      }
+      
+      return invoice;
+    } catch (error) {
+      console.error('createPurchaseInvoice error:', error);
+      throw error;
+    }
+  },
+  
+  updatePurchaseInvoice: (id, data, tenantId) => updateRecord('purchase_invoices', id, data, tenantId),
+  
+  deletePurchaseInvoice: (id, tenantId) => deleteRecord('purchase_invoices', id, tenantId),
+
+  // الحزم
+  getProductBundles: (tenantId) => getByTenant('product_bundles', tenantId, { orderBy: { column: 'name', ascending: true } }),
+  
+  createProductBundle: async (data, items = [], tenantId) => {
+    try {
+      const bundle = await createRecord('product_bundles', data, tenantId);
+      
+      // حفظ عناصر الحزمة
+      if (items && items.length > 0 && bundle?.id) {
+        for (const item of items) {
+          await sql`
+            INSERT INTO bundle_items (bundle_id, product_id, quantity)
+            VALUES (${bundle.id}, ${item.product_id}, ${item.quantity || 1})
+          `;
+        }
+      }
+      
+      return bundle;
+    } catch (error) {
+      console.error('createProductBundle error:', error);
+      throw error;
+    }
+  },
+  
+  updateProductBundle: (id, data, tenantId) => updateRecord('product_bundles', id, data, tenantId),
+  
+  deleteProductBundle: (id, tenantId) => deleteRecord('product_bundles', id, tenantId),
+
+  // حركات المستودع
+  getInventoryMovements: (tenantId) => getByTenant('inventory_movements', tenantId, { orderBy: { column: 'date', ascending: false } }),
+  
+  createInventoryMovement: async (data, items = [], tenantId) => {
+    try {
+      // توليد رقم حركة
+      if (!data.movement_number) {
+        const countResult = await sql`SELECT COUNT(*) as count FROM inventory_movements WHERE tenant_id = ${tenantId} AND DATE(created_at) = CURRENT_DATE`;
+        const count = parseInt(countResult[0]?.count || 0) + 1;
+        const today = new Date().toISOString().split('T')[0].replace(/-/g, '');
+        data.movement_number = `MOV-${today}-${String(count).padStart(4, '0')}`;
+      }
+      
+      const movement = await createRecord('inventory_movements', data, tenantId);
+      
+      // حفظ العناصر
+      if (items && items.length > 0 && movement?.id) {
+        for (const item of items) {
+          await sql`
+            INSERT INTO inventory_movement_items (movement_id, product_id, inventory_item_id, sku, name, quantity, unit_price, total_price, currency, notes)
+            VALUES (${movement.id}, ${item.product_id || null}, ${item.inventory_item_id || null}, ${item.sku || ''}, ${item.name || ''}, ${item.quantity}, ${item.unit_price || 0}, ${item.total_price || 0}, ${item.currency || 'TRY'}, ${item.notes || ''})
+          `;
+        }
+      }
+      
+      return movement;
+    } catch (error) {
+      console.error('createInventoryMovement error:', error);
+      throw error;
+    }
+  },
+
+  // المرتجعات
+  getReturns: (tenantId) => getByTenant('returns', tenantId, { orderBy: { column: 'date', ascending: false } }),
+  
+  createReturn: async (data, items = [], tenantId) => {
+    try {
+      // توليد رقم مرتجع
+      if (!data.return_number) {
+        const countResult = await sql`SELECT COUNT(*) as count FROM returns WHERE tenant_id = ${tenantId} AND DATE(created_at) = CURRENT_DATE`;
+        const count = parseInt(countResult[0]?.count || 0) + 1;
+        const today = new Date().toISOString().split('T')[0].replace(/-/g, '');
+        data.return_number = `RET-${today}-${String(count).padStart(4, '0')}`;
+      }
+      
+      const returnRecord = await createRecord('returns', data, tenantId);
+      
+      // حفظ العناصر
+      if (items && items.length > 0 && returnRecord?.id) {
+        for (const item of items) {
+          await sql`
+            INSERT INTO return_items (return_id, product_id, quantity, unit_price, total_price, condition, notes)
+            VALUES (${returnRecord.id}, ${item.product_id || null}, ${item.quantity}, ${item.unit_price || 0}, ${item.total_price || 0}, ${item.condition || 'new'}, ${item.notes || ''})
+          `;
+        }
+      }
+      
+      return returnRecord;
+    } catch (error) {
+      console.error('createReturn error:', error);
+      throw error;
+    }
+  },
+
+  // التقارير - Top Sellers
+  getTopSellingProducts: async (tenantId, limit = 10) => {
+    try {
+      const result = await sql`
+        SELECT * FROM top_selling_products_view
+        WHERE tenant_id = ${tenantId}
+        ORDER BY total_revenue DESC
+        LIMIT ${limit}
+      `;
+      return result || [];
+    } catch (error) {
+      console.error('getTopSellingProducts error:', error);
+      return [];
+    }
+  },
+
+  // التقارير - أعمار المخزون
+  getInventoryAge: async (tenantId) => {
+    try {
+      const result = await sql`
+        SELECT * FROM inventory_age_view
+        WHERE tenant_id = ${tenantId}
+        ORDER BY days_in_stock DESC
+      `;
+      return result || [];
+    } catch (error) {
+      console.error('getInventoryAge error:', error);
+      return [];
+    }
+  },
+
+  // Function لإنشاء جلسة إنترنت من حزمة
+  createSessionFromBundle: async (bundleId, subscriberId, deviceId, tenantId, userId) => {
+    try {
+      const result = await sql`
+        SELECT create_internet_session_from_bundle(
+          ${bundleId}::UUID,
+          ${subscriberId}::UUID,
+          ${deviceId}::UUID,
+          ${tenantId}::UUID,
+          ${userId}::UUID
+        ) as session_id
+      `;
+      return result[0]?.session_id || null;
+    } catch (error) {
+      console.error('createSessionFromBundle error:', error);
+      throw error;
+    }
+  },
 };
