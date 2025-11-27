@@ -85,7 +85,7 @@ const LoginPage = () => {
         <title>{t('auth.loginTitle')} - {t('common.systemName')}</title>
       </Helmet>
       
-      <div className="relative z-10 w-full space-y-6 min-h-screen flex items-center justify-center p-4">
+      <div className="relative z-10 w-full min-h-screen flex items-center justify-center p-3 sm:p-4 md:p-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -93,7 +93,7 @@ const LoginPage = () => {
           className="w-full max-w-md"
         >
           {/* Glassmorphism Card */}
-          <div className="relative backdrop-blur-xl bg-white/10 dark:bg-gray-900/30 rounded-3xl shadow-2xl border border-white/20 p-8 md:p-10 overflow-hidden">
+          <div className="relative backdrop-blur-xl bg-white/10 dark:bg-gray-900/30 rounded-2xl sm:rounded-3xl shadow-2xl border border-white/20 p-6 sm:p-8 md:p-10 overflow-hidden w-full">
             {/* Animated Border Glow */}
             <motion.div
               className="absolute inset-0 rounded-3xl"
@@ -128,7 +128,7 @@ const LoginPage = () => {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.2 }}
-                  className="mt-2 text-4xl font-black tracking-tight text-white mb-2"
+                  className="mt-2 text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-white mb-2"
                 >
                   {t('auth.welcomeBack')}
                 </motion.h2>
@@ -136,7 +136,7 @@ const LoginPage = () => {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.3 }}
-                  className="mt-2 text-sm text-purple-200 font-medium"
+                  className="mt-2 text-xs sm:text-sm text-purple-200 font-medium"
                 >
                   {t('auth.signInToAccess')}
                 </motion.p>
@@ -176,13 +176,13 @@ const LoginPage = () => {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.4 }}
                   >
-                    <label htmlFor="email" className="block text-sm font-bold text-white mb-2">{t('auth.email')}</label>
+                    <label htmlFor="email" className="block text-xs sm:text-sm font-bold text-white mb-2">{t('auth.email')}</label>
                     <motion.input
                       id="email"
                       type="email"
                       required
-                      whileFocus={{ scale: 1.02 }}
-                      className="w-full px-5 py-3 rounded-xl border-2 border-white/20 bg-white/10 backdrop-blur-sm text-white placeholder-purple-300 focus:border-orange-400 focus:bg-white/20 focus:ring-4 focus:ring-orange-500/30 transition-all outline-none font-medium"
+                      whileFocus={{ scale: 1.01 }}
+                      className="w-full px-4 sm:px-5 py-2.5 sm:py-3 text-sm sm:text-base rounded-xl border-2 border-white/20 bg-white/10 backdrop-blur-sm text-white placeholder-purple-300 focus:border-orange-400 focus:bg-white/20 focus:ring-4 focus:ring-orange-500/30 transition-all outline-none font-medium"
                       placeholder={t('auth.email')}
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
@@ -193,13 +193,13 @@ const LoginPage = () => {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.5 }}
                   >
-                    <label htmlFor="password" className="block text-sm font-bold text-white mb-2">{t('auth.password')}</label>
+                    <label htmlFor="password" className="block text-xs sm:text-sm font-bold text-white mb-2">{t('auth.password')}</label>
                     <motion.input
                       id="password"
                       type="password"
                       required
-                      whileFocus={{ scale: 1.02 }}
-                      className="w-full px-5 py-3 rounded-xl border-2 border-white/20 bg-white/10 backdrop-blur-sm text-white placeholder-purple-300 focus:border-orange-400 focus:bg-white/20 focus:ring-4 focus:ring-orange-500/30 transition-all outline-none font-medium"
+                      whileFocus={{ scale: 1.01 }}
+                      className="w-full px-4 sm:px-5 py-2.5 sm:py-3 text-sm sm:text-base rounded-xl border-2 border-white/20 bg-white/10 backdrop-blur-sm text-white placeholder-purple-300 focus:border-orange-400 focus:bg-white/20 focus:ring-4 focus:ring-orange-500/30 transition-all outline-none font-medium"
                       placeholder={t('auth.password')}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
@@ -217,12 +217,12 @@ const LoginPage = () => {
                     type="submit"
                     variant="neon"
                     size="lg"
-                    className="w-full text-lg font-bold"
+                    className="w-full text-base sm:text-lg font-bold py-2.5 sm:py-3"
                     disabled={isLoading}
                   >
                     {isLoading ? (
                       <>
-                        <Loader2 className="h-5 w-5 animate-spin ml-2 rtl:mr-2 rtl:ml-0" />
+                        <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin ml-2 rtl:mr-2 rtl:ml-0" />
                         {t('auth.signingIn')}
                       </>
                     ) : (

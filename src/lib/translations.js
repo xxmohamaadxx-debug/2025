@@ -59,7 +59,8 @@ export const translations = {
       unit: "Unit",
       unitPrice: "Unit Price",
       contact: "Contact Us",
-      quickLinks: "Quick Links"
+      quickLinks: "Quick Links",
+      systemName: "Ibrahim Accounting System"
     },
     dashboard: {
       welcome: "Welcome back,",
@@ -621,7 +622,8 @@ export const translations = {
       unit: "Birim",
       unitPrice: "Birim Fiyat",
       contact: "İletişim",
-      quickLinks: "Hızlı Bağlantılar"
+      quickLinks: "Hızlı Bağlantılar",
+      systemName: "İbrahim Muhasebe Sistemi"
     },
     dashboard: {
       welcome: "Hoşgeldiniz,",
