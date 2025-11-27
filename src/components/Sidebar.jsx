@@ -41,14 +41,24 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
   // جلب أنواع المتاجر للمستخدم الحالي
   useEffect(() => {
     const loadStoreTypes = async () => {
-      if (!user?.tenant_id) return;
+      if (!user?.tenant_id) {
+        setStoreTypes([]);
+        return;
+      }
       
       try {
         setLoadingStoreTypes(true);
         const types = await neonService.getTenantStoreTypes(user.tenant_id);
-        setStoreTypes(types || []);
+        // التأكد من أن البيانات في الصيغة الصحيحة
+        const formattedTypes = (types || []).map(type => ({
+          ...type,
+          store_type_code: type.store_type_code || type.code || '',
+          code: type.store_type_code || type.code || ''
+        }));
+        setStoreTypes(formattedTypes);
       } catch (error) {
         console.error('Load store types error:', error);
+        setStoreTypes([]);
       } finally {
         setLoadingStoreTypes(false);
       }
@@ -56,6 +66,9 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     
     if (user?.tenant_id && !user?.isSuperAdmin) {
       loadStoreTypes();
+    } else if (user?.isSuperAdmin) {
+      // Super Admin لا يحتاج تحميل الأنواع
+      setStoreTypes([]);
     }
   }, [user?.tenant_id, user?.isSuperAdmin]);
 
@@ -68,21 +81,30 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     // Super Admin يرى كل شيء
     if (user?.isSuperAdmin) return true;
     
-    // إذا لم يكن هناك أنواع متاجر محددة، أظهر كل شيء (للتوافق مع النظام القديم)
-    if (!storeTypes || storeTypes.length === 0) return true;
+    // إذا لم يكن هناك أنواع متاجر محددة، لا تعرض الأقسام المتخصصة
+    if (!storeTypes || storeTypes.length === 0) {
+      return false;
+    }
     
     // التحقق من وجود نوع متجر يطابق الأقسام المطلوبة
-    const storeTypeCodes = storeTypes.map(st => st.store_type_code).filter(Boolean);
+    const storeTypeCodes = storeTypes.map(st => {
+      // الحصول على code من store_type_code أو code مباشرة
+      const code = st.store_type_code || st.code || '';
+      return code.toLowerCase().trim();
+    }).filter(Boolean);
     
     // إذا كان القسم مطلوباً لأنواع متعددة، يجب أن يكون أحدها موجود
     if (Array.isArray(sectionCodes)) {
-      return sectionCodes.some(code => storeTypeCodes.includes(code));
+      const normalizedSectionCodes = sectionCodes.map(c => c.toLowerCase().trim());
+      const hasMatch = normalizedSectionCodes.some(code => storeTypeCodes.includes(code));
+      return hasMatch;
     }
     
-    return storeTypeCodes.includes(sectionCodes);
+    const normalizedCode = sectionCodes.toLowerCase().trim();
+    return storeTypeCodes.includes(normalizedCode);
   };
 
-  // تحديد الأقسام لكل نوع متجر
+  // تحديد الأقسام لكل نوع متجر - فقط إذا كان نوع المتجر يطابق
   const isInternetCafe = shouldShowSection(['internet_cafe', 'internet_cafe_accessories']);
   const isFuelStation = shouldShowSection(['fuel', 'general_with_fuel']);
   const isContractor = shouldShowSection(['contractor']);

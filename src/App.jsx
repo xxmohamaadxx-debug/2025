@@ -75,10 +75,13 @@ function PrivateRoute({ children, roles = [] }) {
   return children;
 }
 
-function PublicRoute({ children }) {
+function PublicRoute({ children, allowAuthenticated = false }) {
   const { user, loading } = useAuth();
   if (loading) return <LoadingSpinner />;
-  return !user ? children : <Navigate to="/dashboard" replace />;
+  // إذا كان المستخدم مسجل دخول ولم نسمح له بالبقاء، أرسله للوحة التحكم
+  // لكن إذا كان المسار هو Landing Page، اسمح له بالبقاء
+  if (user && !allowAuthenticated) return <Navigate to="/dashboard" replace />;
+  return children;
 }
 
 function App() {
@@ -96,8 +99,16 @@ function App() {
               </Helmet>
               <Suspense fallback={<LoadingSpinner />}>
                 <Routes>
-                  <Route path="/landing" element={<LandingPage />} />
-                  <Route path="/" element={<LandingPage />} />
+                  <Route path="/landing" element={
+                    <PublicRoute allowAuthenticated={true}>
+                      <LandingPage />
+                    </PublicRoute>
+                  } />
+                  <Route path="/" element={
+                    <PublicRoute allowAuthenticated={true}>
+                      <LandingPage />
+                    </PublicRoute>
+                  } />
                   <Route path="/login" element={
                     <PublicRoute>
                       <AuthLayout>

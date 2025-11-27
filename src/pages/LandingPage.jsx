@@ -174,62 +174,87 @@ const LandingPage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-orange-50 to-pink-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 relative overflow-hidden">
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-orange-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
+      </div>
       <Helmet>
         <title>نظام إبراهيم للمحاسبة - إدارة متكاملة للمتاجر</title>
         <meta name="description" content="نظام إدارة محاسبي متكامل يدعم جميع أنواع المتاجر مع نسخ احتياطية وحماية عالية" />
       </Helmet>
 
       {/* Navigation */}
-      <nav className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
+      <nav className="glass sticky top-0 z-50 border-b border-white/10 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-3">
-              <Logo size="md" />
-              <div>
-                <h1 className="text-xl font-bold text-gray-900 dark:text-white">نظام إبراهيم</h1>
-                <p className="text-xs text-gray-500 dark:text-gray-400">للمحاسبة والإدارة</p>
+          <div className="flex justify-between items-center h-20">
+            <motion.div 
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="flex items-center gap-3"
+            >
+              <div className="p-2 bg-gradient-to-br from-orange-500/20 to-pink-500/20 rounded-xl backdrop-blur-sm">
+                <Logo size="md" />
               </div>
-            </div>
-            <div className="flex items-center gap-3">
+              <div>
+                <h1 className="text-xl font-bold text-white drop-shadow-lg">نظام إبراهيم</h1>
+                <p className="text-xs text-purple-200">للمحاسبة والإدارة</p>
+              </div>
+            </motion.div>
+            <motion.div 
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="flex items-center gap-3"
+            >
               <Button
                 onClick={() => setTrialDialogOpen(true)}
-                className="bg-gradient-to-r from-orange-500 to-pink-500 text-white hidden sm:flex"
+                className="bg-gradient-to-r from-orange-500 via-pink-500 to-purple-500 text-white hidden sm:flex shadow-xl hover:shadow-2xl hover:shadow-orange-500/50 transition-all hover:scale-105 border-0"
               >
-                <MessageCircle className="h-4 w-4 ml-2 rtl:mr-2 rtl:ml-0" />
+                <Rocket className="h-4 w-4 ml-2 rtl:mr-2 rtl:ml-0" />
                 طلب نسخة تجريبية
               </Button>
               <Button
                 onClick={() => navigate('/login')}
                 variant="outline"
-                className="hidden sm:flex"
+                className="hidden sm:flex glass border-white/20 text-white hover:bg-white/10 backdrop-blur-sm"
               >
                 <LogIn className="h-4 w-4 ml-2 rtl:mr-2 rtl:ml-0" />
                 تسجيل الدخول
               </Button>
-            </div>
+            </motion.div>
           </div>
         </div>
       </nav>
 
       {/* Hero Section */}
-      <section className="relative py-20 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-orange-400/20 via-pink-400/20 to-purple-400/20 blur-3xl animate-pulse"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,140,0,0.1),transparent_50%)]"></div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="flex justify-center mb-8 animate-bounce-slow">
-            <div className="transform hover:scale-110 transition-transform duration-300">
-              <Logo size="xl" />
+      <section className="relative py-32 overflow-hidden min-h-[90vh] flex items-center">
+        <div className="absolute inset-0 bg-gradient-to-r from-orange-600/30 via-pink-600/30 to-purple-600/30 blur-3xl"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,140,0,0.15),transparent_70%)]"></div>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center z-10">
+          <motion.div 
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="flex justify-center mb-12"
+          >
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-pink-500 rounded-full blur-2xl opacity-50 animate-pulse"></div>
+              <div className="relative transform hover:scale-110 transition-transform duration-300 p-8 bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20">
+                <Logo size="xl" />
+              </div>
             </div>
-          </div>
+          </motion.div>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold text-gray-900 dark:text-white mb-6">
+            <h1 className="text-5xl md:text-6xl lg:text-8xl font-black text-white mb-6 drop-shadow-2xl leading-tight">
               نظام إدارة محاسبي
-              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-orange-500 via-pink-500 to-purple-500 animate-gradient">
+              <br />
+              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-pink-400 to-purple-400 animate-gradient mt-4">
                 متكامل ومتقدم
               </span>
             </h1>
@@ -239,7 +264,7 @@ const LandingPage = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
           >
-            <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-4 max-w-3xl mx-auto font-medium">
+            <p className="text-2xl md:text-4xl text-white mb-6 max-w-4xl mx-auto font-bold drop-shadow-lg">
               قوة تحويل متجرك إلى إمبراطورية رقمية 🔥
             </p>
           </motion.div>
@@ -248,10 +273,12 @@ const LandingPage = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.3 }}
           >
-            <p className="text-lg md:text-xl text-gray-500 dark:text-gray-400 mb-8 max-w-3xl mx-auto">
+            <p className="text-lg md:text-xl text-purple-100 mb-10 max-w-3xl mx-auto leading-relaxed">
               إدارة متكاملة لجميع أنواع المتاجر مع نسخ احتياطية تلقائية وحماية عالية وتقارير شاملة
               <br />
-              <span className="text-orange-500 font-semibold">ابدأ مجاناً لمدة 15 يوم - بدون بطاقة ائتمان</span>
+              <span className="text-orange-300 font-bold text-xl mt-4 inline-block bg-gradient-to-r from-orange-400 to-pink-400 bg-clip-text text-transparent">
+                ✨ ابدأ مجاناً لمدة 15 يوم - بدون بطاقة ائتمان ✨
+              </span>
             </p>
           </motion.div>
           <motion.div 
@@ -278,140 +305,195 @@ const LandingPage = () => {
               onClick={() => navigate('/login')}
               size="lg"
               variant="outline"
-              className="text-lg px-8 py-6 border-2 border-gray-300 dark:border-gray-600 hover:border-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-all hover:scale-105"
+              className="text-lg px-8 py-6 glass border-2 border-white/30 text-white hover:border-orange-400 hover:bg-white/10 backdrop-blur-sm transition-all hover:scale-105 hover:shadow-xl hover:shadow-white/20"
             >
               <LogIn className="h-5 w-5 ml-2 rtl:mr-2 rtl:ml-0" />
               تسجيل الدخول
             </Button>
           </motion.div>
-          <div className="mt-12 flex flex-wrap justify-center gap-6 text-sm text-gray-600 dark:text-gray-400">
-            <div className="flex items-center gap-2">
-              <CheckCircle className="h-5 w-5 text-green-500" />
-              <span>نسخ احتياطية تلقائية</span>
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.5 }}
+            className="mt-16 flex flex-wrap justify-center gap-8 text-base text-white"
+          >
+            <div className="flex items-center gap-3 glass px-6 py-3 rounded-full border border-white/20 hover:border-green-400/50 transition-all">
+              <CheckCircle className="h-6 w-6 text-green-400" />
+              <span className="font-medium">نسخ احتياطية تلقائية</span>
             </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle className="h-5 w-5 text-green-500" />
-              <span>حماية عالية</span>
+            <div className="flex items-center gap-3 glass px-6 py-3 rounded-full border border-white/20 hover:border-green-400/50 transition-all">
+              <CheckCircle className="h-6 w-6 text-green-400" />
+              <span className="font-medium">حماية عالية</span>
             </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle className="h-5 w-5 text-green-500" />
-              <span>دعم 24/7</span>
+            <div className="flex items-center gap-3 glass px-6 py-3 rounded-full border border-white/20 hover:border-green-400/50 transition-all">
+              <CheckCircle className="h-6 w-6 text-green-400" />
+              <span className="font-medium">دعم 24/7</span>
             </div>
-          </div>
+          </motion.div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section className="py-20 bg-white dark:bg-gray-800">
+      <section className="py-20 glass-dark relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-4xl font-bold text-center text-gray-900 dark:text-white mb-12">
+          <motion.h2 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-5xl font-black text-center text-white mb-16 drop-shadow-lg"
+          >
             مميزات النظام
-          </h2>
+          </motion.h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature, index) => (
-              <div
+              <motion.div
                 key={index}
-                className="p-6 rounded-xl bg-gradient-to-br from-gray-50 to-white dark:from-gray-700 dark:to-gray-800 border border-gray-200 dark:border-gray-600 hover:shadow-lg transition-shadow"
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                className="group p-8 rounded-2xl glass border border-white/20 hover:border-orange-500/50 hover:shadow-2xl hover:shadow-orange-500/20 transition-all duration-300 transform hover:-translate-y-2"
               >
-                <feature.icon className="h-12 w-12 text-orange-500 mb-4" />
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                <div className="p-4 bg-gradient-to-br from-orange-500/20 to-pink-500/20 rounded-xl w-fit mb-6 group-hover:scale-110 transition-transform">
+                  <feature.icon className="h-8 w-8 text-orange-400" />
+                </div>
+                <h3 className="text-xl font-bold text-white mb-3 group-hover:text-orange-300 transition-colors">
                   {feature.title}
                 </h3>
-                <p className="text-gray-600 dark:text-gray-400">
+                <p className="text-purple-200 leading-relaxed">
                   {feature.desc}
                 </p>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
       </section>
 
       {/* Store Types Section */}
-      <section className="py-20 bg-gradient-to-br from-orange-50 to-pink-50 dark:from-gray-900 dark:to-gray-800">
+      <section className="py-20 glass relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-4xl font-bold text-center text-gray-900 dark:text-white mb-4">
+          <motion.h2 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-5xl font-black text-center text-white mb-6 drop-shadow-lg"
+          >
             أنواع المتاجر المدعومة
-          </h2>
-          <p className="text-center text-gray-600 dark:text-gray-400 mb-12 max-w-2xl mx-auto">
+          </motion.h2>
+          <motion.p 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.2 }}
+            className="text-center text-purple-200 mb-16 max-w-3xl mx-auto text-lg"
+          >
             نظام مرن يدعم جميع أنواع المتاجر مع ميزات مخصصة لكل نوع
-          </p>
+          </motion.p>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {storeTypes.map((type, index) => (
-              <div
+              <motion.div
                 key={type.id || index}
-                className="p-6 rounded-xl bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 hover:border-orange-500 transition-colors"
+                initial={{ opacity: 0, scale: 0.9 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                whileHover={{ scale: 1.05, y: -5 }}
+                className="group p-8 rounded-2xl glass border-2 border-white/20 hover:border-gradient-to-r hover:from-orange-500 hover:to-pink-500 hover:shadow-2xl hover:shadow-orange-500/30 transition-all duration-300"
               >
-                <div className="flex items-center gap-3 mb-4">
-                  {type.code === 'internet_cafe' && <Wifi className="h-8 w-8 text-blue-500" />}
-                  {type.code === 'accessories' && <Store className="h-8 w-8 text-purple-500" />}
-                  {type.code === 'fuel' && <Fuel className="h-8 w-8 text-yellow-500" />}
-                  {type.code === 'contractor' && <Building2 className="h-8 w-8 text-orange-500" />}
-                  {!['internet_cafe', 'accessories', 'fuel', 'contractor'].includes(type.code) && (
-                    <Store className="h-8 w-8 text-gray-500" />
-                  )}
-                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="p-3 bg-gradient-to-br from-orange-500/30 to-pink-500/30 rounded-xl group-hover:scale-110 transition-transform">
+                    {type.code === 'internet_cafe' && <Wifi className="h-8 w-8 text-orange-300" />}
+                    {type.code === 'accessories' && <Store className="h-8 w-8 text-purple-300" />}
+                    {type.code === 'fuel' && <Fuel className="h-8 w-8 text-yellow-300" />}
+                    {type.code === 'contractor' && <Building2 className="h-8 w-8 text-orange-300" />}
+                    {!['internet_cafe', 'accessories', 'fuel', 'contractor'].includes(type.code) && (
+                      <Store className="h-8 w-8 text-gray-300" />
+                    )}
+                  </div>
+                  <h3 className="text-2xl font-bold text-white group-hover:text-orange-300 transition-colors">
                     {type.name_ar || type.name_en}
                   </h3>
                 </div>
-                <p className="text-gray-600 dark:text-gray-400">
+                <p className="text-purple-200 leading-relaxed">
                   {type.description_ar || type.description_en || 'متجر متكامل'}
                 </p>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
       </section>
 
       {/* Pricing Section */}
-      <section className="py-20 bg-white dark:bg-gray-800">
+      <section className="py-20 glass-dark relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-4xl font-bold text-center text-gray-900 dark:text-white mb-4">
+          <motion.h2 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-5xl font-black text-center text-white mb-6 drop-shadow-lg"
+          >
             خطط الاشتراك
-          </h2>
-          <p className="text-center text-gray-600 dark:text-gray-400 mb-12">
+          </motion.h2>
+          <motion.p 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.2 }}
+            className="text-center text-purple-200 mb-16 text-lg"
+          >
             اختر الخطة التي تناسب احتياجاتك
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          </motion.p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {pricingPlans.map((plan, index) => (
-              <div
+              <motion.div
                 key={index}
-                className={`p-8 rounded-xl border-2 ${
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                whileHover={{ scale: 1.05, y: -10 }}
+                className={`group p-8 rounded-2xl border-2 relative transition-all duration-300 ${
                   plan.popular
-                    ? 'border-orange-500 bg-gradient-to-br from-orange-50 to-pink-50 dark:from-gray-700 dark:to-gray-800 scale-105'
-                    : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800'
-                } relative`}
+                    ? 'border-gradient-to-r border-orange-500/50 bg-gradient-to-br from-orange-500/20 via-pink-500/20 to-purple-500/20 glass scale-105 shadow-2xl shadow-orange-500/30'
+                    : 'border-white/20 glass hover:border-orange-500/50'
+                }`}
               >
                 {plan.popular && (
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-orange-500 to-pink-500 text-white px-4 py-1 rounded-full text-sm font-semibold">
-                    الأكثر شعبية
-                  </div>
+                  <motion.div 
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ delay: 0.3 }}
+                    className="absolute -top-5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-orange-500 via-pink-500 to-purple-500 text-white px-6 py-2 rounded-full text-sm font-bold shadow-lg"
+                  >
+                    ⭐ الأكثر شعبية
+                  </motion.div>
                 )}
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                <h3 className="text-3xl font-black text-white mb-3 group-hover:text-orange-300 transition-colors">
                   {plan.name}
                 </h3>
-                <p className="text-gray-600 dark:text-gray-400 mb-4">{plan.duration}</p>
-                <div className="text-4xl font-extrabold text-gray-900 dark:text-white mb-6">
+                <p className="text-purple-200 mb-6">{plan.duration}</p>
+                <div className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-pink-400 mb-8">
                   {plan.price}
                 </div>
-                <ul className="space-y-3 mb-8">
+                <ul className="space-y-4 mb-10">
                   {plan.features.map((feature, idx) => (
-                    <li key={idx} className="flex items-start gap-2">
-                      <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
-                      <span className="text-gray-600 dark:text-gray-400">{feature}</span>
+                    <li key={idx} className="flex items-start gap-3">
+                      <CheckCircle className="h-6 w-6 text-green-400 mt-0.5 flex-shrink-0" />
+                      <span className="text-purple-100 leading-relaxed">{feature}</span>
                     </li>
                   ))}
                 </ul>
                 <Button
                   onClick={() => setTrialDialogOpen(true)}
-                  className={`w-full ${
+                  className={`w-full py-6 text-lg font-bold transition-all duration-300 ${
                     plan.popular
-                      ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white'
-                      : 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white'
+                      ? 'bg-gradient-to-r from-orange-500 via-pink-500 to-purple-500 text-white hover:shadow-2xl hover:shadow-orange-500/50 hover:scale-105'
+                      : 'glass border border-white/20 text-white hover:bg-white/10 hover:border-orange-400 hover:scale-105'
                   }`}
                 >
-                  اختر الخطة
+                  {plan.popular ? '🚀 ابدأ الآن' : 'اختر الخطة'}
                 </Button>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
@@ -419,7 +501,8 @@ const LandingPage = () => {
 
       {/* App Download Section */}
       {(appSettings.mobile_app_android_url || appSettings.mobile_app_windows_url) && (
-        <section className="py-20 bg-gradient-to-r from-orange-500 to-pink-500 text-white">
+        <section className="py-20 bg-gradient-to-r from-orange-600 via-pink-600 to-purple-600 text-white relative z-10 overflow-hidden">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.1),transparent_70%)]"></div>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <Smartphone className="h-16 w-16 mx-auto mb-6" />
             <h2 className="text-4xl font-bold mb-4">حمل تطبيق الجوال</h2>
@@ -453,7 +536,7 @@ const LandingPage = () => {
       )}
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-gray-300 py-12">
+      <footer className="glass-dark border-t border-white/10 py-12 relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div>
