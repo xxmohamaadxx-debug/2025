@@ -67,6 +67,9 @@ const MessagesPage = React.lazy(() => import('@/pages/MessagesPage'));
 // Daily Expenses
 const DailyExpensesPage = React.lazy(() => import('@/pages/DailyExpensesPage'));
 
+// Journal
+const JournalPage = React.lazy(() => import('@/pages/JournalPage'));
+
 const LoadingSpinner = () => (
   <div className="flex h-screen items-center justify-center bg-gray-50 dark:bg-gray-900">
     <Loader2 className="h-10 w-10 animate-spin text-orange-500" />
@@ -196,6 +199,7 @@ function App() {
                   <Route path="/employees" element={<PrivateRoute roles={['ANY']}><MainLayout><SubscriptionWarning /><EmployeesPage /></MainLayout></PrivateRoute>} />
                   <Route path="/payroll" element={<PrivateRoute roles={['ANY']}><MainLayout><SubscriptionWarning /><PayrollPage /></MainLayout></PrivateRoute>} />
                   <Route path="/reports" element={<PrivateRoute roles={['ANY']}><MainLayout><SubscriptionWarning /><ReportsPage /></MainLayout></PrivateRoute>} />
+                  <Route path="/journal" element={<PrivateRoute roles={['ANY']}><MainLayout><SubscriptionWarning /><JournalPage /></MainLayout></PrivateRoute>} />
                   <Route path="/partners" element={<PrivateRoute roles={['ANY']}><MainLayout><SubscriptionWarning /><PartnersPage /></MainLayout></PrivateRoute>} />
                   <Route path="/users" element={<PrivateRoute roles={['ANY']}><MainLayout><SubscriptionWarning /><UsersPage /></MainLayout></PrivateRoute>} />
                   <Route path="/audit-log" element={<PrivateRoute roles={['ANY']}><MainLayout><SubscriptionWarning /><AuditLogPage /></MainLayout></PrivateRoute>} />

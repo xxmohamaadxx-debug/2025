@@ -3406,4 +3406,492 @@ export const neonService = {
       return { processed_count: 0, suspended_count: 0, deleted_count: 0 };
     }
   },
+
+  // ========== نظام اليومية المحاسبية ==========
+  
+  // إنشاء قيد يومية
+  createJournalEntry: async (data, tenantId) => {
+    try {
+      const result = await sql`
+        INSERT INTO journal_entries (tenant_id, entry_date, entry_number, description, reference_type, reference_id, total_amount, currency, created_by)
+        VALUES (${tenantId}, ${data.entry_date}, ${data.entry_number}, ${data.description}, ${data.reference_type || null}, ${data.reference_id || null}, ${data.total_amount || 0}, ${data.currency || 'TRY'}, ${data.created_by})
+        RETURNING *
+      `;
+      return result[0];
+    } catch (error) {
+      console.error('createJournalEntry error:', error);
+      throw error;
+    }
+  },
+
+  // إنشاء قيد في اليومية
+  createJournalLine: async (data, tenantId) => {
+    try {
+      const result = await sql`
+        INSERT INTO journal_lines (journal_entry_id, tenant_id, account_type, account_name, account_id, debit_amount, credit_amount, currency, description)
+        VALUES (${data.journal_entry_id}, ${tenantId}, ${data.account_type}, ${data.account_name}, ${data.account_id || null}, ${data.debit_amount || 0}, ${data.credit_amount || 0}, ${data.currency || 'TRY'}, ${data.description || null})
+        RETURNING *
+      `;
+      return result[0];
+    } catch (error) {
+      console.error('createJournalLine error:', error);
+      throw error;
+    }
+  },
+
+  // الحصول على قيود اليومية
+  getJournalEntries: async (tenantId, startDate, endDate) => {
+    try {
+      let query = sql`
+        SELECT je.*, 
+               COUNT(jl.id) as lines_count,
+               u.name as created_by_name
+        FROM journal_entries je
+        LEFT JOIN journal_lines jl ON jl.journal_entry_id = je.id
+        LEFT JOIN users u ON u.id = je.created_by
+        WHERE je.tenant_id = ${tenantId}
+      `;
+      
+      if (startDate) {
+        query = sql`${query} AND je.entry_date >= ${startDate}`;
+      }
+      if (endDate) {
+        query = sql`${query} AND je.entry_date <= ${endDate}`;
+      }
+      
+      query = sql`${query} GROUP BY je.id, u.name ORDER BY je.entry_date DESC, je.created_at DESC`;
+      
+      const result = await query;
+      return result || [];
+    } catch (error) {
+      console.error('getJournalEntries error:', error);
+      return [];
+    }
+  },
+
+  // الحصول على قيود قيد معين
+  getJournalLines: async (entryId, tenantId) => {
+    try {
+      const result = await sql`
+        SELECT * FROM journal_lines
+        WHERE journal_entry_id = ${entryId} AND tenant_id = ${tenantId}
+        ORDER BY debit_amount DESC, credit_amount DESC
+      `;
+      return result || [];
+    } catch (error) {
+      console.error('getJournalLines error:', error);
+      return [];
+    }
+  },
+
+  // عدد القيود للسنة
+  getJournalEntryCount: async (tenantId, year) => {
+    try {
+      const result = await sql`
+        SELECT COUNT(*) as count
+        FROM journal_entries
+        WHERE tenant_id = ${tenantId} AND EXTRACT(YEAR FROM entry_date) = ${year}
+      `;
+      return parseInt(result[0]?.count || 0);
+    } catch (error) {
+      console.error('getJournalEntryCount error:', error);
+      return 0;
+    }
+  },
+
+  // ========== إدارة الذمم ==========
+
+  // الحصول على رصيد شريك
+  getAccountBalance: async (partnerId, accountType, currency, tenantId) => {
+    try {
+      const result = await sql`
+        SELECT * FROM account_balances
+        WHERE partner_id = ${partnerId} 
+          AND account_type = ${accountType} 
+          AND currency = ${currency}
+          AND tenant_id = ${tenantId}
+        LIMIT 1
+      `;
+      return result[0] || null;
+    } catch (error) {
+      console.error('getAccountBalance error:', error);
+      return null;
+    }
+  },
+
+  // إنشاء معاملة ذمم
+  createAccountTransaction: async (data, tenantId) => {
+    try {
+      const result = await sql`
+        INSERT INTO account_transactions (tenant_id, partner_id, transaction_type, reference_type, reference_id, amount, currency, balance_before, balance_after, description, created_by)
+        VALUES (${tenantId}, ${data.partner_id}, ${data.transaction_type}, ${data.reference_type || null}, ${data.reference_id || null}, ${data.amount}, ${data.currency || 'TRY'}, ${data.balance_before || 0}, ${data.balance_after || 0}, ${data.description || null}, ${data.created_by})
+        RETURNING *
+      `;
+      return result[0];
+    } catch (error) {
+      console.error('createAccountTransaction error:', error);
+      throw error;
+    }
+  },
+
+  // الحصول على معاملات شريك
+  getPartnerTransactions: async (partnerId, tenantId, limit = 100) => {
+    try {
+      const result = await sql`
+        SELECT * FROM account_transactions
+        WHERE partner_id = ${partnerId} AND tenant_id = ${tenantId}
+        ORDER BY transaction_date DESC
+        LIMIT ${limit}
+      `;
+      return result || [];
+    } catch (error) {
+      console.error('getPartnerTransactions error:', error);
+      return [];
+    }
+  },
+
+  // ========== إدارة المخزون ==========
+
+  // الحصول على منتج مخزون
+  getInventoryItem: async (itemId, tenantId) => {
+    try {
+      const result = await sql`
+        SELECT * FROM inventory_items
+        WHERE id = ${itemId} AND tenant_id = ${tenantId}
+        LIMIT 1
+      `;
+      return result[0] || null;
+    } catch (error) {
+      console.error('getInventoryItem error:', error);
+      return null;
+    }
+  },
+
+  // إنشاء معاملة مخزون
+  createInventoryTransaction: async (data, tenantId) => {
+    try {
+      const result = await sql`
+        INSERT INTO inventory_transactions (tenant_id, inventory_item_id, transaction_type, reference_type, reference_id, quantity_change, quantity_before, quantity_after, unit_price, currency, description, created_by)
+        VALUES (${tenantId}, ${data.inventory_item_id}, ${data.transaction_type}, ${data.reference_type || null}, ${data.reference_id || null}, ${data.quantity_change}, ${data.quantity_before || 0}, ${data.quantity_after || 0}, ${data.unit_price || 0}, ${data.currency || 'TRY'}, ${data.description || null}, ${data.created_by})
+        RETURNING *
+      `;
+      return result[0];
+    } catch (error) {
+      console.error('createInventoryTransaction error:', error);
+      throw error;
+    }
+  },
+
+  // الحصول على معاملات مخزون
+  getInventoryTransactions: async (itemId, tenantId, limit = 100) => {
+    try {
+      const result = await sql`
+        SELECT * FROM inventory_transactions
+        WHERE inventory_item_id = ${itemId} AND tenant_id = ${tenantId}
+        ORDER BY transaction_date DESC
+        LIMIT ${limit}
+      `;
+      return result || [];
+    } catch (error) {
+      console.error('getInventoryTransactions error:', error);
+      return [];
+    }
+  },
+
+  // ========== ربط BOQ بالمخزون ==========
+
+  // ربط عنصر مشروع بعنصر مخزون
+  linkProjectItemToInventory: async (projectItemId, inventoryItemId, tenantId) => {
+    try {
+      const result = await sql`
+        SELECT link_project_item_to_inventory(
+          ${projectItemId}::UUID,
+          ${inventoryItemId}::UUID,
+          ${tenantId}::UUID
+        ) as success
+      `;
+      return result[0]?.success || false;
+    } catch (error) {
+      console.error('linkProjectItemToInventory error:', error);
+      throw error;
+    }
+  },
+
+  // خصم المواد من المخزون عند استخدامها في المشروع
+  deductInventoryFromBOQ: async (projectItemId, quantity, tenantId, userId) => {
+    try {
+      const result = await sql`
+        SELECT deduct_inventory_from_boq(
+          ${projectItemId}::UUID,
+          ${quantity}::NUMERIC,
+          ${tenantId}::UUID,
+          ${userId}::UUID
+        ) as result
+      `;
+      return result[0]?.result || { success: false, error: 'فشل العملية' };
+    } catch (error) {
+      console.error('deductInventoryFromBOQ error:', error);
+      throw error;
+    }
+  },
+
+  // إرجاع المواد إلى المخزون
+  returnInventoryFromBOQ: async (projectItemId, quantity, tenantId, userId) => {
+    try {
+      const result = await sql`
+        SELECT return_inventory_from_boq(
+          ${projectItemId}::UUID,
+          ${quantity}::NUMERIC,
+          ${tenantId}::UUID,
+          ${userId}::UUID
+        ) as result
+      `;
+      return result[0]?.result || { success: false, error: 'فشل العملية' };
+    } catch (error) {
+      console.error('returnInventoryFromBOQ error:', error);
+      throw error;
+    }
+  },
+
+  // ========== خصومات الموظفين ==========
+
+  // إنشاء خصم دوري
+  createEmployeeDeduction: async (data, tenantId) => {
+    try {
+      const result = await sql`
+        INSERT INTO employee_deductions (tenant_id, employee_id, deduction_type, description, total_amount, remaining_amount, monthly_deduction, currency, start_date, end_date, is_active)
+        VALUES (${tenantId}, ${data.employee_id}, ${data.deduction_type}, ${data.description}, ${data.total_amount}, ${data.total_amount}, ${data.monthly_deduction}, ${data.currency || 'TRY'}, ${data.start_date}, ${data.end_date || null}, ${data.is_active !== false})
+        RETURNING *
+      `;
+      return result[0];
+    } catch (error) {
+      console.error('createEmployeeDeduction error:', error);
+      throw error;
+    }
+  },
+
+  // الحصول على خصومات موظف
+  getEmployeeDeductions: async (employeeId, tenantId) => {
+    try {
+      const result = await sql`
+        SELECT * FROM employee_deductions
+        WHERE employee_id = ${employeeId} AND tenant_id = ${tenantId}
+        ORDER BY start_date DESC
+      `;
+      return result || [];
+    } catch (error) {
+      console.error('getEmployeeDeductions error:', error);
+      return [];
+    }
+  },
+
+  // تحديث خصم دوري (بعد خصم شهري)
+  updateEmployeeDeduction: async (deductionId, remainingAmount, tenantId) => {
+    try {
+      const result = await sql`
+        UPDATE employee_deductions
+        SET remaining_amount = ${remainingAmount},
+            is_active = ${remainingAmount > 0},
+            updated_at = NOW()
+        WHERE id = ${deductionId} AND tenant_id = ${tenantId}
+        RETURNING *
+      `;
+      return result[0];
+    } catch (error) {
+      console.error('updateEmployeeDeduction error:', error);
+      throw error;
+    }
+  },
+
+  // ========== التقارير المتقدمة ==========
+
+  // تقرير المشاريع الشامل
+  getProjectComprehensiveReport: async (tenantId, startDate = null, endDate = null, status = null) => {
+    try {
+      const result = await sql`
+        SELECT * FROM get_project_comprehensive_report(
+          ${tenantId}::UUID,
+          ${startDate || null}::DATE,
+          ${endDate || null}::DATE,
+          ${status || null}::TEXT
+        )
+      `;
+      return result || [];
+    } catch (error) {
+      console.error('getProjectComprehensiveReport error:', error);
+      return [];
+    }
+  },
+
+  // تقرير العملاء الشامل
+  getCustomerComprehensiveReport: async (tenantId, startDate = null, endDate = null) => {
+    try {
+      const result = await sql`
+        SELECT * FROM get_customer_comprehensive_report(
+          ${tenantId}::UUID,
+          ${startDate || null}::DATE,
+          ${endDate || null}::DATE
+        )
+      `;
+      return result || [];
+    } catch (error) {
+      console.error('getCustomerComprehensiveReport error:', error);
+      return [];
+    }
+  },
+
+  // تقرير الموردين الشامل
+  getVendorComprehensiveReport: async (tenantId, startDate = null, endDate = null) => {
+    try {
+      const result = await sql`
+        SELECT * FROM get_vendor_comprehensive_report(
+          ${tenantId}::UUID,
+          ${startDate || null}::DATE,
+          ${endDate || null}::DATE
+        )
+      `;
+      return result || [];
+    } catch (error) {
+      console.error('getVendorComprehensiveReport error:', error);
+      return [];
+    }
+  },
+
+  // تقرير المبيعات الشهري
+  getMonthlySalesReport: async (tenantId, year, month = null) => {
+    try {
+      const result = await sql`
+        SELECT * FROM get_monthly_sales_report(
+          ${tenantId}::UUID,
+          ${year}::INTEGER,
+          ${month || null}::INTEGER
+        )
+      `;
+      return result || [];
+    } catch (error) {
+      console.error('getMonthlySalesReport error:', error);
+      return [];
+    }
+  },
+
+  // تقرير المشتريات الشهري
+  getMonthlyPurchasesReport: async (tenantId, year, month = null) => {
+    try {
+      const result = await sql`
+        SELECT * FROM get_monthly_purchases_report(
+          ${tenantId}::UUID,
+          ${year}::INTEGER,
+          ${month || null}::INTEGER
+        )
+      `;
+      return result || [];
+    } catch (error) {
+      console.error('getMonthlyPurchasesReport error:', error);
+      return [];
+    }
+  },
+
+  // تقرير المخزون الشامل
+  getInventoryComprehensiveReport: async (tenantId) => {
+    try {
+      const result = await sql`
+        SELECT * FROM get_inventory_comprehensive_report(${tenantId}::UUID)
+      `;
+      return result || [];
+    } catch (error) {
+      console.error('getInventoryComprehensiveReport error:', error);
+      return [];
+    }
+  },
+
+  // ========== نظام JWT + Refresh Tokens ==========
+
+  // إنشاء Refresh Token
+  createRefreshToken: async (userId, tenantId, tokenHash, deviceInfo = null, ipAddress = null, expiresInDays = 30) => {
+    try {
+      const result = await sql`
+        SELECT create_refresh_token(
+          ${userId}::UUID,
+          ${tenantId || null}::UUID,
+          ${tokenHash}::TEXT,
+          ${deviceInfo || null}::TEXT,
+          ${ipAddress || null}::TEXT,
+          ${expiresInDays}::INTEGER
+        ) as token_id
+      `;
+      return result[0]?.token_id || null;
+    } catch (error) {
+      console.error('createRefreshToken error:', error);
+      throw error;
+    }
+  },
+
+  // التحقق من Refresh Token
+  verifyRefreshToken: async (tokenHash) => {
+    try {
+      const result = await sql`
+        SELECT * FROM verify_refresh_token(${tokenHash}::TEXT)
+      `;
+      return result[0] || null;
+    } catch (error) {
+      console.error('verifyRefreshToken error:', error);
+      return null;
+    }
+  },
+
+  // إلغاء Refresh Token
+  revokeRefreshToken: async (tokenHash) => {
+    try {
+      const result = await sql`
+        SELECT revoke_refresh_token(${tokenHash}::TEXT) as success
+      `;
+      return result[0]?.success || false;
+    } catch (error) {
+      console.error('revokeRefreshToken error:', error);
+      return false;
+    }
+  },
+
+  // إلغاء جميع Refresh Tokens لمستخدم
+  revokeAllUserTokens: async (userId) => {
+    try {
+      const result = await sql`
+        SELECT revoke_all_user_tokens(${userId}::UUID) as count
+      `;
+      return result[0]?.count || 0;
+    } catch (error) {
+      console.error('revokeAllUserTokens error:', error);
+      return 0;
+    }
+  },
+
+  // تسجيل محاولة تسجيل دخول فاشلة
+  logFailedLogin: async (email, ipAddress = null, userAgent = null) => {
+    try {
+      await sql`
+        SELECT log_failed_login(
+          ${email}::TEXT,
+          ${ipAddress || null}::TEXT,
+          ${userAgent || null}::TEXT
+        )
+      `;
+      return true;
+    } catch (error) {
+      console.error('logFailedLogin error:', error);
+      return false;
+    }
+  },
+
+  // التحقق من حظر الحساب
+  isAccountBlocked: async (email) => {
+    try {
+      const result = await sql`
+        SELECT is_account_blocked(${email}::TEXT) as blocked
+      `;
+      return result[0]?.blocked || false;
+    } catch (error) {
+      console.error('isAccountBlocked error:', error);
+      return false;
+    }
+  },
 };

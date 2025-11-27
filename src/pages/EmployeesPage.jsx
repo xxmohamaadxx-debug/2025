@@ -38,11 +38,25 @@ const EmployeesPage = () => {
     }
 
     try {
+      // حساب الراتب الصافي
+      const baseSalary = parseFloat(data.base_salary || 0);
+      const allowances = parseFloat(data.allowances || 0);
+      const deductions = parseFloat(data.deductions || 0);
+      const netSalary = baseSalary + allowances - deductions;
+
+      const employeeData = {
+        ...data,
+        base_salary: baseSalary,
+        allowances: allowances,
+        deductions: deductions,
+        net_salary: netSalary,
+      };
+
       if (selected) {
-        await neonService.updateEmployee(selected.id, data, user.tenant_id);
+        await neonService.updateEmployee(selected.id, employeeData, user.tenant_id);
         toast({ title: "تم تحديث البيانات بنجاح" });
       } else {
-        await neonService.createEmployee(data, user.tenant_id);
+        await neonService.createEmployee(employeeData, user.tenant_id);
         toast({ title: "تم إضافة البيانات بنجاح" });
       }
       setDialogOpen(false);

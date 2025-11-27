@@ -363,6 +363,14 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           onClick={handleLinkClick}
           delay={0.6}
         />
+        <NavItem
+          to="/journal"
+          icon={FileText}
+          label="اليومية المحاسبية"
+          isActive={isActive('/journal')}
+          onClick={handleLinkClick}
+          delay={0.65}
+        />
 
         {/* صالات الإنترنت - تظهر فقط إذا كان نوع المتجر يدعمها */}
         {(isInternetCafe || user?.isSuperAdmin) && (

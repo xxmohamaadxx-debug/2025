@@ -237,7 +237,7 @@ const InvoiceDialog = ({ open, onOpenChange, invoice, onSave, type }) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto relative">
+      <DialogContent className="max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto relative w-[98vw] sm:w-[95vw] md:w-[90vw] lg:w-[85vw]">
         <HelpButton
           position="top-right"
           helpTextAr={type === 'in' 
@@ -258,8 +258,8 @@ const InvoiceDialog = ({ open, onOpenChange, invoice, onSave, type }) => {
             {invoice ? 'قم بتعديل بيانات الفاتورة' : type === 'in' ? 'قم بإدخال بيانات فاتورة وارد جديدة' : 'قم بإدخال بيانات فاتورة صادر جديدة'}
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div>
               <label className="block text-sm font-medium mb-2 rtl:text-right">
                 {t('common.date')}
@@ -400,19 +400,20 @@ const InvoiceDialog = ({ open, onOpenChange, invoice, onSave, type }) => {
           </div>
 
           {/* جدول المنتجات */}
-          <div className="border border-gray-300 dark:border-gray-600 rounded-lg p-4">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">المنتجات / Items</h3>
-              <div className="flex gap-2">
+          <div className="border border-gray-300 dark:border-gray-600 rounded-lg p-2 sm:p-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+              <h3 className="text-base sm:text-lg font-semibold rtl:text-right">المنتجات / Items</h3>
+              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
                   onClick={handleAddManualItem}
-                  className="flex items-center gap-2"
+                  className="flex items-center justify-center gap-2 w-full sm:w-auto text-xs sm:text-sm"
                 >
-                  <Plus className="h-4 w-4" />
-                  إضافة منتج يدوياً
+                  <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden sm:inline">إضافة منتج يدوياً</span>
+                  <span className="sm:hidden">إضافة يدوي</span>
                 </Button>
                 {inventoryItems.length > 0 && (
                   <select
@@ -423,7 +424,7 @@ const InvoiceDialog = ({ open, onOpenChange, invoice, onSave, type }) => {
                         e.target.value = '';
                       }
                     }}
-                    className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100 text-sm"
+                    className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 text-xs sm:text-sm w-full sm:w-auto focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                     disabled={loadingInventory}
                   >
                     <option value="">اختر من المخزون...</option>
@@ -438,86 +439,86 @@ const InvoiceDialog = ({ open, onOpenChange, invoice, onSave, type }) => {
             </div>
 
             {invoiceItems.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
+              <div className="overflow-x-auto -mx-2 sm:mx-0">
+                <table className="w-full text-xs sm:text-sm min-w-[600px]">
                   <thead>
                     <tr className="border-b border-gray-300 dark:border-gray-600">
-                      <th className="text-right p-2">#</th>
-                      <th className="text-right p-2">اسم المنتج</th>
-                      <th className="text-right p-2">الكود</th>
-                      <th className="text-right p-2">الكمية</th>
-                      <th className="text-right p-2">الوحدة</th>
-                      <th className="text-right p-2">سعر الوحدة</th>
-                      <th className="text-right p-2">الإجمالي</th>
-                      <th className="text-right p-2">إجراءات</th>
+                      <th className="text-right p-1 sm:p-2 whitespace-nowrap">#</th>
+                      <th className="text-right p-1 sm:p-2 whitespace-nowrap">اسم المنتج</th>
+                      <th className="text-right p-1 sm:p-2 whitespace-nowrap hidden sm:table-cell">الكود</th>
+                      <th className="text-right p-1 sm:p-2 whitespace-nowrap">الكمية</th>
+                      <th className="text-right p-1 sm:p-2 whitespace-nowrap hidden md:table-cell">الوحدة</th>
+                      <th className="text-right p-1 sm:p-2 whitespace-nowrap">سعر الوحدة</th>
+                      <th className="text-right p-1 sm:p-2 whitespace-nowrap">الإجمالي</th>
+                      <th className="text-right p-1 sm:p-2 whitespace-nowrap">إجراءات</th>
                     </tr>
                   </thead>
                   <tbody>
                     {invoiceItems.map((item, index) => (
                       <tr key={index} className="border-b border-gray-200 dark:border-gray-700">
-                        <td className="p-2">{index + 1}</td>
-                        <td className="p-2">
+                        <td className="p-1 sm:p-2">{index + 1}</td>
+                        <td className="p-1 sm:p-2 min-w-[120px]">
                           <input
                             type="text"
                             value={item.item_name || ''}
                             onChange={(e) => handleUpdateItem(index, 'item_name', e.target.value)}
-                            className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 dark:text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                            className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 dark:text-gray-100 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                             placeholder="اسم المنتج"
                             required
                           />
                         </td>
-                        <td className="p-2">
+                        <td className="p-1 sm:p-2 hidden sm:table-cell min-w-[80px]">
                           <input
                             type="text"
                             value={item.item_code || ''}
                             onChange={(e) => handleUpdateItem(index, 'item_code', e.target.value)}
-                            className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 dark:text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                            className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 dark:text-gray-100 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                             placeholder="الكود"
                           />
                         </td>
-                        <td className="p-2">
+                        <td className="p-1 sm:p-2 min-w-[80px]">
                           <input
                             type="number"
                             step="0.01"
                             min="0"
                             value={item.quantity || ''}
                             onChange={(e) => handleUpdateItem(index, 'quantity', parseFloat(e.target.value) || 0)}
-                            className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 dark:text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                            className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 dark:text-gray-100 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                             required
                           />
                         </td>
-                        <td className="p-2">
+                        <td className="p-1 sm:p-2 hidden md:table-cell min-w-[60px]">
                           <input
                             type="text"
                             value={item.unit || ''}
                             onChange={(e) => handleUpdateItem(index, 'unit', e.target.value)}
-                            className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 dark:text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                            className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 dark:text-gray-100 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                             placeholder="قطعة"
                           />
                         </td>
-                        <td className="p-2">
+                        <td className="p-1 sm:p-2 min-w-[100px]">
                           <input
                             type="number"
                             step="0.01"
                             min="0"
                             value={item.unit_price || ''}
                             onChange={(e) => handleUpdateItem(index, 'unit_price', parseFloat(e.target.value) || 0)}
-                            className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 dark:text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                            className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 dark:text-gray-100 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                             required
                           />
                         </td>
-                        <td className="p-2 font-semibold">
+                        <td className="p-1 sm:p-2 font-semibold text-xs sm:text-sm min-w-[80px]">
                           {parseFloat(item.total_price || 0).toLocaleString('ar-EG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </td>
-                        <td className="p-2">
+                        <td className="p-1 sm:p-2">
                           <Button
                             type="button"
                             variant="ghost"
                             size="sm"
                             onClick={() => handleRemoveItem(index)}
-                            className="text-red-500 hover:text-red-700"
+                            className="text-red-500 hover:text-red-700 h-7 w-7 sm:h-8 sm:w-8 p-0"
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
                           </Button>
                         </td>
                       </tr>
@@ -525,8 +526,9 @@ const InvoiceDialog = ({ open, onOpenChange, invoice, onSave, type }) => {
                   </tbody>
                   <tfoot>
                     <tr className="font-bold">
-                      <td colSpan="6" className="text-right p-2">المجموع:</td>
-                      <td className="p-2">
+                      <td colSpan="5" className="text-right p-2 hidden sm:table-cell">المجموع:</td>
+                      <td colSpan="2" className="text-right p-2 sm:hidden">المجموع:</td>
+                      <td className="p-2 text-xs sm:text-sm">
                         {invoiceItems
                           .filter(item => item.currency === formData.currency)
                           .reduce((sum, item) => sum + parseFloat(item.total_price || 0), 0)
@@ -538,7 +540,7 @@ const InvoiceDialog = ({ open, onOpenChange, invoice, onSave, type }) => {
                 </table>
               </div>
             ) : (
-              <p className="text-gray-500 text-center py-4">لا توجد منتجات. أضف منتجات من المخزون أو يدوياً.</p>
+              <p className="text-gray-500 text-center py-4 text-sm rtl:text-right">لا توجد منتجات. أضف منتجات من المخزون أو يدوياً.</p>
             )}
           </div>
 
@@ -580,17 +582,19 @@ const InvoiceDialog = ({ open, onOpenChange, invoice, onSave, type }) => {
             </div>
           </div>
 
-          <div className="flex gap-4 rtl:flex-row-reverse">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 rtl:flex-row-reverse pt-2 sm:pt-4 border-t border-gray-200 dark:border-gray-700">
             <InteractiveButton
               variant="cancel"
               type="button"
               onClick={() => onOpenChange(false)}
+              className="w-full sm:w-auto"
             >
               {t('common.cancel')}
             </InteractiveButton>
             <InteractiveButton
               variant="save"
               type="submit"
+              className="w-full sm:w-auto"
             >
               {t('common.save')}
             </InteractiveButton>

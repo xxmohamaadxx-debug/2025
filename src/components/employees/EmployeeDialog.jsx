@@ -13,6 +13,8 @@ const EmployeeDialog = ({ open, onOpenChange, employee, onSave }) => {
     name: '',
     position: '',
     base_salary: '',
+    allowances: '',
+    deductions: '',
     currency: 'USD',
     status: 'Active',
     hire_date: getCurrentDateInput(),
@@ -24,6 +26,8 @@ const EmployeeDialog = ({ open, onOpenChange, employee, onSave }) => {
         name: employee.name || '',
         position: employee.position || '',
         base_salary: employee.base_salary || employee.salary || '',
+        allowances: employee.allowances || '',
+        deductions: employee.deductions || '',
         currency: employee.currency || 'USD',
         status: employee.status || 'Active',
         hire_date: employee.hire_date || employee.hireDate ? formatDateForInput(employee.hire_date || employee.hireDate) : getCurrentDateInput(),
@@ -33,6 +37,8 @@ const EmployeeDialog = ({ open, onOpenChange, employee, onSave }) => {
         name: '',
         position: '',
         base_salary: '',
+        allowances: '',
+        deductions: '',
         currency: 'USD',
         status: 'Active',
         hire_date: getCurrentDateInput(),
@@ -113,6 +119,49 @@ const EmployeeDialog = ({ open, onOpenChange, employee, onSave }) => {
                 <option value="SAR">﷼ ريال سعودي (SAR)</option>
                 <option value="EUR">€ يورو (EUR)</option>
               </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-2 rtl:text-right">البدلات</label>
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                value={formData.allowances}
+                onChange={(e) => setFormData({ ...formData, allowances: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                placeholder="0.00"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2 rtl:text-right">الخصومات</label>
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                value={formData.deductions}
+                onChange={(e) => setFormData({ ...formData, deductions: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                placeholder="0.00"
+              />
+            </div>
+          </div>
+
+          <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
+            <div className="flex justify-between items-center text-sm">
+              <span className="text-gray-600 dark:text-gray-400">الراتب الصافي:</span>
+              <span className="font-bold text-lg text-green-600 dark:text-green-400">
+                {(
+                  parseFloat(formData.base_salary || 0) +
+                  parseFloat(formData.allowances || 0) -
+                  parseFloat(formData.deductions || 0)
+                ).toLocaleString('ar-EG', {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2
+                })} {formData.currency}
+              </span>
             </div>
           </div>
 

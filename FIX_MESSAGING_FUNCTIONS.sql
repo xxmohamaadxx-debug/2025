@@ -219,8 +219,77 @@ CREATE POLICY messages_update_policy ON messages
         receiver_id = current_setting('app.current_user_id', true)::UUID
     );
 
+-- ============================================
+-- 5. دالة للحصول على رسائل محادثة معينة
+-- ============================================
+CREATE OR REPLACE FUNCTION get_conversation_messages(
+    p_user_id UUID,
+    p_other_user_id UUID,
+    p_tenant_id UUID,
+    p_limit INTEGER DEFAULT 50,
+    p_offset INTEGER DEFAULT 0
+)
+RETURNS TABLE(
+    id UUID,
+    sender_id UUID,
+    receiver_id UUID,
+    message_text TEXT,
+    is_read BOOLEAN,
+    created_at TIMESTAMPTZ,
+    is_sender BOOLEAN
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        m.id,
+        m.sender_id,
+        m.receiver_id,
+        m.message_text,
+        m.is_read,
+        m.created_at,
+        (m.sender_id = p_user_id)::BOOLEAN as is_sender
+    FROM messages m
+    WHERE m.tenant_id = p_tenant_id
+    AND (
+        (m.sender_id = p_user_id AND m.receiver_id = p_other_user_id) OR
+        (m.sender_id = p_other_user_id AND m.receiver_id = p_user_id)
+    )
+    ORDER BY m.created_at ASC
+    LIMIT p_limit
+    OFFSET p_offset;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- ============================================
+-- 6. دالة لتحديد الرسائل كمقروءة
+-- ============================================
+CREATE OR REPLACE FUNCTION mark_messages_as_read(
+    p_user_id UUID,
+    p_other_user_id UUID,
+    p_tenant_id UUID
+)
+RETURNS INTEGER AS $$
+DECLARE
+    updated_count INTEGER;
+BEGIN
+    UPDATE messages
+    SET is_read = true,
+        read_at = NOW()
+    WHERE tenant_id = p_tenant_id
+    AND sender_id = p_other_user_id
+    AND receiver_id = p_user_id
+    AND is_read = false;
+    
+    GET DIAGNOSTICS updated_count = ROW_COUNT;
+    
+    RETURN updated_count;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
 -- تعليقات
 COMMENT ON FUNCTION get_user_conversations(UUID, UUID) IS 'الحصول على جميع المحادثات للمستخدم في متجر معين';
 COMMENT ON FUNCTION auto_delete_old_messages() IS 'حذف تلقائي للرسائل الأقدم من 15 يوم وإرجاع العدد';
 COMMENT ON FUNCTION get_tenant_users_for_messaging(UUID, UUID) IS 'الحصول على جميع المستخدمين في المتجر للمحادثة مع معلومات المحادثات';
+COMMENT ON FUNCTION get_conversation_messages(UUID, UUID, UUID, INTEGER, INTEGER) IS 'الحصول على رسائل محادثة معينة بين مستخدمين';
+COMMENT ON FUNCTION mark_messages_as_read(UUID, UUID, UUID) IS 'تحديد الرسائل كمقروءة بين مستخدمين';
 

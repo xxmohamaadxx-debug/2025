@@ -13,6 +13,7 @@ import { formatDateAR, formatDateShort } from '@/lib/dateUtils';
 import { exportInvoicePDF, printInvoice } from '@/lib/pdfUtils';
 import { isOnline, storeOffline } from '@/lib/offlineService';
 import GlassCard from '@/components/ui/GlassCard';
+import journalService from '@/lib/journalService';
 
 const InvoicesInPage = () => {
   const { user, tenant } = useAuth();
@@ -126,6 +127,25 @@ const InvoicesInPage = () => {
         toast({ title: "تم تحديث البيانات بنجاح" });
       } else {
         const newInvoice = await neonService.createInvoiceIn(invoiceData, user.tenant_id, items);
+        
+        // إنشاء قيد يومية تلقائي
+        try {
+          await journalService.createInvoiceInJournal(
+            { ...invoiceData, id: newInvoice.id },
+            items,
+            user.tenant_id,
+            user.id
+          );
+        } catch (journalError) {
+          console.error('Journal entry creation error:', journalError);
+          // لا نوقف العملية إذا فشل تسجيل اليومية
+          toast({
+            title: "تم إضافة الفاتورة",
+            description: "تم إضافة الفاتورة لكن فشل تسجيل اليومية المحاسبية",
+            variant: "default"
+          });
+        }
+        
         toast({ title: "تم إضافة البيانات بنجاح" });
       }
       setDialogOpen(false);
