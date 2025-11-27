@@ -4,7 +4,7 @@ import { Helmet } from 'react-helmet';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { neonService } from '@/lib/neonService';
-import { TrendingUp, TrendingDown, Wallet, Users, AlertTriangle, Activity } from 'lucide-react';
+import { TrendingUp, TrendingDown, Wallet, Users, AlertTriangle, Activity, CheckCircle } from 'lucide-react';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, ArcElement } from 'chart.js';
 import { Line } from 'react-chartjs-2';
 import { motion } from 'framer-motion';
@@ -16,25 +16,32 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarEleme
 const KPICard = ({ title, value, icon: Icon, trend, color, t }) => {
   return (
     <motion.div 
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="bg-white dark:bg-gray-800 p-4 md:p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700"
+      initial={{ opacity: 0, y: 20, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      whileHover={{ scale: 1.02, y: -5 }}
+      transition={{ duration: 0.3 }}
+      className="group relative bg-gradient-to-br from-white/90 to-white/70 dark:from-gray-800/90 dark:to-gray-800/70 backdrop-blur-xl p-6 rounded-2xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 hover:shadow-2xl hover:shadow-orange-500/10 transition-all duration-300 overflow-hidden"
     >
-      <div className="flex justify-between items-start">
-        <div>
-          <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{title}</p>
-          <h3 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white mt-2">{value}</h3>
+      {/* Animated background gradient */}
+      <div className="absolute inset-0 bg-gradient-to-br from-orange-500/0 via-pink-500/0 to-purple-500/0 group-hover:from-orange-500/5 group-hover:via-pink-500/5 group-hover:to-purple-500/5 transition-all duration-500"></div>
+      
+      <div className="relative z-10 flex justify-between items-start">
+        <div className="flex-1">
+          <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">{title}</p>
+          <h3 className="text-2xl md:text-3xl font-black text-gray-900 dark:text-white mt-1 bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
+            {value}
+          </h3>
         </div>
-        <div className={`p-2 md:p-3 rounded-lg ${color}`}>
-          <Icon className="h-5 w-5 md:h-6 md:w-6 text-white" />
+        <div className={`p-4 rounded-xl ${color} shadow-lg group-hover:scale-110 group-hover:rotate-6 transition-all duration-300`}>
+          <Icon className="h-6 w-6 md:h-7 md:w-7 text-white" />
         </div>
       </div>
       {trend && (
-        <div className="mt-4 flex items-center text-xs md:text-sm">
-          <span className={trend >= 0 ? "text-green-500" : "text-red-500"}>
-            {trend >= 0 ? "+" : ""}{trend}%
+        <div className="mt-4 flex items-center text-xs md:text-sm relative z-10">
+          <span className={`font-bold ${trend >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
+            {trend >= 0 ? "↗" : "↘"} {trend >= 0 ? "+" : ""}{trend}%
           </span>
-          <span className="ml-2 rtl:mr-2 rtl:ml-0 text-gray-400">{t('dashboard.vsLastMonth')}</span>
+          <span className="ml-2 rtl:mr-2 rtl:ml-0 text-gray-500 dark:text-gray-400">{t('dashboard.vsLastMonth')}</span>
         </div>
       )}
     </motion.div>
@@ -204,10 +211,18 @@ const DashboardPage = () => {
   }
 
   return (
-    <div className="space-y-6 min-h-[500px]">
+    <div className="space-y-6 min-h-[500px] relative">
+      {/* Animated Background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-orange-50/50 via-purple-50/50 to-pink-50/50 dark:from-gray-900/50 dark:via-purple-900/50 dark:to-gray-900/50 -z-10"></div>
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_50%,rgba(255,140,0,0.05),transparent_50%)] -z-10"></div>
+      
       <Helmet><title>{t('common.dashboard')} - {t('common.systemName')}</title></Helmet>
 
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 relative z-10"
+      >
         <div className="flex items-center gap-3">
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
@@ -233,9 +248,9 @@ const DashboardPage = () => {
             {formatDateAR(new Date(), { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
           </div>
         </div>
-      </div>
+      </motion.div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 relative z-10">
         {/* إجمالي الدخل لكل عملة */}
         {Object.entries(stats.incomeByCurrency).map(([currency, amount]) => {
           if (amount === 0) return null;
@@ -318,22 +333,42 @@ const DashboardPage = () => {
           <div className="h-64"><Line options={{ maintainAspectRatio: false, responsive: true }} data={chartData} /></div>
         </motion.div>
 
-        <div className="space-y-6">
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-bold text-gray-900 dark:text-white">{t('dashboard.lowStock')}</h3>
-              <span className="px-2 py-1 bg-red-100 text-red-600 text-xs rounded-full font-medium">{stats.lowStock} {t('dashboard.items')}</span>
+        <motion.div 
+          initial={{ opacity: 0, x: 20 }} 
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+          className="space-y-6"
+        >
+          <div className="bg-gradient-to-br from-white/95 to-white/90 dark:from-gray-800/95 dark:to-gray-800/90 backdrop-blur-xl p-6 md:p-8 rounded-2xl shadow-xl border border-gray-200/50 dark:border-gray-700/50 hover:shadow-2xl transition-all duration-300">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-black text-gray-900 dark:text-white bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
+                {t('dashboard.lowStock')}
+              </h3>
+              <span className="px-4 py-2 bg-gradient-to-r from-red-500 to-pink-500 text-white text-sm rounded-full font-bold shadow-lg">
+                {stats.lowStock} {t('dashboard.items')}
+              </span>
             </div>
             {stats.lowStock > 0 ? (
               <div className="space-y-3">
-                <div className="flex items-center gap-3 text-sm p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-100 dark:border-red-900/30">
-                  <AlertTriangle className="h-5 w-5 text-red-500" />
-                  <span className="text-gray-700 dark:text-gray-300">{t('dashboard.actionNeeded')}</span>
+                <motion.div 
+                  initial={{ scale: 0.95 }}
+                  animate={{ scale: 1 }}
+                  className="flex items-center gap-4 text-sm p-4 bg-gradient-to-r from-red-50 to-pink-50 dark:from-red-900/30 dark:to-pink-900/30 rounded-xl border-2 border-red-200 dark:border-red-900/50 shadow-lg"
+                >
+                  <AlertTriangle className="h-6 w-6 text-red-500 animate-pulse" />
+                  <span className="font-semibold text-gray-800 dark:text-gray-200">{t('dashboard.actionNeeded')}</span>
+                </motion.div>
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <div className="inline-flex items-center gap-2 text-green-600 dark:text-green-400">
+                  <CheckCircle className="h-6 w-6" />
+                  <span className="font-semibold">{t('dashboard.allStockHealthy')}</span>
                 </div>
               </div>
-            ) : <div className="text-center py-4 text-gray-500 text-sm">{t('dashboard.allStockHealthy')}</div>}
+            )}
           </div>
-        </div>
+        </motion.div>
       </div>
     </div>
   );

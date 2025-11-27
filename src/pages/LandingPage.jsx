@@ -230,8 +230,9 @@ const LandingPage = () => {
 
       {/* Hero Section */}
       <section className="relative py-32 overflow-hidden min-h-[90vh] flex items-center">
-        <div className="absolute inset-0 bg-gradient-to-r from-orange-600/30 via-pink-600/30 to-purple-600/30 blur-3xl"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,140,0,0.15),transparent_70%)]"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-orange-600/40 via-pink-600/40 to-purple-600/40 blur-3xl animate-pulse"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,140,0,0.2),transparent_70%)]"></div>
+        <div className="absolute inset-0 bg-[conic-gradient(from_180deg_at_50%_50%,rgba(255,140,0,0.1),rgba(236,72,153,0.1),rgba(168,85,247,0.1),rgba(255,140,0,0.1))] animate-spin-slow"></div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center z-10">
           <motion.div 
             initial={{ opacity: 0, y: 30 }}
@@ -544,44 +545,44 @@ const LandingPage = () => {
                 <Logo size="sm" />
                 <span className="text-white font-bold">نظام إبراهيم</span>
               </div>
-              <p className="text-sm">
+              <p className="text-sm text-purple-200 leading-relaxed">
                 نظام إدارة محاسبي متكامل ومتقدم لجميع أنواع المتاجر
               </p>
             </div>
             <div>
-              <h4 className="text-white font-semibold mb-4">اتصل بنا</h4>
-              <div className="space-y-2 text-sm">
+              <h4 className="text-white font-bold mb-6 text-lg">اتصل بنا</h4>
+              <div className="space-y-4">
                 {appSettings.support_phone && (
-                  <div className="flex items-center gap-2">
-                    <Phone className="h-4 w-4" />
-                    <span>{appSettings.support_phone}</span>
+                  <div className="flex items-center gap-3 glass px-4 py-3 rounded-xl border border-white/10 hover:border-orange-400/50 transition-all">
+                    <Phone className="h-5 w-5 text-orange-400" />
+                    <span className="text-purple-200">{appSettings.support_phone}</span>
                   </div>
                 )}
                 {appSettings.support_email && (
-                  <div className="flex items-center gap-2">
-                    <Mail className="h-4 w-4" />
-                    <span>{appSettings.support_email}</span>
+                  <div className="flex items-center gap-3 glass px-4 py-3 rounded-xl border border-white/10 hover:border-orange-400/50 transition-all">
+                    <Mail className="h-5 w-5 text-orange-400" />
+                    <span className="text-purple-200">{appSettings.support_email}</span>
                   </div>
                 )}
               </div>
             </div>
             <div>
-              <h4 className="text-white font-semibold mb-4">روابط سريعة</h4>
-              <div className="space-y-2 text-sm">
-                <Link to="/login" className="block hover:text-orange-500 transition-colors">
+              <h4 className="text-white font-bold mb-6 text-lg">روابط سريعة</h4>
+              <div className="space-y-3">
+                <Link to="/login" className="block glass px-4 py-3 rounded-xl border border-white/10 hover:border-orange-400/50 hover:bg-white/5 text-purple-200 hover:text-white transition-all">
                   تسجيل الدخول
                 </Link>
                 <button
                   onClick={() => setTrialDialogOpen(true)}
-                  className="block hover:text-orange-500 transition-colors"
+                  className="w-full text-right glass px-4 py-3 rounded-xl border border-white/10 hover:border-orange-400/50 hover:bg-white/5 text-purple-200 hover:text-white transition-all"
                 >
                   طلب نسخة تجريبية
                 </button>
               </div>
             </div>
           </div>
-          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-sm">
-            <p>&copy; {new Date().getFullYear()} نظام إبراهيم للمحاسبة. جميع الحقوق محفوظة.</p>
+          <div className="border-t border-white/10 mt-8 pt-8 text-center">
+            <p className="text-purple-300">&copy; {new Date().getFullYear()} نظام إبراهيم للمحاسبة. جميع الحقوق محفوظة.</p>
           </div>
         </div>
       </footer>
