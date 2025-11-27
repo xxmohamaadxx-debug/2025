@@ -78,7 +78,7 @@ const InternetUsageDialog = ({ open, onOpenChange, usage, subscribers, onSave })
           position="top-right"
           helpTextAr="هنا يمكنك إدخال أو تعديل سجل استخدام إنترنت للمشترك. حدد المشترك، تاريخ ووقت بدء الجلسة، تاريخ ووقت نهاية الجلسة (سيتم حساب المدة تلقائياً)، سرعة الإنترنت، البيانات المستخدمة (MB)، التكلفة، طريقة الدفع، وحالة الدفع."
           helpTextEn="Here you can add or edit an internet usage record for a subscriber. Select the subscriber, session start date and time, session end date and time (duration will be calculated automatically), internet speed, data used (MB), cost, payment method, and payment status."
-          helpTextTr="Burada bir abone için internet kullanım kaydı ekleyebilir veya düzenleyebilirsiniz. Aboneyi seçin, oturum başlangıç tarihi ve saati, oturum bitiş tarihi ve saati (süre otomatik olarak hesaplanacaktır), internet hızı, kullanılan veri (MB), maliyet, ödeme yöntemi ve ödeme durumunu belirtin."}
+          helpTextTr="Burada bir abone için internet kullanım kaydı ekleyebilir veya düzenleyebilirsiniz. Aboneyi seçin, oturum başlangıç tarihi ve saati, oturum bitiş tarihi ve saati (süre otomatik olarak hesaplanacaktır), internet hızı, kullanılan veri (MB), maliyet, ödeme yöntemi ve ödeme durumunu belirtin."
         />
         <DialogHeader>
           <DialogTitle>

@@ -49,7 +49,7 @@ const FuelTypeDialog = ({ open, onOpenChange, fuelType, onSave }) => {
           position="top-right"
           helpTextAr="هنا يمكنك إدخال أو تعديل نوع محروقات (بنزين، ديزل، غاز، إلخ). أدخل الكود، الاسم بالعربية والإنجليزية والتركية، والوحدة (لتر، جالون، كيلوغرام). يمكنك تفعيل أو تعطيل النوع."
           helpTextEn="Here you can add or edit a fuel type (gasoline, diesel, gas, etc.). Enter the code, name in Arabic, English, and Turkish, and the unit (liter, gallon, kilogram). You can activate or deactivate the type."
-          helpTextTr="Burada bir yakıt türü (benzin, dizel, gaz vb.) ekleyebilir veya düzenleyebilirsiniz. Kodu, Arapça, İngilizce ve Türkçe adı ve birimi (litre, galon, kilogram) girin. Türü etkinleştirebilir veya devre dışı bırakabilirsiniz."}
+          helpTextTr="Burada bir yakıt türü (benzin, dizel, gaz vb.) ekleyebilir veya düzenleyebilirsiniz. Kodu, Arapça, İngilizce ve Türkçe adı ve birimi (litre, galon, kilogram) girin. Türü etkinleştirebilir veya devre dışı bırakabilirsiniz."
         />
         <DialogHeader>
           <DialogTitle>

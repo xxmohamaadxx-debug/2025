@@ -78,7 +78,7 @@ const ContractorProjectDialog = ({ open, onOpenChange, project, partners, onSave
           position="top-right"
           helpTextAr="هنا يمكنك إدخال أو تعديل مشروع مقاول. أدخل كود المشروع، الاسم، العميل، تاريخ البدء والانتهاء، التكلفة المقدرة، قيمة العقد، العملة، الحالة (تخطيط، قيد التنفيذ، مكتمل)، نوع المشروع، والموقع. يمكنك ربط المشروع بجدول الكميات (BOQ)."
           helpTextEn="Here you can add or edit a contractor project. Enter the project code, name, client, start and end dates, estimated cost, contract value, currency, status (planning, in progress, completed), project type, and location. You can link the project to a Bill of Quantities (BOQ)."
-          helpTextTr="Burada bir müteahhit projesi ekleyebilir veya düzenleyebilirsiniz. Proje kodunu, adını, müşteriyi, başlangıç ve bitiş tarihlerini, tahmini maliyeti, sözleşme değerini, para birimini, durumu (planlama, devam ediyor, tamamlandı), proje türünü ve konumu girin. Projeyi bir Miktar Listesi (BOQ) ile bağlayabilirsiniz."}
+          helpTextTr="Burada bir müteahhit projesi ekleyebilir veya düzenleyebilirsiniz. Proje kodunu, adını, müşteriyi, başlangıç ve bitiş tarihlerini, tahmini maliyeti, sözleşme değerini, para birimini, durumu (planlama, devam ediyor, tamamlandı), proje türünü ve konumu girin. Projeyi bir Miktar Listesi (BOQ) ile bağlayabilirsiniz."
         />
         <DialogHeader>
           <DialogTitle>

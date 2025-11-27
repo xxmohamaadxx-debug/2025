@@ -50,7 +50,7 @@ const PartnerDialog = ({ open, onOpenChange, partner, onSave }) => {
           position="top-right"
           helpTextAr="هنا يمكنك إدخال أو تعديل بيانات شريك (عميل أو مورد). أدخل الاسم، النوع (عميل أو مورد)، رقم الهاتف، البريد الإلكتروني، والعنوان. يمكنك إضافة ملاحظات إضافية."
           helpTextEn="Here you can add or edit partner data (customer or vendor). Enter the name, type (customer or vendor), phone number, email, and address. You can add additional notes."
-          helpTextTr="Burada ortak verilerini (müşteri veya tedarikçi) ekleyebilir veya düzenleyebilirsiniz. Ad, tür (müşteri veya tedarikçi), telefon numarası, e-posta ve adresi girin. Ek notlar ekleyebilirsiniz."}
+          helpTextTr="Burada ortak verilerini (müşteri veya tedarikçi) ekleyebilir veya düzenleyebilirsiniz. Ad, tür (müşteri veya tedarikçi), telefon numarası, e-posta ve adresi girin. Ek notlar ekleyebilirsiniz."
         />
         <DialogHeader>
           <DialogTitle>

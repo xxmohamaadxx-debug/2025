@@ -54,7 +54,7 @@ const DeviceDialog = ({ open, onOpenChange, device, onSave }) => {
           position="top-right"
           helpTextAr="هنا يمكنك إدخال أو تعديل جهاز في صالة الإنترنت. أدخل رقم الجهاز، المواصفات (المعالج، الذاكرة، إلخ)، الحالة (متاح، مشغول، صيانة)، الموقع، وسعر الجلسة. يمكنك إضافة ملاحظات صيانة."
           helpTextEn="Here you can add or edit a device in the internet cafe. Enter the device number, specifications (processor, memory, etc.), status (available, busy, maintenance), location, and session price. You can add maintenance notes."
-          helpTextTr="Burada internet kafedeki bir cihazı ekleyebilir veya düzenleyebilirsiniz. Cihaz numarasını, özelliklerini (işlemci, bellek, vb.), durumunu (müsait, meşgul, bakım), konumunu ve oturum fiyatını girin. Bakım notları ekleyebilirsiniz."}
+          helpTextTr="Burada internet kafedeki bir cihazı ekleyebilir veya düzenleyebilirsiniz. Cihaz numarasını, özelliklerini (işlemci, bellek, vb.), durumunu (müsait, meşgul, bakım), konumunu ve oturum fiyatını girin. Bakım notları ekleyebilirsiniz."
         />
         <DialogHeader>
           <DialogTitle>{device ? 'تعديل جهاز' : 'إضافة جهاز جديد'}</DialogTitle>

@@ -84,7 +84,7 @@ const ContractorProjectItemDialog = ({ open, onOpenChange, item, projects, units
           position="top-right"
           helpTextAr="هنا يمكنك إدخال أو تعديل بند من جدول الكميات (BOQ) للمشروع. حدد المشروع، أدخل كود البند، الاسم، الكمية، الوحدة، سعر الوحدة، والعملة. يمكنك ربط البند بمنتج من المخزون إذا كان متوفراً."
           helpTextEn="Here you can add or edit a Bill of Quantities (BOQ) item for the project. Select the project, enter the item code, name, quantity, unit, unit price, and currency. You can link the item to an inventory product if available."
-          helpTextTr="Burada proje için bir Miktar Listesi (BOQ) öğesi ekleyebilir veya düzenleyebilirsiniz. Projeyi seçin, öğe kodunu, adını, miktarını, birimini, birim fiyatını ve para birimini girin. Öğeyi mevcut ise bir envanter ürününe bağlayabilirsiniz."}
+          helpTextTr="Burada proje için bir Miktar Listesi (BOQ) öğesi ekleyebilir veya düzenleyebilirsiniz. Projeyi seçin, öğe kodunu, adını, miktarını, birimini, birim fiyatını ve para birimini girin. Öğeyi mevcut ise bir envanter ürününe bağlayabilirsiniz."
         />
         <DialogHeader>
           <DialogTitle>

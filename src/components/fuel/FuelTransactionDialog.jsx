@@ -82,7 +82,7 @@ const FuelTransactionDialog = ({ open, onOpenChange, transaction, fuelTypes, onS
           position="top-right"
           helpTextAr="هنا يمكنك إدخال أو تعديل معاملة محروقات (شراء، بيع، تعديل، أو فقد). حدد نوع المحروقات، الكمية، سعر الوحدة (سيتم حساب الإجمالي تلقائياً)، العملة، طريقة الدفع، والمورد/العميل. يمكنك إضافة ملاحظات."
           helpTextEn="Here you can add or edit a fuel transaction (purchase, sale, adjustment, or loss). Select the fuel type, quantity, unit price (total will be calculated automatically), currency, payment method, and supplier/customer. You can add notes."
-          helpTextTr="Burada bir yakıt işlemi (satın alma, satış, ayarlama veya kayıp) ekleyebilir veya düzenleyebilirsiniz. Yakıt türünü, miktarı, birim fiyatını (toplam otomatik olarak hesaplanacaktır), para birimini, ödeme yöntemini ve tedarikçi/müşteriyi seçin. Notlar ekleyebilirsiniz."}
+          helpTextTr="Burada bir yakıt işlemi (satın alma, satış, ayarlama veya kayıp) ekleyebilir veya düzenleyebilirsiniz. Yakıt türünü, miktarı, birim fiyatını (toplam otomatik olarak hesaplanacaktır), para birimini, ödeme yöntemini ve tedarikçi/müşteriyi seçin. Notlar ekleyebilirsiniz."
         />
         <DialogHeader>
           <DialogTitle>

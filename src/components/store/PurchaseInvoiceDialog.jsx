@@ -152,7 +152,7 @@ const PurchaseInvoiceDialog = ({ open, onOpenChange, invoice, onSave }) => {
           position="top-right"
           helpTextAr="هنا يمكنك إدخال أو تعديل فاتورة شراء. حدد المورد، التاريخ، أضف المنتجات من المخزون، حدد تكلفة الشحن، الضريبة، الخصم، وطريقة الدفع. يمكنك تحديد إذا كانت الفاتورة ديناً (credit) أو مدفوعة."
           helpTextEn="Here you can add or edit a purchase invoice. Select the vendor, date, add products from inventory, specify shipping cost, tax, discount, and payment method. You can specify if the invoice is credit or paid."
-          helpTextTr="Burada bir satın alma faturası ekleyebilir veya düzenleyebilirsiniz. Tedarikçiyi seçin, tarihi, envanterden ürünleri ekleyin, nakliye maliyetini, vergiyi, indirimi ve ödeme yöntemini belirtin. Faturanın kredi mi yoksa ödenmiş mi olduğunu belirtebilirsiniz."}
+          helpTextTr="Burada bir satın alma faturası ekleyebilir veya düzenleyebilirsiniz. Tedarikçiyi seçin, tarihi, envanterden ürünleri ekleyin, nakliye maliyetini, vergiyi, indirimi ve ödeme yöntemini belirtin. Faturanın kredi mi yoksa ödenmiş mi olduğunu belirtebilirsiniz."
         />
         <DialogHeader>
           <DialogTitle>{invoice ? 'تعديل فاتورة شراء' : 'إضافة فاتورة شراء جديدة'}</DialogTitle>

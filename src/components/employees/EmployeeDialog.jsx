@@ -52,7 +52,7 @@ const EmployeeDialog = ({ open, onOpenChange, employee, onSave }) => {
           position="top-right"
           helpTextAr="هنا يمكنك إدخال أو تعديل بيانات موظف. أدخل الاسم الكامل، الوظيفة، الراتب الأساسي، العملة، تاريخ التوظيف، والحالة (نشط/غير نشط). الراتب الأساسي سيُستخدم في كشوف الرواتب."
           helpTextEn="Here you can add or edit employee data. Enter the full name, position, base salary, currency, hire date, and status (active/inactive). The base salary will be used in payroll reports."
-          helpTextTr="Burada çalışan verilerini ekleyebilir veya düzenleyebilirsiniz. Tam adı, pozisyonu, temel maaşı, para birimini, işe alım tarihini ve durumu (aktif/pasif) girin. Temel maaş bordro raporlarında kullanılacaktır."}
+          helpTextTr="Burada çalışan verilerini ekleyebilir veya düzenleyebilirsiniz. Tam adı, pozisyonu, temel maaşı, para birimini, işe alım tarihini ve durumu (aktif/pasif) girin. Temel maaş bordro raporlarında kullanılacaktır."
         />
         <DialogHeader>
           <DialogTitle>

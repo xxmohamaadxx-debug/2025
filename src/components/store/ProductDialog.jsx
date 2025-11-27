@@ -88,7 +88,7 @@ const ProductDialog = ({ open, onOpenChange, product, onSave }) => {
           position="top-right"
           helpTextAr="هنا يمكنك إدخال أو تعديل منتج. أدخل SKU (كود المنتج)، الاسم، الفئة، الماركة، سعر البيع، سعر التكلفة، العملة، معدل الضريبة، والحد الأدنى لإعادة الطلب. يمكنك إضافة مواصفات تفصيلية وموقع الرف."
           helpTextEn="Here you can add or edit a product. Enter the SKU (product code), name, category, brand, selling price, cost price, currency, tax rate, and reorder level. You can add detailed specifications and shelf location."
-          helpTextTr="Burada bir ürün ekleyebilir veya düzenleyebilirsiniz. SKU'yu (ürün kodu), adı, kategoriyi, markayı, satış fiyatını, maliyet fiyatını, para birimini, vergi oranını ve yeniden sipariş seviyesini girin. Detaylı özellikler ve raf konumu ekleyebilirsiniz."}
+          helpTextTr="Burada bir ürün ekleyebilir veya düzenleyebilirsiniz. SKU'yu (ürün kodu), adı, kategoriyi, markayı, satış fiyatını, maliyet fiyatını, para birimini, vergi oranını ve yeniden sipariş seviyesini girin. Detaylı özellikler ve raf konumu ekleyebilirsiniz."
         />
         <DialogHeader>
           <DialogTitle>{product ? 'تعديل منتج' : 'إضافة منتج جديد'}</DialogTitle>

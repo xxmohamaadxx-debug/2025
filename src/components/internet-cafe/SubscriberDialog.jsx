@@ -123,7 +123,7 @@ const SubscriberDialog = ({ open, onOpenChange, subscriber, onSave, subscription
           position="top-right"
           helpTextAr="هنا يمكنك إدخال أو تعديل بيانات مشترك إنترنت. أدخل رقم المشترك، الاسم، الهاتف، البريد الإلكتروني، رقم الهوية، العنوان، الفرع، نوع الاشتراك، تاريخ البدء والانتهاء، السعر، والضريبة. يمكنك ربط المشترك بشريك (عميل)."
           helpTextEn="Here you can add or edit internet subscriber data. Enter the subscriber number, name, phone, email, identity number, address, branch, subscription type, start and end dates, price, and tax. You can link the subscriber to a partner (customer)."
-          helpTextTr="Burada internet abone verilerini ekleyebilir veya düzenleyebilirsiniz. Abone numarasını, adı, telefonu, e-postayı, kimlik numarasını, adresi, şubeyi, abonelik türünü, başlangıç ve bitiş tarihlerini, fiyatı ve vergiyi girin. Aboneyi bir ortakla (müşteri) bağlayabilirsiniz."}
+          helpTextTr="Burada internet abone verilerini ekleyebilir veya düzenleyebilirsiniz. Abone numarasını, adı, telefonu, e-postayı, kimlik numarasını, adresi, şubeyi, abonelik türünü, başlangıç ve bitiş tarihlerini, fiyatı ve vergiyi girin. Aboneyi bir ortakla (müşteri) bağlayabilirsiniz."
         />
         <DialogHeader>
           <DialogTitle>

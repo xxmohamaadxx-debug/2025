@@ -52,7 +52,7 @@ const CustomerDialog = ({ open, onOpenChange, customer, onSave }) => {
           position="top-right"
           helpTextAr="هنا يمكنك إدخال أو تعديل بيانات عميل. أدخل الاسم، رقم الهاتف، البريد الإلكتروني، والعنوان. يمكنك تحديد العملة المفضلة وطريقة الدفع الافتراضية. يمكنك إضافة ملاحظات."
           helpTextEn="Here you can add or edit customer data. Enter the name, phone number, email, and address. You can specify the preferred currency and default payment method. You can add notes."
-          helpTextTr="Burada müşteri verilerini ekleyebilir veya düzenleyebilirsiniz. Adı, telefon numarası, e-postayı ve adresi girin. Tercih edilen para birimini ve varsayılan ödeme yöntemini belirtebilirsiniz. Notlar ekleyebilirsiniz."}
+          helpTextTr="Burada müşteri verilerini ekleyebilir veya düzenleyebilirsiniz. Adı, telefon numarası, e-postayı ve adresi girin. Tercih edilen para birimini ve varsayılan ödeme yöntemini belirtebilirsiniz. Notlar ekleyebilirsiniz."
         />
         <DialogHeader>
           <DialogTitle>

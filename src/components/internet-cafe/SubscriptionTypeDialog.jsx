@@ -82,7 +82,7 @@ const SubscriptionTypeDialog = ({ open, onOpenChange, subscriptionType, onSave }
           position="top-right"
           helpTextAr="هنا يمكنك إدخال أو تعديل نوع اشتراك إنترنت. حدد الاسم، مدة الاشتراك (بالأيام أو الساعات)، حد السرعة، حد البيانات (GB)، ساعات الذروة، السعر، العملة، وسياسة التجديد. يمكنك إضافة رسوم تأخير."
           helpTextEn="Here you can add or edit an internet subscription type. Specify the name, subscription duration (in days or hours), speed limit, data limit (GB), peak hours, price, currency, and renewal policy. You can add late fees."
-          helpTextTr="Burada bir internet abonelik türü ekleyebilir veya düzenleyebilirsiniz. Adı, abonelik süresini (gün veya saat cinsinden), hız limitini, veri limitini (GB), yoğun saatleri, fiyatı, para birimini ve yenileme politikasını belirtin. Gecikme ücretleri ekleyebilirsiniz."}
+          helpTextTr="Burada bir internet abonelik türü ekleyebilir veya düzenleyebilirsiniz. Adı, abonelik süresini (gün veya saat cinsinden), hız limitini, veri limitini (GB), yoğun saatleri, fiyatı, para birimini ve yenileme politikasını belirtin. Gecikme ücretleri ekleyebilirsiniz."
         />
         <DialogHeader>
           <DialogTitle>

@@ -79,7 +79,7 @@ const PaymentDialog = ({ open, onOpenChange, customer, onSave }) => {
           position="top-right"
           helpTextAr="هنا يمكنك إدخال معاملة مالية للعميل (دفعة، استلام، دين، أو رصيد). النظام سيحسب تلقائياً: إذا كان العميل عليه دين، ستُخصم الدفعة من الدين. إذا لم يكن عليه دين، ستُضاف كرصيد. يمكنك تحديد طريقة الدفع والعملة."
           helpTextEn="Here you can enter a financial transaction for the customer (payment, receipt, debt, or credit). The system will automatically calculate: if the customer has debt, the payment will be deducted from the debt. If there is no debt, it will be added as credit. You can specify the payment method and currency."
-          helpTextTr="Burada müşteri için bir finansal işlem girebilirsiniz (ödeme, makbuz, borç veya kredi). Sistem otomatik olarak hesaplayacaktır: müşterinin borcu varsa, ödeme borçtan düşülecektir. Borç yoksa, kredi olarak eklenecektir. Ödeme yöntemini ve para birimini belirtebilirsiniz."}
+          helpTextTr="Burada müşteri için bir finansal işlem girebilirsiniz (ödeme, makbuz, borç veya kredi). Sistem otomatik olarak hesaplayacaktır: müşterinin borcu varsa, ödeme borçtan düşülecektir. Borç yoksa, kredi olarak eklenecektir. Ödeme yöntemini ve para birimini belirtebilirsiniz."
         />
         <DialogHeader>
           <DialogTitle>

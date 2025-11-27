@@ -62,7 +62,7 @@ const SessionDialog = ({ open, onOpenChange, session, subscribers = [], devices 
           position="top-right"
           helpTextAr="هنا يمكنك بدء أو تعديل جلسة إنترنت. حدد المشترك (أو اختر ضيف)، الجهاز، والأسعار (دقيقة/ساعة/أساسي). يمكنك بدء الجلسة مباشرة أو حجزها لوقت لاحق."
           helpTextEn="Here you can start or edit an internet session. Select the subscriber (or choose guest), device, and prices (minute/hour/base). You can start the session immediately or reserve it for later."
-          helpTextTr="Burada bir internet oturumu başlatabilir veya düzenleyebilirsiniz. Aboneyi (veya misafir seçin), cihazı ve fiyatları (dakika/saat/temel) seçin. Oturumu hemen başlatabilir veya daha sonra için rezerve edebilirsiniz."}
+          helpTextTr="Burada bir internet oturumu başlatabilir veya düzenleyebilirsiniz. Aboneyi (veya misafir seçin), cihazı ve fiyatları (dakika/saat/temel) seçin. Oturumu hemen başlatabilir veya daha sonra için rezerve edebilirsiniz."
         />
         <DialogHeader>
           <DialogTitle>{session ? 'تعديل جلسة' : 'بدء جلسة جديدة'}</DialogTitle>

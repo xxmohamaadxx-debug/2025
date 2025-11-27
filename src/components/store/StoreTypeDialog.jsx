@@ -58,7 +58,7 @@ const StoreTypeDialog = ({ open, onOpenChange, storeType, onSave }) => {
           position="top-right"
           helpTextAr="هنا يمكنك إدخال أو تعديل نوع متجر (مثل: صالة إنترنت، متجر مقاولين، محطة محروقات، متجر إكسسوارات). أدخل الكود، الاسم بالعربية والإنجليزية والتركية، الوصف، الأيقونة، وترتيب العرض. يمكنك تفعيل أو تعطيل النوع."
           helpTextEn="Here you can add or edit a store type (e.g., internet cafe, contractor store, fuel station, accessories store). Enter the code, name in Arabic, English, and Turkish, description, icon, and display order. You can activate or deactivate the type."
-          helpTextTr="Burada bir mağaza türü (ör. internet kafe, müteahhit mağazası, benzin istasyonu, aksesuar mağazası) ekleyebilir veya düzenleyebilirsiniz. Kodu, Arapça, İngilizce ve Türkçe adı, açıklamayı, simgeyi ve görüntüleme sırasını girin. Türü etkinleştirebilir veya devre dışı bırakabilirsiniz."}
+          helpTextTr="Burada bir mağaza türü (ör. internet kafe, müteahhit mağazası, benzin istasyonu, aksesuar mağazası) ekleyebilir veya düzenleyebilirsiniz. Kodu, Arapça, İngilizce ve Türkçe adı, açıklamayı, simgeyi ve görüntüleme sırasını girin. Türü etkinleştirebilir veya devre dışı bırakabilirsiniz."
         />
         <DialogHeader>
           <DialogTitle>
