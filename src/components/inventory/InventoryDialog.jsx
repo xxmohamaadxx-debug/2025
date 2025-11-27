@@ -70,35 +70,35 @@ const InventoryDialog = ({ open, onOpenChange, item, onSave }) => {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-1 rtl:text-right">{t('inventory.sku')} / كود المنتج</label>
+              <label className="block text-sm font-medium mb-2 rtl:text-right">{t('inventory.sku')} / كود المنتج</label>
               <input
                 type="text"
                 required
                 value={formData.code || formData.sku}
                 onChange={(e) => setFormData({ ...formData, code: e.target.value, sku: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                 placeholder={t('inventory.skuPlaceholder')}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1 rtl:text-right">{t('inventory.productName')}</label>
+              <label className="block text-sm font-medium mb-2 rtl:text-right">{t('inventory.productName')}</label>
               <input
                 type="text"
                 required
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                 placeholder={t('inventory.productName')}
               />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-1 rtl:text-right">{t('inventory.unit')}</label>
+              <label className="block text-sm font-medium mb-2 rtl:text-right">{t('inventory.unit')}</label>
               <select
                  value={formData.unit}
                  onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
-                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
+                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               >
                 <option value="piece">{t('inventory.unitPcs')}</option>
                 <option value="kg">{t('inventory.unitKg')}</option>
@@ -107,35 +107,35 @@ const InventoryDialog = ({ open, onOpenChange, item, onSave }) => {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1 rtl:text-right">{t('inventory.minStock')}</label>
+              <label className="block text-sm font-medium mb-2 rtl:text-right">{t('inventory.minStock')}</label>
               <input
                 type="number"
                 value={formData.min_stock}
                 onChange={(e) => setFormData({ ...formData, min_stock: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                 placeholder="5"
               />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-               <label className="block text-sm font-medium mb-1 rtl:text-right">{t('common.price')}</label>
+               <label className="block text-sm font-medium mb-2 rtl:text-right">{t('common.price')}</label>
                <input
                  type="number"
                  step="0.01"
                  required
                  value={formData.price}
                  onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
+                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                  placeholder={t('common.price')}
                />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1 rtl:text-right">{t('common.currency')}</label>
+              <label className="block text-sm font-medium mb-2 rtl:text-right">{t('common.currency')}</label>
               <select
                 value={formData.currency}
                 onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               >
                 <option value="USD">$ دولار أمريكي (USD)</option>
                 <option value="TRY">₺ ليرة تركية (TRY)</option>
@@ -146,17 +146,17 @@ const InventoryDialog = ({ open, onOpenChange, item, onSave }) => {
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1 rtl:text-right">{t('common.notes')}</label>
+            <label className="block text-sm font-medium mb-2 rtl:text-right">{t('common.notes')}</label>
             <textarea
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none"
               rows="2"
               placeholder={t('common.notes')}
             />
           </div>
 
-          <div className="flex gap-4 mt-6">
+          <div className="flex gap-4 mt-6 rtl:flex-row-reverse">
             <InteractiveButton
               variant="cancel"
               type="button"

@@ -64,52 +64,52 @@ const CustomerDialog = ({ open, onOpenChange, customer, onSave }) => {
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1 rtl:text-right">الاسم *</label>
+            <label className="block text-sm font-medium mb-2 rtl:text-right">الاسم *</label>
             <input
               type="text"
               required
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               placeholder="اسم العميل"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1 rtl:text-right">الهاتف</label>
+            <label className="block text-sm font-medium mb-2 rtl:text-right">الهاتف</label>
             <input
               type="tel"
               value={formData.phone}
               onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               placeholder="رقم الهاتف"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1 rtl:text-right">البريد الإلكتروني</label>
+            <label className="block text-sm font-medium mb-2 rtl:text-right">البريد الإلكتروني</label>
             <input
               type="email"
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               placeholder="البريد الإلكتروني"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1 rtl:text-right">العنوان</label>
+            <label className="block text-sm font-medium mb-2 rtl:text-right">العنوان</label>
             <textarea
               value={formData.address}
               onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none"
               rows="2"
               placeholder="العنوان"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1 rtl:text-right">العملة</label>
+            <label className="block text-sm font-medium mb-2 rtl:text-right">العملة</label>
             <select
               value={formData.currency}
               onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
             >
               <option value="USD">$ دولار أمريكي (USD)</option>
               <option value="TRY">₺ ليرة تركية (TRY)</option>
@@ -119,11 +119,11 @@ const CustomerDialog = ({ open, onOpenChange, customer, onSave }) => {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1 rtl:text-right">طريقة الدفع الافتراضية</label>
+            <label className="block text-sm font-medium mb-2 rtl:text-right">طريقة الدفع الافتراضية</label>
             <select
               value={formData.payment_method}
               onChange={(e) => setFormData({ ...formData, payment_method: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
             >
               <option value="cash">كاش</option>
               <option value="transfer">حوالة</option>
@@ -131,17 +131,17 @@ const CustomerDialog = ({ open, onOpenChange, customer, onSave }) => {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1 rtl:text-right">ملاحظات</label>
+            <label className="block text-sm font-medium mb-2 rtl:text-right">ملاحظات</label>
             <textarea
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none"
               rows="2"
               placeholder="ملاحظات إضافية"
             />
           </div>
 
-          <div className="flex gap-4 mt-6">
+          <div className="flex gap-4 mt-6 rtl:flex-row-reverse">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="flex-1">
               {t('common.cancel')}
             </Button>

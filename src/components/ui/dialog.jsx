@@ -27,7 +27,7 @@ const DialogContent = React.forwardRef(({ className, children, ...props }, ref) 
       <DialogPrimitive.Content
         ref={ref}
         className={cn(
-          'fixed left-[50%] top-[50%] z-50 grid w-[95vw] sm:w-[90vw] md:w-[85vw] lg:max-w-lg xl:max-w-xl translate-x-[-50%] translate-y-[-50%] gap-4 border bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl p-4 sm:p-6 shadow-2xl duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] rounded-xl max-h-[90vh] sm:max-h-[85vh] overflow-y-auto border-gray-200/50 dark:border-gray-700/50',
+          'fixed left-1/2 top-1/2 z-50 grid w-[95vw] sm:w-[90vw] md:w-[85vw] lg:max-w-lg xl:max-w-xl -translate-x-1/2 -translate-y-1/2 gap-4 border bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl p-4 sm:p-6 shadow-2xl duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] rounded-xl max-h-[90vh] sm:max-h-[85vh] overflow-y-auto border-gray-200/50 dark:border-gray-700/50',
           className
         )}
         {...props}
@@ -46,7 +46,7 @@ DialogContent.displayName = DialogPrimitive.Content.displayName;
 const DialogHeader = ({ className, ...props }) => (
   <div
     className={cn(
-      'flex flex-col space-y-1.5 text-center sm:text-right rtl:sm:text-right',
+      'flex flex-col space-y-1.5 text-center sm:text-right rtl:text-right',
       className
     )}
     {...props}
@@ -57,7 +57,7 @@ DialogHeader.displayName = 'DialogHeader';
 const DialogFooter = ({ className, ...props }) => (
   <div
     className={cn(
-      'flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2',
+      'flex flex-col-reverse sm:flex-row sm:justify-end gap-2 rtl:sm:flex-row-reverse',
       className
     )}
     {...props}

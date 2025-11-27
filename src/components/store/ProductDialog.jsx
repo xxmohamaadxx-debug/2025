@@ -96,31 +96,31 @@ const ProductDialog = ({ open, onOpenChange, product, onSave }) => {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-1">SKU *</label>
+              <label className="block text-sm font-medium mb-2 rtl:text-right">SKU *</label>
               <input
                 type="text"
                 required
                 value={formData.sku}
                 onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">الاسم *</label>
+              <label className="block text-sm font-medium mb-2 rtl:text-right">الاسم *</label>
               <input
                 type="text"
                 required
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">التصنيف</label>
+              <label className="block text-sm font-medium mb-2 rtl:text-right">التصنيف</label>
               <select
                 value={formData.category}
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               >
                 <option value="">-- اختر تصنيف --</option>
                 {categories.map(cat => (
@@ -129,42 +129,42 @@ const ProductDialog = ({ open, onOpenChange, product, onSave }) => {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">العلامة التجارية</label>
+              <label className="block text-sm font-medium mb-2 rtl:text-right">العلامة التجارية</label>
               <input
                 type="text"
                 value={formData.brand}
                 onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">سعر البيع *</label>
+              <label className="block text-sm font-medium mb-2 rtl:text-right">سعر البيع *</label>
               <input
                 type="number"
                 step="0.01"
                 required
                 value={formData.selling_price}
                 onChange={(e) => setFormData({ ...formData, selling_price: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">سعر التكلفة *</label>
+              <label className="block text-sm font-medium mb-2 rtl:text-right">سعر التكلفة *</label>
               <input
                 type="number"
                 step="0.01"
                 required
                 value={formData.cost_price}
                 onChange={(e) => setFormData({ ...formData, cost_price: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">العملة</label>
+              <label className="block text-sm font-medium mb-2 rtl:text-right">العملة</label>
               <select
                 value={formData.currency}
                 onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               >
                 <option value="USD">$ دولار أمريكي (USD)</option>
                 <option value="TRY">₺ ليرة تركية (TRY)</option>
@@ -174,49 +174,49 @@ const ProductDialog = ({ open, onOpenChange, product, onSave }) => {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">نسبة الضريبة (%)</label>
+              <label className="block text-sm font-medium mb-2 rtl:text-right">نسبة الضريبة (%)</label>
               <input
                 type="number"
                 step="0.01"
                 value={formData.tax_rate}
                 onChange={(e) => setFormData({ ...formData, tax_rate: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">الخصم المسموح (%)</label>
+              <label className="block text-sm font-medium mb-2 rtl:text-right">الخصم المسموح (%)</label>
               <input
                 type="number"
                 step="0.01"
                 value={formData.discount_allowed}
                 onChange={(e) => setFormData({ ...formData, discount_allowed: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">حد إعادة الطلب</label>
+              <label className="block text-sm font-medium mb-2 rtl:text-right">حد إعادة الطلب</label>
               <input
                 type="number"
                 value={formData.reorder_level}
                 onChange={(e) => setFormData({ ...formData, reorder_level: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">الموقع على الرف</label>
+              <label className="block text-sm font-medium mb-2 rtl:text-right">الموقع على الرف</label>
               <input
                 type="text"
                 value={formData.shelf_location}
                 onChange={(e) => setFormData({ ...formData, shelf_location: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">حالة التوفر</label>
+              <label className="block text-sm font-medium mb-2 rtl:text-right">حالة التوفر</label>
               <select
                 value={formData.availability_status}
                 onChange={(e) => setFormData({ ...formData, availability_status: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               >
                 <option value="available">متاح</option>
                 <option value="out_of_stock">نفذ من المخزون</option>
@@ -224,21 +224,21 @@ const ProductDialog = ({ open, onOpenChange, product, onSave }) => {
               </select>
             </div>
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium mb-1">الصور</label>
-              <div className="text-sm text-gray-500 mb-2">ميزة رفع الصور قيد التطوير</div>
+              <label className="block text-sm font-medium mb-2 rtl:text-right">الصور</label>
+              <div className="text-sm text-gray-500 mb-2 rtl:text-right">ميزة رفع الصور قيد التطوير</div>
               {/* ImageUploader component will be integrated later */}
             </div>
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium mb-1">الملاحظات</label>
+              <label className="block text-sm font-medium mb-2 rtl:text-right">الملاحظات</label>
               <textarea
                 value={formData.notes}
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none"
                 rows="3"
               />
             </div>
           </div>
-          <div className="flex justify-end gap-2 pt-4">
+          <div className="flex justify-end gap-2 pt-4 rtl:flex-row-reverse">
             <InteractiveButton type="button" variant="outline" onClick={() => onOpenChange(false)}>
               إلغاء
             </InteractiveButton>

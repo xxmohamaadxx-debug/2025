@@ -64,48 +64,48 @@ const EmployeeDialog = ({ open, onOpenChange, employee, onSave }) => {
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1 rtl:text-right">{t('employees.fullName')}</label>
+            <label className="block text-sm font-medium mb-2 rtl:text-right">{t('employees.fullName')}</label>
             <input
               type="text"
               required
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               placeholder={t('employees.fullName')}
             />
           </div>
           
           <div>
-            <label className="block text-sm font-medium mb-1 rtl:text-right">{t('employees.position')}</label>
+            <label className="block text-sm font-medium mb-2 rtl:text-right">{t('employees.position')}</label>
             <input
               type="text"
               required
               value={formData.position}
               onChange={(e) => setFormData({ ...formData, position: e.target.value })}
-              className="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               placeholder={t('employees.position')}
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-1 rtl:text-right">{t('employees.salary')}</label>
+              <label className="block text-sm font-medium mb-2 rtl:text-right">{t('employees.salary')}</label>
               <input
                 type="number"
                 step="0.01"
                 required
                 value={formData.base_salary}
                 onChange={(e) => setFormData({ ...formData, base_salary: e.target.value })}
-                className="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                 placeholder={t('employees.salary')}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1 rtl:text-right">{t('common.currency')}</label>
+              <label className="block text-sm font-medium mb-2 rtl:text-right">{t('common.currency')}</label>
               <select
                 value={formData.currency}
                 onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
-                className="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               >
                 <option value="USD">$ دولار أمريكي (USD)</option>
                 <option value="TRY">₺ ليرة تركية (TRY)</option>
@@ -118,29 +118,29 @@ const EmployeeDialog = ({ open, onOpenChange, employee, onSave }) => {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-1 rtl:text-right">{t('common.status')}</label>
+              <label className="block text-sm font-medium mb-2 rtl:text-right">{t('common.status')}</label>
               <select
                 value={formData.status}
                 onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                className="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               >
                 <option value="Active">{t('status.active')}</option>
                 <option value="Inactive">{t('status.inactive')}</option>
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1 rtl:text-right">{t('employees.hireDate')}</label>
+              <label className="block text-sm font-medium mb-2 rtl:text-right">{t('employees.hireDate')}</label>
               <input
                 type="date"
                 required
                 value={formData.hire_date}
                 onChange={(e) => setFormData({ ...formData, hire_date: e.target.value })}
-                className="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               />
             </div>
           </div>
 
-          <div className="flex gap-4 mt-6">
+          <div className="flex gap-4 mt-6 rtl:flex-row-reverse">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="flex-1">
               {t('common.cancel')}
             </Button>

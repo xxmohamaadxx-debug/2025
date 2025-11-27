@@ -96,25 +96,25 @@ const DailyExpenseDialog = ({ open, onOpenChange, expense, onSave }) => {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-1 rtl:text-right">التاريخ *</label>
+              <label className="block text-sm font-medium mb-2 rtl:text-right">التاريخ *</label>
               <input
                 type="date"
                 required
                 value={formData.expense_date}
                 onChange={(e) => setFormData({ ...formData, expense_date: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1 rtl:text-right">الفئة *</label>
+              <label className="block text-sm font-medium mb-2 rtl:text-right">الفئة *</label>
               <input
                 type="text"
                 required
                 list="categories"
                 value={formData.category}
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                 placeholder="مثل: كهرباء، ماء، إيجار..."
               />
               <datalist id="categories">
@@ -125,25 +125,25 @@ const DailyExpenseDialog = ({ open, onOpenChange, expense, onSave }) => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1 rtl:text-right">المبلغ *</label>
+              <label className="block text-sm font-medium mb-2 rtl:text-right">المبلغ *</label>
               <input
                 type="number"
                 step="0.01"
                 required
                 value={formData.amount}
                 onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                 placeholder="0.00"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1 rtl:text-right">العملة *</label>
+              <label className="block text-sm font-medium mb-2 rtl:text-right">العملة *</label>
               <select
                 required
                 value={formData.currency}
                 onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               >
                 <option value="USD">$ دولار أمريكي (USD)</option>
                 <option value="TRY">₺ ليرة تركية (TRY)</option>
@@ -154,12 +154,12 @@ const DailyExpenseDialog = ({ open, onOpenChange, expense, onSave }) => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1 rtl:text-right">طريقة الدفع *</label>
+              <label className="block text-sm font-medium mb-2 rtl:text-right">طريقة الدفع *</label>
               <select
                 required
                 value={formData.payment_method}
                 onChange={(e) => setFormData({ ...formData, payment_method: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               >
                 <option value="cash">كاش</option>
                 <option value="transfer">حوالة</option>
@@ -168,11 +168,11 @@ const DailyExpenseDialog = ({ open, onOpenChange, expense, onSave }) => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1 rtl:text-right">الموظف المسؤول</label>
+              <label className="block text-sm font-medium mb-2 rtl:text-right">الموظف المسؤول</label>
               <select
                 value={formData.employee_id || ''}
                 onChange={(e) => setFormData({ ...formData, employee_id: e.target.value || null })}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               >
                 <option value="">لا يوجد</option>
                 {employees.map(emp => (
@@ -182,40 +182,40 @@ const DailyExpenseDialog = ({ open, onOpenChange, expense, onSave }) => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1 rtl:text-right">رقم الإيصال</label>
+              <label className="block text-sm font-medium mb-2 rtl:text-right">رقم الإيصال</label>
               <input
                 type="text"
                 value={formData.receipt_number}
                 onChange={(e) => setFormData({ ...formData, receipt_number: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                 placeholder="رقم الإيصال أو الفاتورة"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1 rtl:text-right">اسم المورد</label>
+              <label className="block text-sm font-medium mb-2 rtl:text-right">اسم المورد</label>
               <input
                 type="text"
                 value={formData.supplier_name}
                 onChange={(e) => setFormData({ ...formData, supplier_name: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                 placeholder="اسم المورد أو الجهة"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1 rtl:text-right">الوصف</label>
+            <label className="block text-sm font-medium mb-2 rtl:text-right">الوصف</label>
             <textarea
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none"
               rows="3"
               placeholder="وصف تفصيلي للمصروف..."
             />
           </div>
 
-          <div className="flex gap-4 mt-6">
+          <div className="flex gap-4 mt-6 rtl:flex-row-reverse">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="flex-1">
               {t('common.cancel')}
             </Button>

@@ -261,7 +261,7 @@ const InvoiceDialog = ({ open, onOpenChange, invoice, onSave, type }) => {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-2">
+              <label className="block text-sm font-medium mb-2 rtl:text-right">
                 {t('common.date')}
               </label>
               <input
@@ -269,18 +269,18 @@ const InvoiceDialog = ({ open, onOpenChange, invoice, onSave, type }) => {
                 required
                 value={formData.date}
                 onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2">
+              <label className="block text-sm font-medium mb-2 rtl:text-right">
                 {t('common.currency')}
               </label>
               <select
                 value={formData.currency}
                 onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               >
                 <option value="USD">$ دولار أمريكي (USD)</option>
                 <option value="TRY">₺ ليرة تركية (TRY)</option>
@@ -291,7 +291,7 @@ const InvoiceDialog = ({ open, onOpenChange, invoice, onSave, type }) => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2">
+              <label className="block text-sm font-medium mb-2 rtl:text-right">
                 {t('common.category')}
               </label>
               <input
@@ -299,19 +299,19 @@ const InvoiceDialog = ({ open, onOpenChange, invoice, onSave, type }) => {
                 required
                 value={formData.category}
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                 placeholder="مثال: مواد غذائية، أثاث، إلخ"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2">
+              <label className="block text-sm font-medium mb-2 rtl:text-right">
                 {type === 'in' ? 'المورد' : 'العميل'}
               </label>
               <select
                 value={formData.partner_id || ''}
                 onChange={(e) => setFormData({ ...formData, partner_id: e.target.value || null })}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                 disabled={loadingPartners}
               >
                 <option value="">-- اختر {type === 'in' ? 'مورد' : 'عميل'} --</option>
@@ -326,13 +326,13 @@ const InvoiceDialog = ({ open, onOpenChange, invoice, onSave, type }) => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2">
+              <label className="block text-sm font-medium mb-2 rtl:text-right">
                 اللغة / Language
               </label>
               <select
                 value={formData.language}
                 onChange={(e) => setFormData({ ...formData, language: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               >
                 <option value="ar">العربية</option>
                 <option value="en">English</option>
@@ -341,7 +341,7 @@ const InvoiceDialog = ({ open, onOpenChange, invoice, onSave, type }) => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2">
+              <label className="block text-sm font-medium mb-2 rtl:text-right">
                 {t('common.amount')} ({formData.currency})
               </label>
               <input
@@ -350,18 +350,18 @@ const InvoiceDialog = ({ open, onOpenChange, invoice, onSave, type }) => {
                 required
                 value={formData.amount}
                 onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2">
+              <label className="block text-sm font-medium mb-2 rtl:text-right">
                 طريقة الدفع
               </label>
               <select
                 value={formData.payment_method}
                 onChange={(e) => setFormData({ ...formData, payment_method: e.target.value, is_credit: e.target.value === 'credit' })}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               >
                 <option value="cash">نقد</option>
                 <option value="card">بطاقة</option>
@@ -372,7 +372,7 @@ const InvoiceDialog = ({ open, onOpenChange, invoice, onSave, type }) => {
 
             {formData.is_credit || formData.payment_method === 'credit' ? (
               <div>
-                <label className="block text-sm font-medium mb-2">
+                <label className="block text-sm font-medium mb-2 rtl:text-right">
                   مبلغ الذمة ({formData.currency})
                 </label>
                 <input
@@ -380,21 +380,21 @@ const InvoiceDialog = ({ open, onOpenChange, invoice, onSave, type }) => {
                   step="0.01"
                   value={formData.credit_amount || formData.amount}
                   onChange={(e) => setFormData({ ...formData, credit_amount: e.target.value, is_credit: true })}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                 />
               </div>
             ) : null}
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">
+            <label className="block text-sm font-medium mb-2 rtl:text-right">
               {t('common.description')}
             </label>
             <textarea
               required
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none"
               rows="3"
             />
           </div>
@@ -461,7 +461,7 @@ const InvoiceDialog = ({ open, onOpenChange, invoice, onSave, type }) => {
                             type="text"
                             value={item.item_name || ''}
                             onChange={(e) => handleUpdateItem(index, 'item_name', e.target.value)}
-                            className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-gray-100 text-sm"
+                            className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 dark:text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                             placeholder="اسم المنتج"
                             required
                           />
@@ -471,7 +471,7 @@ const InvoiceDialog = ({ open, onOpenChange, invoice, onSave, type }) => {
                             type="text"
                             value={item.item_code || ''}
                             onChange={(e) => handleUpdateItem(index, 'item_code', e.target.value)}
-                            className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-gray-100 text-sm"
+                            className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 dark:text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                             placeholder="الكود"
                           />
                         </td>
@@ -482,7 +482,7 @@ const InvoiceDialog = ({ open, onOpenChange, invoice, onSave, type }) => {
                             min="0"
                             value={item.quantity || ''}
                             onChange={(e) => handleUpdateItem(index, 'quantity', parseFloat(e.target.value) || 0)}
-                            className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-gray-100 text-sm"
+                            className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 dark:text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                             required
                           />
                         </td>
@@ -491,7 +491,7 @@ const InvoiceDialog = ({ open, onOpenChange, invoice, onSave, type }) => {
                             type="text"
                             value={item.unit || ''}
                             onChange={(e) => handleUpdateItem(index, 'unit', e.target.value)}
-                            className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-gray-100 text-sm"
+                            className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 dark:text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                             placeholder="قطعة"
                           />
                         </td>
@@ -502,7 +502,7 @@ const InvoiceDialog = ({ open, onOpenChange, invoice, onSave, type }) => {
                             min="0"
                             value={item.unit_price || ''}
                             onChange={(e) => handleUpdateItem(index, 'unit_price', parseFloat(e.target.value) || 0)}
-                            className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-gray-100 text-sm"
+                            className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 dark:text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                             required
                           />
                         </td>
@@ -580,7 +580,7 @@ const InvoiceDialog = ({ open, onOpenChange, invoice, onSave, type }) => {
             </div>
           </div>
 
-          <div className="flex gap-4">
+          <div className="flex gap-4 rtl:flex-row-reverse">
             <InteractiveButton
               variant="cancel"
               type="button"

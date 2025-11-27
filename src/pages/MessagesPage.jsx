@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   MessageCircle, Send, Search, User, Store, 
-  CheckCircle, CheckCircle2, Clock, ArrowLeft, X
+  CheckCircle, CheckCircle2, Clock, ArrowLeft, X, Plus
 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { formatDateAR } from '@/lib/dateUtils';
@@ -210,7 +210,20 @@ const MessagesPage = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-200px)]">
         {/* قائمة المحادثات */}
         <GlassCard className="p-0 overflow-hidden flex flex-col">
-          <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+          <div className="p-4 border-b border-gray-200 dark:border-gray-700 space-y-3">
+            <div className="flex items-center justify-between gap-2">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                {locale === 'ar' ? 'المحادثات' : locale === 'en' ? 'Conversations' : 'Sohbetler'}
+              </h2>
+              <Button
+                onClick={() => setShowNewConversationDialog(true)}
+                className="bg-gradient-to-r from-orange-500 to-pink-500 text-white hover:from-orange-600 hover:to-pink-600"
+                size="sm"
+              >
+                <Plus className="h-4 w-4 ml-2 rtl:mr-2 rtl:ml-0" />
+                {locale === 'ar' ? 'إضافة دردشة' : locale === 'en' ? 'New Chat' : 'Yeni Sohbet'}
+              </Button>
+            </div>
             <div className="relative">
               <Search className="absolute right-3 rtl:left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
               <input
@@ -218,7 +231,7 @@ const MessagesPage = () => {
                 placeholder={locale === 'ar' ? 'بحث في المحادثات...' : locale === 'en' ? 'Search conversations...' : 'Sohbetleri ara...'}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100 focus:ring-2 focus:ring-orange-500"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               />
             </div>
           </div>

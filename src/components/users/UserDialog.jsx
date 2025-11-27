@@ -66,22 +66,22 @@ const UserDialog = ({ open, onOpenChange, user, onSave }) => {
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1 rtl:text-right">{t('common.name')}</label>
+            <label className="block text-sm font-medium mb-2 rtl:text-right">{t('common.name')}</label>
             <input
               type="text"
               required
-              className="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               placeholder={t('common.name')}
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1 rtl:text-right">{t('common.email')}</label>
+            <label className="block text-sm font-medium mb-2 rtl:text-right">{t('common.email')}</label>
             <input
               type="email"
               required
-              className="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               placeholder={t('common.email')}
@@ -99,9 +99,9 @@ const UserDialog = ({ open, onOpenChange, user, onSave }) => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1 rtl:text-right">{t('common.role')}</label>
+            <label className="block text-sm font-medium mb-2 rtl:text-right">{t('common.role')}</label>
             <select
-              className="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               value={formData.role}
               onChange={(e) => setFormData({ ...formData, role: e.target.value })}
             >
@@ -114,9 +114,9 @@ const UserDialog = ({ open, onOpenChange, user, onSave }) => {
           {/* الصلاحيات - فقط للمحاسب */}
           {formData.role === 'Accountant' || formData.role === ROLES.ACCOUNTANT ? (
             <div className="space-y-3 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600">
-              <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300">صلاحيات المحاسب</h4>
+              <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 rtl:text-right">صلاحيات المحاسب</h4>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <label className="flex items-center gap-2 cursor-pointer p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
+                <label className="flex items-center gap-2 cursor-pointer p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors rtl:flex-row-reverse">
                   <input
                     type="checkbox"
                     checked={formData.can_edit_data || false}
@@ -125,7 +125,7 @@ const UserDialog = ({ open, onOpenChange, user, onSave }) => {
                   />
                   <span className="text-sm text-gray-700 dark:text-gray-300">يمكن التعديل</span>
                 </label>
-                <label className="flex items-center gap-2 cursor-pointer p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
+                <label className="flex items-center gap-2 cursor-pointer p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors rtl:flex-row-reverse">
                   <input
                     type="checkbox"
                     checked={formData.can_delete_data || false}
@@ -134,7 +134,7 @@ const UserDialog = ({ open, onOpenChange, user, onSave }) => {
                   />
                   <span className="text-sm text-gray-700 dark:text-gray-300">يمكن الحذف</span>
                 </label>
-                <label className="flex items-center gap-2 cursor-pointer p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
+                <label className="flex items-center gap-2 cursor-pointer p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors rtl:flex-row-reverse">
                   <input
                     type="checkbox"
                     checked={formData.can_create_users || false}
@@ -147,7 +147,7 @@ const UserDialog = ({ open, onOpenChange, user, onSave }) => {
             </div>
           ) : null}
 
-          <div className="flex gap-4 mt-6">
+          <div className="flex gap-4 mt-6 rtl:flex-row-reverse">
             <InteractiveButton
               variant="cancel"
               type="button"
