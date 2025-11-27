@@ -3282,10 +3282,29 @@ export const neonService = {
   // حذف الرسائل القديمة (أكثر من 15 يوم)
   deleteOldMessages: async () => {
     try {
-      const result = await sql`
-        SELECT * FROM auto_delete_old_messages() as deleted_count
+      // محاولة استخدام الدالة إذا كانت موجودة
+      const funcExists = await sql`
+        SELECT EXISTS (
+          SELECT 1 FROM pg_proc p
+          JOIN pg_namespace n ON p.pronamespace = n.oid
+          WHERE n.nspname = 'public' AND p.proname = 'auto_delete_old_messages'
+        ) as exists
       `;
-      return result[0]?.deleted_count || 0;
+      
+      if (funcExists[0]?.exists) {
+        const result = await sql`
+          SELECT * FROM auto_delete_old_messages() as deleted_count
+        `;
+        return result[0]?.deleted_count || 0;
+      }
+      
+      // Fallback: حذف يدوي
+      const result = await sql`
+        DELETE FROM messages
+        WHERE created_at < NOW() - INTERVAL '15 days'
+        RETURNING id
+      `;
+      return result.length;
     } catch (error) {
       console.error('deleteOldMessages error:', error);
       // Fallback: حذف يدوي
@@ -3300,6 +3319,78 @@ export const neonService = {
         console.error('deleteOldMessages fallback error:', fallbackError);
         return 0;
       }
+    }
+  },
+
+  // الحصول على جميع المستخدمين في المتجر للمحادثة
+  getTenantUsersForMessaging: async (tenantId, currentUserId) => {
+    try {
+      // محاولة استخدام الدالة إذا كانت موجودة
+      const funcExists = await sql`
+        SELECT EXISTS (
+          SELECT 1 FROM pg_proc p
+          JOIN pg_namespace n ON p.pronamespace = n.oid
+          WHERE n.nspname = 'public' AND p.proname = 'get_tenant_users_for_messaging'
+        ) as exists
+      `;
+      
+      if (funcExists[0]?.exists) {
+        const result = await sql`
+          SELECT * FROM get_tenant_users_for_messaging(${tenantId}::UUID, ${currentUserId}::UUID)
+        `;
+        return result || [];
+      }
+      
+      // Fallback: استعلام يدوي
+      const result = await sql`
+        SELECT 
+          u.id as user_id,
+          u.name as user_name,
+          u.email as user_email,
+          u.role as user_role,
+          (u.role = 'Store Owner' OR u.role = 'store_owner')::BOOLEAN as is_store_owner,
+          EXISTS(
+            SELECT 1 FROM messages m
+            WHERE m.tenant_id = ${tenantId}
+            AND ((m.sender_id = ${currentUserId} AND m.receiver_id = u.id) OR (m.sender_id = u.id AND m.receiver_id = ${currentUserId}))
+          ) as has_conversation,
+          (
+            SELECT m.message_text
+            FROM messages m
+            WHERE m.tenant_id = ${tenantId}
+            AND ((m.sender_id = ${currentUserId} AND m.receiver_id = u.id) OR (m.sender_id = u.id AND m.receiver_id = ${currentUserId}))
+            ORDER BY m.created_at DESC
+            LIMIT 1
+          ) as last_message_text,
+          (
+            SELECT m.created_at
+            FROM messages m
+            WHERE m.tenant_id = ${tenantId}
+            AND ((m.sender_id = ${currentUserId} AND m.receiver_id = u.id) OR (m.sender_id = u.id AND m.receiver_id = ${currentUserId}))
+            ORDER BY m.created_at DESC
+            LIMIT 1
+          ) as last_message_time,
+          (
+            SELECT COUNT(*)
+            FROM messages m
+            WHERE m.tenant_id = ${tenantId}
+            AND m.sender_id = u.id
+            AND m.receiver_id = ${currentUserId}
+            AND m.is_read = false
+          )::BIGINT as unread_count
+        FROM users u
+        WHERE u.tenant_id = ${tenantId}
+        AND u.id != ${currentUserId}
+        AND u.is_active = true
+        ORDER BY 
+          has_conversation DESC,
+          last_message_time DESC NULLS LAST,
+          u.name
+      `;
+      return result || [];
+    } catch (error) {
+      console.error('getTenantUsersForMessaging error:', error);
+      return [];
     }
   },
 

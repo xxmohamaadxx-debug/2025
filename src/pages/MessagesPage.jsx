@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   MessageCircle, Send, Search, User, Store, 
-  CheckCircle, CheckCircle2, Clock, ArrowLeft 
+  CheckCircle, CheckCircle2, Clock, ArrowLeft, X
 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { formatDateAR } from '@/lib/dateUtils';
@@ -23,12 +23,16 @@ const MessagesPage = () => {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [availableUsers, setAvailableUsers] = useState([]);
+  const [showNewConversationDialog, setShowNewConversationDialog] = useState(false);
+  const [selectedUserForNewChat, setSelectedUserForNewChat] = useState(null);
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
 
   useEffect(() => {
     if (user?.tenant_id) {
       loadConversations();
+      loadAvailableUsers();
       // حذف الرسائل القديمة تلقائياً
       neonService.deleteOldMessages().catch(console.error);
     }
@@ -65,6 +69,42 @@ const MessagesPage = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const loadAvailableUsers = async () => {
+    try {
+      const data = await neonService.getTenantUsersForMessaging(user.tenant_id, user.id);
+      setAvailableUsers(data || []);
+    } catch (error) {
+      console.error('Load available users error:', error);
+    }
+  };
+
+  const handleStartNewConversation = (selectedUser) => {
+    // البحث عن محادثة موجودة
+    const existingConv = conversations.find(
+      conv => conv.other_user_id === selectedUser.user_id
+    );
+    
+    if (existingConv) {
+      setSelectedConversation(existingConv);
+    } else {
+      // إنشاء محادثة جديدة
+      const newConv = {
+        other_user_id: selectedUser.user_id,
+        other_user_name: selectedUser.user_name,
+        other_user_email: selectedUser.user_email,
+        is_store_owner: selectedUser.is_store_owner,
+        last_message_text: null,
+        last_message_time: null,
+        unread_count: 0
+      };
+      setSelectedConversation(newConv);
+      setConversations([newConv, ...conversations]);
+    }
+    
+    setShowNewConversationDialog(false);
+    setSelectedUserForNewChat(null);
   };
 
   const loadMessages = async () => {
@@ -361,6 +401,72 @@ const MessagesPage = () => {
           )}
         </div>
       </div>
+
+      {/* Dialog لاختيار مستخدم جديد للمحادثة */}
+      {showNewConversationDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 dark:bg-black/70 backdrop-blur-md">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-[95vw] max-w-md max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                {locale === 'ar' ? 'اختر مستخدم للمحادثة' : locale === 'en' ? 'Select User to Chat' : 'Sohbet için Kullanıcı Seç'}
+              </h2>
+              <button
+                onClick={() => setShowNewConversationDialog(false)}
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4">
+              {availableUsers.length === 0 ? (
+                <div className="text-center text-gray-500 py-8">
+                  {locale === 'ar' ? 'لا يوجد مستخدمون متاحون' : locale === 'en' ? 'No users available' : 'Kullanıcı yok'}
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {availableUsers.map((usr) => (
+                    <motion.button
+                      key={usr.user_id}
+                      whileHover={{ backgroundColor: 'rgba(255, 140, 0, 0.1)' }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => handleStartNewConversation(usr)}
+                      className="w-full text-right rtl:text-left p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`p-2 rounded-full ${usr.is_store_owner ? 'bg-orange-100 dark:bg-orange-900/30' : 'bg-blue-100 dark:bg-blue-900/30'}`}>
+                          {usr.is_store_owner ? (
+                            <Store className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+                          ) : (
+                            <User className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-gray-900 dark:text-white">
+                            {usr.user_name}
+                          </h3>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            {usr.user_email} • {usr.user_role}
+                          </p>
+                          {usr.has_conversation && (
+                            <p className="text-xs text-orange-500 mt-1">
+                              {locale === 'ar' ? 'محادثة موجودة' : locale === 'en' ? 'Existing conversation' : 'Mevcut sohbet'}
+                            </p>
+                          )}
+                        </div>
+                        {usr.unread_count > 0 && (
+                          <span className="bg-orange-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                            {usr.unread_count}
+                          </span>
+                        )}
+                      </div>
+                    </motion.button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
