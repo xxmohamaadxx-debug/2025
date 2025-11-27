@@ -202,7 +202,7 @@ const AdvancedFinancialBox = ({ t }) => {
     <motion.div
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
-      className="relative bg-gradient-to-br from-white/95 to-white/90 dark:from-gray-800/95 dark:to-gray-800/90 backdrop-blur-xl p-6 rounded-2xl shadow-xl border border-gray-200/50 dark:border-gray-700/50 overflow-hidden"
+      className="relative bg-gradient-to-br from-orange-50/95 via-pink-50/90 to-purple-50/95 dark:from-gray-800/95 dark:via-gray-800/90 dark:to-gray-800/95 backdrop-blur-xl p-6 rounded-2xl shadow-xl border border-orange-200/50 dark:border-gray-700/50 overflow-hidden"
       style={{
         boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.1) inset',
       }}
@@ -243,7 +243,7 @@ const AdvancedFinancialBox = ({ t }) => {
               animate={{ scale: 1 }}
               className="text-3xl font-black bg-gradient-to-r from-green-600 via-emerald-500 to-teal-500 dark:from-green-400 dark:via-emerald-400 dark:to-teal-400 bg-clip-text text-transparent mt-1 drop-shadow-sm"
             >
-              ${financialData.totalUSD.toLocaleString('ar-EG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              ${financialData.totalUSD.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </motion.p>
           </div>
         </div>
@@ -278,7 +278,7 @@ const AdvancedFinancialBox = ({ t }) => {
             >
               <p className="text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2">{currencyInfo.nameAr || currency}</p>
               <p className={`text-lg font-black ${isPositive ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}`}>
-                {currencyInfo.symbol}{balance.toLocaleString('ar-EG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                {currencyInfo.symbol}{balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </p>
             </motion.div>
           );
@@ -321,7 +321,7 @@ const AdvancedFinancialBox = ({ t }) => {
                   الديون المطلوبة من العملاء (دائن)
                 </p>
                 <p className="text-xl font-black text-blue-700 dark:text-blue-400">
-                  ${financialData.totalDebtsOwedUSD.toLocaleString('ar-EG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  ${financialData.totalDebtsOwedUSD.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </p>
               </motion.div>
             )}
@@ -335,7 +335,7 @@ const AdvancedFinancialBox = ({ t }) => {
                   الديون المستحقة علينا (مدين)
                 </p>
                 <p className="text-xl font-black text-amber-700 dark:text-amber-400">
-                  ${financialData.totalDebtsDueUSD.toLocaleString('ar-EG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  ${financialData.totalDebtsDueUSD.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </p>
               </motion.div>
             )}

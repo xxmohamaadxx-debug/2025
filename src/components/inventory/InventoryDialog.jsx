@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from '@/components/ui/button';
 import { InteractiveButton } from '@/components/ui/InteractiveButton';
 import { useLanguage } from '@/contexts/LanguageContext';
+import HelpButton from '@/components/ui/HelpButton';
 
 const InventoryDialog = ({ open, onOpenChange, item, onSave }) => {
   const { t } = useLanguage();
@@ -51,7 +52,13 @@ const InventoryDialog = ({ open, onOpenChange, item, onSave }) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md relative">
+        <HelpButton
+          position="top-right"
+          helpTextAr="هنا يمكنك إدخال أو تعديل بيانات المنتج في المستودع. تأكد من إدخال كود المنتج (SKU) بشكل صحيح، وحدد الكمية والحد الأدنى للمخزون. السعر والعملة مهمان لتتبع القيمة المالية للمنتج."
+          helpTextEn="Here you can add or edit product data in the warehouse. Make sure to enter the product code (SKU) correctly, and specify the quantity and minimum stock. Price and currency are important for tracking the financial value of the product."
+          helpTextTr="Burada depodaki ürün verilerini ekleyebilir veya düzenleyebilirsiniz. Ürün kodunu (SKU) doğru girdiğinizden emin olun ve miktarı ile minimum stoğu belirtin. Fiyat ve para birimi, ürünün finansal değerini takip etmek için önemlidir."
+        />
         <DialogHeader>
           <DialogTitle>
             {item ? t('common.edit') : t('common.add')} {t('inventory.product')}

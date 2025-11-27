@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { neonService } from '@/lib/neonService';
 import { Button } from '@/components/ui/button';
-import { Loader2, Plus, Store, Edit, Trash2, MessageCircle, Download, FileDown, Package, Users, ShoppingCart, FolderPlus } from 'lucide-react';
+import { Loader2, Plus, Store, Edit, Trash2, MessageCircle, Download, FileDown, Package, Users, ShoppingCart, FolderPlus, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from '@/components/ui/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
@@ -21,6 +21,7 @@ const AdminPanel = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [subscriptionDialogOpen, setSubscriptionDialogOpen] = useState(false);
+  const [trialPeriodDialogOpen, setTrialPeriodDialogOpen] = useState(false);
   const [contentDialogOpen, setContentDialogOpen] = useState(false);
   const [selectedStore, setSelectedStore] = useState(null);
   
@@ -49,6 +50,12 @@ const AdminPanel = () => {
   const [subscriptionFormData, setSubscriptionFormData] = useState({
     plan: 'monthly',
     customDays: '',
+    customExpiryDate: ''
+  });
+
+  // Trial Period Form
+  const [trialPeriodFormData, setTrialPeriodFormData] = useState({
+    trialDays: 15,
     customExpiryDate: ''
   });
 
@@ -307,6 +314,62 @@ const AdminPanel = () => {
       customExpiryDate: store.subscription_expires_at ? store.subscription_expires_at.split('T')[0] : ''
     });
     setSubscriptionDialogOpen(true);
+  };
+
+  const handleEditTrialPeriod = (store) => {
+    setSelectedStore(store);
+    // حساب الأيام المتبقية من الفترة التجريبية
+    const currentExpiry = store.subscription_expires_at ? new Date(store.subscription_expires_at) : new Date();
+    const now = new Date();
+    const daysRemaining = Math.max(0, Math.ceil((currentExpiry - now) / (1000 * 60 * 60 * 24)));
+    
+    setTrialPeriodFormData({
+      trialDays: daysRemaining > 0 ? daysRemaining : 15,
+      customExpiryDate: store.subscription_expires_at ? store.subscription_expires_at.split('T')[0] : ''
+    });
+    setTrialPeriodDialogOpen(true);
+  };
+
+  const handleUpdateTrialPeriod = async () => {
+    if (!selectedStore) return;
+
+    setLoading(true);
+    try {
+      let expiryDate;
+      
+      if (trialPeriodFormData.customExpiryDate) {
+        expiryDate = new Date(trialPeriodFormData.customExpiryDate);
+      } else {
+        // حساب من اليوم الحالي
+        expiryDate = new Date();
+        expiryDate.setDate(expiryDate.getDate() + parseInt(trialPeriodFormData.trialDays));
+      }
+
+      await neonService.updateTenant(selectedStore.id, {
+        subscription_expires_at: expiryDate.toISOString(),
+        subscription_plan: 'trial',
+        subscription_status: 'trial'
+      });
+
+      toast({ 
+        title: "تم بنجاح", 
+        description: `تم تحديث الفترة التجريبية للمتجر "${selectedStore.name}" إلى ${trialPeriodFormData.trialDays} يوم`,
+        variant: "default"
+      });
+
+      setTrialPeriodDialogOpen(false);
+      setSelectedStore(null);
+      fetchStores();
+    } catch (error) {
+      console.error('Update trial period error:', error);
+      toast({ 
+        title: "خطأ", 
+        description: error.message || "حدث خطأ أثناء تحديث الفترة التجريبية",
+        variant: "destructive" 
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleUpdateSubscription = async () => {
@@ -1072,6 +1135,96 @@ const AdminPanel = () => {
                             </>
                         ) : (
                             'تمديد الاشتراك'
+                        )}
+                    </Button>
+                </div>
+            </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Trial Period Dialog */}
+      <Dialog open={trialPeriodDialogOpen} onOpenChange={setTrialPeriodDialogOpen}>
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+                <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-transparent">
+                  ⏰ تعديل الفترة التجريبية
+                </DialogTitle>
+                <DialogDescription>
+                  قم بتعديل الفترة التجريبية للمتجر "{selectedStore?.name}"
+                </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+                <div>
+                    <label className="block text-sm font-medium mb-2 rtl:text-right">
+                      عدد الأيام التجريبية
+                    </label>
+                    <input
+                        type="number"
+                        min="1"
+                        max="365"
+                        value={trialPeriodFormData.trialDays}
+                        onChange={(e) => setTrialPeriodFormData({ 
+                          ...trialPeriodFormData, 
+                          trialDays: parseInt(e.target.value) || 15 
+                        })}
+                        className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all"
+                        placeholder="15"
+                    />
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 rtl:text-right">
+                      سيتم حساب تاريخ الانتهاء من اليوم الحالي
+                    </p>
+                </div>
+
+                <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                    <p className="text-sm text-blue-800 dark:text-blue-300 rtl:text-right">
+                      <strong>تاريخ الانتهاء المتوقع:</strong>{' '}
+                      {trialPeriodFormData.trialDays > 0 
+                        ? formatDateAR(new Date(Date.now() + trialPeriodFormData.trialDays * 24 * 60 * 60 * 1000).toISOString())
+                        : '-'}
+                    </p>
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium mb-2 rtl:text-right">
+                      أو حدد تاريخ انتهاء محدد
+                    </label>
+                    <input
+                        type="date"
+                        value={trialPeriodFormData.customExpiryDate}
+                        onChange={(e) => setTrialPeriodFormData({ 
+                          ...trialPeriodFormData, 
+                          customExpiryDate: e.target.value 
+                        })}
+                        className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all"
+                    />
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 rtl:text-right">
+                      إذا حددت تاريخاً محدداً، سيتم تجاهل عدد الأيام
+                    </p>
+                </div>
+
+                <div className="flex gap-2 pt-2">
+                    <Button
+                        onClick={() => setTrialPeriodDialogOpen(false)}
+                        variant="outline"
+                        className="flex-1"
+                    >
+                        إلغاء
+                    </Button>
+                    <Button
+                        onClick={handleUpdateTrialPeriod}
+                        className="flex-1 bg-gradient-to-r from-orange-500 to-pink-500 text-white hover:from-orange-600 hover:to-pink-600 shadow-lg hover:shadow-xl transition-all hover:scale-105 active:scale-95"
+                        disabled={loading}
+                    >
+                        {loading ? (
+                            <>
+                                <Loader2 className="h-4 w-4 animate-spin ml-2 rtl:mr-2 rtl:ml-0" />
+                                جاري التحديث...
+                            </>
+                        ) : (
+                            <>
+                                <Clock className="h-4 w-4 ml-2 rtl:mr-2 rtl:ml-0" />
+                                حفظ التغييرات
+                            </>
                         )}
                     </Button>
                 </div>

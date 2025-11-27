@@ -2438,6 +2438,27 @@ export const neonService = {
   // التقارير - صالة الإنترنت
   getInternetCafeDailyReport: async (tenantId, date = null) => {
     try {
+      // التحقق من وجود الجدول أولاً
+      const tableExists = await sql`
+        SELECT EXISTS (
+          SELECT FROM information_schema.tables 
+          WHERE table_schema = 'public' 
+          AND table_name = 'internet_sessions'
+        )
+      `;
+      
+      if (!tableExists[0]?.exists) {
+        return {
+          total_sessions: 0,
+          total_minutes: 0,
+          total_data_gb: 0,
+          total_revenue: 0,
+          avg_revenue_per_session: 0,
+          active_subscribers: 0,
+          active_devices: 0
+        };
+      }
+      
       const reportDate = date || new Date().toISOString().split('T')[0];
       const result = await sql`
         SELECT 
@@ -2462,7 +2483,15 @@ export const neonService = {
       };
     } catch (error) {
       console.error('getInternetCafeDailyReport error:', error);
-      return null;
+      return {
+        total_sessions: 0,
+        total_minutes: 0,
+        total_data_gb: 0,
+        total_revenue: 0,
+        avg_revenue_per_session: 0,
+        active_subscribers: 0,
+        active_devices: 0
+      };
     }
   },
 
@@ -2482,6 +2511,23 @@ export const neonService = {
   getFinancialBoxWithDebts: async (tenantId) => {
     try {
       const financialBox = await neonService.getFinancialBox(tenantId);
+      
+      // التحقق من وجود الجدول أولاً
+      const tableExists = await sql`
+        SELECT EXISTS (
+          SELECT FROM information_schema.tables 
+          WHERE table_schema = 'public' 
+          AND table_name = 'credit_debit_transactions'
+        )
+      `;
+      
+      if (!tableExists[0]?.exists) {
+        return {
+          ...financialBox,
+          debts_owed: { try: 0, usd: 0, syp: 0, sar: 0, eur: 0 },
+          debts_due: { try: 0, usd: 0, syp: 0, sar: 0, eur: 0 }
+        };
+      }
       
       // حساب الديون المطلوبة من العملاء (دائن - لنا)
       const debtsOwedResult = await sql`
@@ -2533,7 +2579,12 @@ export const neonService = {
       };
     } catch (error) {
       console.error('getFinancialBoxWithDebts error:', error);
-      return await neonService.getFinancialBox(tenantId);
+      const financialBox = await neonService.getFinancialBox(tenantId);
+      return {
+        ...financialBox,
+        debts_owed: { try: 0, usd: 0, syp: 0, sar: 0, eur: 0 },
+        debts_due: { try: 0, usd: 0, syp: 0, sar: 0, eur: 0 }
+      };
     }
   },
 
@@ -2798,12 +2849,18 @@ export const neonService = {
     }
     
     try {
-      const result = await sql`
-        SELECT * FROM check_user_access(${userId}::UUID) as access_result
-      `;
-      
-      if (result && result[0] && result[0].access_result) {
-        return result[0].access_result;
+      // محاولة استخدام الدالة من قاعدة البيانات (إذا كانت موجودة)
+      try {
+        const result = await sql`
+          SELECT * FROM check_user_access(${userId}::UUID) as access_result
+        `;
+        
+        if (result && result[0] && result[0].access_result) {
+          return result[0].access_result;
+        }
+      } catch (funcError) {
+        // الدالة غير موجودة، نستخدم التحقق اليدوي
+        console.log('check_user_access function not available, using manual check');
       }
       
       // Fallback: التحقق اليدوي إذا لم تكن الدالة متوفرة
