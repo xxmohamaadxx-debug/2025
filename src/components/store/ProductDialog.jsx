@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { InteractiveButton } from '@/components/ui/InteractiveButton';
-import ImageUploader from '@/components/ImageUploader';
+// import ImageUploader from '@/components/ImageUploader'; // سيتم إضافته لاحقاً
 
 const ProductDialog = ({ open, onOpenChange, product, onSave }) => {
   const [formData, setFormData] = useState({
@@ -216,11 +216,8 @@ const ProductDialog = ({ open, onOpenChange, product, onSave }) => {
             </div>
             <div className="md:col-span-2">
               <label className="block text-sm font-medium mb-1">الصور</label>
-              <ImageUploader
-                images={formData.images || []}
-                onImagesChange={(images) => setFormData({ ...formData, images })}
-                maxImages={5}
-              />
+              <div className="text-sm text-gray-500 mb-2">ميزة رفع الصور قيد التطوير</div>
+              {/* ImageUploader component will be integrated later */}
             </div>
             <div className="md:col-span-2">
               <label className="block text-sm font-medium mb-1">الملاحظات</label>

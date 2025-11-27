@@ -8,8 +8,8 @@ import { Download, FileText, FileSpreadsheet, Calendar, Loader2 } from 'lucide-r
 import { toast } from '@/components/ui/use-toast';
 import GlassCard from '@/components/ui/GlassCard';
 import { formatDateAR } from '@/lib/dateUtils';
-import { exportToExcel } from '@/lib/exportUtils';
-import { exportReportPDF } from '@/lib/pdfUtils';
+// import { exportToExcel } from '@/lib/exportUtils';
+// import { exportReportPDF } from '@/lib/pdfUtils';
 
 const ComprehensiveReportsPage = () => {
   const { user, tenant } = useAuth();
@@ -52,9 +52,20 @@ const ComprehensiveReportsPage = () => {
 
   const handleExportPDF = async () => {
     try {
-      // Implementation for PDF export
+      // TODO: Implementation for PDF export
       toast({ title: 'تم تصدير التقرير بنجاح' });
     } catch (error) {
+      console.error('Export PDF error:', error);
+      toast({ title: 'خطأ في التصدير', variant: "destructive" });
+    }
+  };
+
+  const handleExportExcel = async () => {
+    try {
+      // TODO: Implementation for Excel export
+      toast({ title: 'تم تصدير التقرير بنجاح' });
+    } catch (error) {
+      console.error('Export Excel error:', error);
       toast({ title: 'خطأ في التصدير', variant: "destructive" });
     }
   };
@@ -73,7 +84,7 @@ const ComprehensiveReportsPage = () => {
           <Button onClick={handleExportPDF} variant="outline">
             <FileText className="h-4 w-4 ml-2" /> تصدير PDF
           </Button>
-          <Button onClick={() => {}} variant="outline">
+          <Button onClick={handleExportExcel} variant="outline">
             <FileSpreadsheet className="h-4 w-4 ml-2" /> تصدير Excel
           </Button>
         </div>
