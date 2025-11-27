@@ -17,12 +17,6 @@
   
 [build.processing]
   skip_processing = false
-  skip_html = false
-  skip_css = false
-  skip_js = false
-  
-[build.processing]
-  skip_processing = false
   
 [build.processing.css]
   bundle = true

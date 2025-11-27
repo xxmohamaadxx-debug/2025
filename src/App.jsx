@@ -45,6 +45,22 @@ const NotificationSettingsPage = React.lazy(() => import('@/pages/NotificationSe
 const LandingPage = React.lazy(() => import('@/pages/LandingPage'));
 const NotFoundPage = React.lazy(() => import('@/pages/NotFoundPage'));
 
+// Internet Cafe Pages
+const InternetCafeSubscribersPage = React.lazy(() => import('@/pages/internet-cafe/InternetCafeSubscribersPage'));
+const SubscriptionTypesPage = React.lazy(() => import('@/pages/internet-cafe/SubscriptionTypesPage'));
+const InternetSessionsPage = React.lazy(() => import('@/pages/internet-cafe/InternetSessionsPage'));
+const InternetCafeDevicesPage = React.lazy(() => import('@/pages/internet-cafe/InternetCafeDevicesPage'));
+
+// Store Pages
+const ProductsPage = React.lazy(() => import('@/pages/store/ProductsPage'));
+const POSPage = React.lazy(() => import('@/pages/store/POSPage'));
+const SalesInvoicesPage = React.lazy(() => import('@/pages/store/SalesInvoicesPage'));
+const PurchaseInvoicesPage = React.lazy(() => import('@/pages/store/PurchaseInvoicesPage'));
+const ProductBundlesPage = React.lazy(() => import('@/pages/store/ProductBundlesPage'));
+
+// Reports
+const ComprehensiveReportsPage = React.lazy(() => import('@/pages/reports/ComprehensiveReportsPage'));
+
 const LoadingSpinner = () => (
   <div className="flex h-screen items-center justify-center bg-gray-50 dark:bg-gray-900">
     <Loader2 className="h-10 w-10 animate-spin text-orange-500" />
@@ -177,6 +193,23 @@ function App() {
                   <Route path="/customers" element={<PrivateRoute roles={['ANY']}><MainLayout><SubscriptionWarning /><CustomersPage /></MainLayout></PrivateRoute>} />
                   <Route path="/subscribers" element={<PrivateRoute roles={['ANY']}><MainLayout><SubscriptionWarning /><SubscribersPage /></MainLayout></PrivateRoute>} />
                   <Route path="/internet-usage" element={<PrivateRoute roles={['ANY']}><MainLayout><SubscriptionWarning /><InternetUsagePage /></MainLayout></PrivateRoute>} />
+                  
+                  {/* Internet Cafe Routes */}
+                  <Route path="/internet-cafe/subscribers" element={<PrivateRoute roles={['ANY']}><MainLayout><SubscriptionWarning /><InternetCafeSubscribersPage /></MainLayout></PrivateRoute>} />
+                  <Route path="/internet-cafe/subscription-types" element={<PrivateRoute roles={['ANY']}><MainLayout><SubscriptionWarning /><SubscriptionTypesPage /></MainLayout></PrivateRoute>} />
+                  <Route path="/internet-cafe/sessions" element={<PrivateRoute roles={['ANY']}><MainLayout><SubscriptionWarning /><InternetSessionsPage /></MainLayout></PrivateRoute>} />
+                  <Route path="/internet-cafe/devices" element={<PrivateRoute roles={['ANY']}><MainLayout><SubscriptionWarning /><InternetCafeDevicesPage /></MainLayout></PrivateRoute>} />
+                  
+                  {/* Store Routes */}
+                  <Route path="/store/products" element={<PrivateRoute roles={['ANY']}><MainLayout><SubscriptionWarning /><ProductsPage /></MainLayout></PrivateRoute>} />
+                  <Route path="/store/pos" element={<PrivateRoute roles={['ANY']}><MainLayout><SubscriptionWarning /><POSPage /></MainLayout></PrivateRoute>} />
+                  <Route path="/store/sales-invoices" element={<PrivateRoute roles={['ANY']}><MainLayout><SubscriptionWarning /><SalesInvoicesPage /></MainLayout></PrivateRoute>} />
+                  <Route path="/store/purchase-invoices" element={<PrivateRoute roles={['ANY']}><MainLayout><SubscriptionWarning /><PurchaseInvoicesPage /></MainLayout></PrivateRoute>} />
+                  <Route path="/store/bundles" element={<PrivateRoute roles={['ANY']}><MainLayout><SubscriptionWarning /><ProductBundlesPage /></MainLayout></PrivateRoute>} />
+                  
+                  {/* Comprehensive Reports */}
+                  <Route path="/comprehensive-reports" element={<PrivateRoute roles={['ANY']}><MainLayout><SubscriptionWarning /><ComprehensiveReportsPage /></MainLayout></PrivateRoute>} />
+                  
                   <Route path="/fuel-station" element={<PrivateRoute roles={['ANY']}><MainLayout><SubscriptionWarning /><FuelStationPage /></MainLayout></PrivateRoute>} />
                   <Route path="/contractor-projects" element={<PrivateRoute roles={['ANY']}><MainLayout><SubscriptionWarning /><ContractorProjectsPage /></MainLayout></PrivateRoute>} />
                   <Route path="/contractor-project-items" element={<PrivateRoute roles={['ANY']}><MainLayout><SubscriptionWarning /><ContractorProjectItemsPage /></MainLayout></PrivateRoute>} />

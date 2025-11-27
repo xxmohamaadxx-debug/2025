@@ -359,20 +359,36 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
             <div className="px-4 mb-2 mt-6 text-xs font-semibold text-gray-400 uppercase tracking-wider">صالات الإنترنت</div>
             
             <NavItem
-              to="/subscribers"
+              to="/internet-cafe/subscribers"
               icon={Users}
               label="المشتركين"
-              isActive={isActive('/subscribers')}
+              isActive={isActive('/internet-cafe/subscribers')}
               onClick={handleLinkClick}
               delay={0.65}
             />
             <NavItem
-              to="/internet-usage"
-              icon={Wifi}
-              label="استخدام الإنترنت"
-              isActive={isActive('/internet-usage')}
+              to="/internet-cafe/subscription-types"
+              icon={CreditCard}
+              label="أنواع الاشتراكات"
+              isActive={isActive('/internet-cafe/subscription-types')}
               onClick={handleLinkClick}
-              delay={0.7}
+              delay={0.66}
+            />
+            <NavItem
+              to="/internet-cafe/sessions"
+              icon={Wifi}
+              label="الجلسات"
+              isActive={isActive('/internet-cafe/sessions')}
+              onClick={handleLinkClick}
+              delay={0.67}
+            />
+            <NavItem
+              to="/internet-cafe/devices"
+              icon={Database}
+              label="الأجهزة"
+              isActive={isActive('/internet-cafe/devices')}
+              onClick={handleLinkClick}
+              delay={0.68}
             />
           </>
         )}
@@ -417,6 +433,64 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           </>
         )}
 
+        {/* متجر إكسسوارات الجوال - يظهر إذا كان نوع المتجر يدعمه */}
+        {(isInternetCafe || user?.isSuperAdmin) && (
+          <>
+            <div className="px-4 mb-2 mt-6 text-xs font-semibold text-gray-400 uppercase tracking-wider">متجر إكسسوارات الجوال</div>
+            
+            <NavItem
+              to="/store/products"
+              icon={Package}
+              label="المنتجات"
+              isActive={isActive('/store/products')}
+              onClick={handleLinkClick}
+              delay={0.86}
+            />
+            <NavItem
+              to="/store/pos"
+              icon={ShoppingCart}
+              label="نقاط البيع (POS)"
+              isActive={isActive('/store/pos')}
+              onClick={handleLinkClick}
+              delay={0.87}
+            />
+            <NavItem
+              to="/store/sales-invoices"
+              icon={FileText}
+              label="فواتير المبيعات"
+              isActive={isActive('/store/sales-invoices')}
+              onClick={handleLinkClick}
+              delay={0.88}
+            />
+            <NavItem
+              to="/store/purchase-invoices"
+              icon={FileText}
+              label="فواتير المشتريات"
+              isActive={isActive('/store/purchase-invoices')}
+              onClick={handleLinkClick}
+              delay={0.89}
+            />
+            <NavItem
+              to="/store/bundles"
+              icon={Package}
+              label="الحزم"
+              isActive={isActive('/store/bundles')}
+              onClick={handleLinkClick}
+              delay={0.9}
+            />
+          </>
+        )}
+
+        {/* التقارير الشاملة */}
+        <NavItem
+          to="/comprehensive-reports"
+          icon={BarChart}
+          label="التقارير الشاملة"
+          isActive={isActive('/comprehensive-reports')}
+          onClick={handleLinkClick}
+          delay={0.9}
+        />
+
         {user?.isSuperAdmin && (
           <NavItem
             to="/store-types"
@@ -424,7 +498,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
             label="أنواع المتاجر"
             isActive={isActive('/store-types')}
             onClick={handleLinkClick}
-            delay={0.9}
+            delay={0.91}
           />
         )}
 
