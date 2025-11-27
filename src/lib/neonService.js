@@ -1299,34 +1299,9 @@ export const neonService = {
   },
 
   // ============================================
-  // Subscribers Management
+  // Subscribers Management (Legacy - kept for backward compatibility)
+  // Note: The new Internet Cafe system uses internet_cafe_subscribers table
   // ============================================
-  getSubscribers: async (tenantId) => {
-    if (!tenantId) return [];
-    try {
-      const result = await sql`
-        SELECT * FROM subscribers 
-        WHERE tenant_id = ${tenantId}
-        ORDER BY created_at DESC
-      `;
-      return result || [];
-    } catch (error) {
-      console.error('getSubscribers error:', error);
-      return [];
-    }
-  },
-
-  createSubscriber: async (data, tenantId) => {
-    return createRecord('subscribers', data, tenantId);
-  },
-
-  updateSubscriber: async (id, data, tenantId) => {
-    return updateRecord('subscribers', id, data, tenantId);
-  },
-
-  deleteSubscriber: async (id, tenantId) => {
-    return deleteRecord('subscribers', id, tenantId);
-  },
 
   // ============================================
   // Subscriptions Management
