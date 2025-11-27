@@ -381,8 +381,14 @@ export const neonService = {
   },
   createInvoiceIn: async (data, tenantId, items = []) => {
     try {
-      const invoice = await createRecord('invoices_in', data, tenantId);
-      // حفظ عناصر الفاتورة
+      // تحويل items إلى JSONB إذا كان موجوداً في data
+      const invoiceData = { ...data };
+      if (items && items.length > 0) {
+        invoiceData.items = JSON.stringify(items);
+      }
+      
+      const invoice = await createRecord('invoices_in', invoiceData, tenantId);
+      // حفظ عناصر الفاتورة في جدول invoice_items أيضاً
       if (items && items.length > 0 && invoice?.id) {
         await neonService.createInvoiceItems(invoice.id, 'invoice_in', items, tenantId);
       }
@@ -422,8 +428,14 @@ export const neonService = {
   },
   createInvoiceOut: async (data, tenantId, items = []) => {
     try {
-      const invoice = await createRecord('invoices_out', data, tenantId);
-      // حفظ عناصر الفاتورة
+      // تحويل items إلى JSONB إذا كان موجوداً في data
+      const invoiceData = { ...data };
+      if (items && items.length > 0) {
+        invoiceData.items = JSON.stringify(items);
+      }
+      
+      const invoice = await createRecord('invoices_out', invoiceData, tenantId);
+      // حفظ عناصر الفاتورة في جدول invoice_items أيضاً
       if (items && items.length > 0 && invoice?.id) {
         await neonService.createInvoiceItems(invoice.id, 'invoice_out', items, tenantId);
       }
@@ -2121,6 +2133,19 @@ export const neonService = {
   // Tenant Section Settings
   getTenantSectionSettings: async (tenantId) => {
     try {
+      // التحقق من وجود الجدول أولاً
+      const tableExists = await sql`
+        SELECT EXISTS (
+          SELECT FROM information_schema.tables 
+          WHERE table_schema = 'public' 
+          AND table_name = 'tenant_section_settings'
+        )
+      `;
+      
+      if (!tableExists[0]?.exists) {
+        return []; // الجدول غير موجود، إرجاع قائمة فارغة
+      }
+
       const result = await sql`
         SELECT section_code, is_visible, display_order
         FROM tenant_section_settings
@@ -2130,7 +2155,7 @@ export const neonService = {
       return result || [];
     } catch (error) {
       console.error('getTenantSectionSettings error:', error);
-      return [];
+      return []; // في حالة الخطأ، إرجاع قائمة فارغة
     }
   },
 
@@ -2202,6 +2227,65 @@ export const neonService = {
     } catch (error) {
       console.error('getActiveUsers error:', error);
       return [];
+    }
+  },
+
+  // Get Financial Box - حساب الأرصدة من الفواتير
+  getFinancialBox: async (tenantId) => {
+    if (!tenantId) {
+      return {
+        try_balance: 0,
+        usd_balance: 0,
+        syp_balance: 0,
+        sar_balance: 0,
+        eur_balance: 0
+      };
+    }
+
+    try {
+      // حساب الأرصدة من الفواتير: الوارد يضيف والصادر ينقص
+      const invoicesInResult = await sql`
+        SELECT 
+          COALESCE(SUM(CASE WHEN currency = 'TRY' THEN amount ELSE 0 END), 0) as try_in,
+          COALESCE(SUM(CASE WHEN currency = 'USD' THEN amount ELSE 0 END), 0) as usd_in,
+          COALESCE(SUM(CASE WHEN currency = 'SYP' THEN amount ELSE 0 END), 0) as syp_in,
+          COALESCE(SUM(CASE WHEN currency = 'SAR' THEN amount ELSE 0 END), 0) as sar_in,
+          COALESCE(SUM(CASE WHEN currency = 'EUR' THEN amount ELSE 0 END), 0) as eur_in
+        FROM invoices_in
+        WHERE tenant_id = ${tenantId}
+      `;
+
+      const invoicesOutResult = await sql`
+        SELECT 
+          COALESCE(SUM(CASE WHEN currency = 'TRY' THEN amount ELSE 0 END), 0) as try_out,
+          COALESCE(SUM(CASE WHEN currency = 'USD' THEN amount ELSE 0 END), 0) as usd_out,
+          COALESCE(SUM(CASE WHEN currency = 'SYP' THEN amount ELSE 0 END), 0) as syp_out,
+          COALESCE(SUM(CASE WHEN currency = 'SAR' THEN amount ELSE 0 END), 0) as sar_out,
+          COALESCE(SUM(CASE WHEN currency = 'EUR' THEN amount ELSE 0 END), 0) as eur_out
+        FROM invoices_out
+        WHERE tenant_id = ${tenantId}
+      `;
+
+      const inData = invoicesInResult[0] || {};
+      const outData = invoicesOutResult[0] || {};
+
+      // الوارد يضيف والصادر ينقص
+      return {
+        try_balance: parseFloat(inData.try_in || 0) - parseFloat(outData.try_out || 0),
+        usd_balance: parseFloat(inData.usd_in || 0) - parseFloat(outData.usd_out || 0),
+        syp_balance: parseFloat(inData.syp_in || 0) - parseFloat(outData.syp_out || 0),
+        sar_balance: parseFloat(inData.sar_in || 0) - parseFloat(outData.sar_out || 0),
+        eur_balance: parseFloat(inData.eur_in || 0) - parseFloat(outData.eur_out || 0)
+      };
+    } catch (error) {
+      console.error('getFinancialBox error:', error);
+      return {
+        try_balance: 0,
+        usd_balance: 0,
+        syp_balance: 0,
+        sar_balance: 0,
+        eur_balance: 0
+      };
     }
   },
 };

@@ -164,7 +164,7 @@ const AdvancedFinancialBox = ({ t }) => {
     <motion.div
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-gradient-to-br from-white/95 to-white/90 dark:from-gray-800/95 dark:to-gray-800/90 backdrop-blur-xl p-6 rounded-2xl shadow-xl border border-gray-200/50 dark:border-gray-700/50"
+      className="bg-gradient-to-br from-white via-gray-50 to-white dark:from-gray-800 dark:via-gray-800/90 dark:to-gray-800 backdrop-blur-xl p-6 rounded-2xl shadow-2xl border-2 border-gray-200/80 dark:border-gray-700/80 hover:shadow-3xl transition-all"
     >
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
@@ -182,7 +182,7 @@ const AdvancedFinancialBox = ({ t }) => {
             <motion.p
               initial={{ scale: 0.8 }}
               animate={{ scale: 1 }}
-              className="text-3xl font-black text-gray-900 dark:text-white mt-1"
+              className="text-3xl font-black bg-gradient-to-r from-green-600 via-emerald-500 to-teal-500 dark:from-green-400 dark:via-emerald-400 dark:to-teal-400 bg-clip-text text-transparent mt-1 drop-shadow-sm"
             >
               ${financialData.totalUSD.toLocaleString('ar-EG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </motion.p>
@@ -204,17 +204,22 @@ const AdvancedFinancialBox = ({ t }) => {
           const currencyInfo = CURRENCIES[currency];
           if (!currencyInfo) return null;
           
+          const isPositive = balance >= 0;
+          const gradientColors = isPositive 
+            ? 'from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20'
+            : 'from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20';
+          
           return (
             <motion.div
               key={currency}
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               whileHover={{ scale: 1.05, y: -4 }}
-              className="p-3 rounded-lg bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700/50 dark:to-gray-800/50 border border-gray-200 dark:border-gray-600"
+              className={`p-4 rounded-xl bg-gradient-to-br ${gradientColors} border-2 ${isPositive ? 'border-green-200 dark:border-green-800' : 'border-red-200 dark:border-red-800'} shadow-md hover:shadow-lg transition-shadow`}
             >
-              <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">{currencyInfo.nameAr || currency}</p>
-              <p className="text-lg font-bold text-gray-900 dark:text-white">
-                {currencyInfo.symbol}{balance.toLocaleString('ar-EG', { minimumFractionDigits: 2 })}
+              <p className="text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2">{currencyInfo.nameAr || currency}</p>
+              <p className={`text-lg font-black ${isPositive ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}`}>
+                {currencyInfo.symbol}{balance.toLocaleString('ar-EG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </p>
             </motion.div>
           );
