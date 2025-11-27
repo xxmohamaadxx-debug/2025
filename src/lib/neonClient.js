@@ -6,13 +6,26 @@ const NEON_DATABASE_URL = import.meta.env.VITE_NEON_DATABASE_URL;
 
 // التحقق من وجود رابط الاتصال
 if (!NEON_DATABASE_URL) {
+  const isProduction = import.meta.env.MODE === 'production' || import.meta.env.PROD;
+  const envGuide = isProduction 
+    ? 'في Netlify Dashboard:\n' +
+      '1. Site settings > Environment variables\n' +
+      '2. Add variable: VITE_NEON_DATABASE_URL\n' +
+      '3. Value: رابط الاتصال من Neon Console\n' +
+      '4. Scope: All scopes\n' +
+      '5. Save ثم Trigger deploy جديد'
+    : 'في ملف .env:\n' +
+      'VITE_NEON_DATABASE_URL=postgresql://user:password@host/database?sslmode=require';
+  
   console.error('❌ خطأ: متغير البيئة VITE_NEON_DATABASE_URL غير موجود');
-  console.error('يرجى إضافة رابط الاتصال في ملف .env');
-  console.error('مثال: VITE_NEON_DATABASE_URL=postgresql://user:password@host/database?sslmode=require');
-  console.error('للحصول على رابط الاتصال الصحيح:');
+  console.error(`\n📋 ${isProduction ? 'إضافة المتغير في Netlify:' : 'إضافة المتغير محلياً:'}`);
+  console.error(envGuide);
+  console.error('\n🔗 للحصول على رابط الاتصال من Neon:');
   console.error('1. اذهب إلى https://console.neon.tech/');
   console.error('2. اختر مشروعك > Dashboard > Connection Details');
-  console.error('3. اختر "Connection pooling" وانسخ الرابط');
+  console.error('3. اختر "Connection pooling" (يجب أن يحتوي على -pooler)');
+  console.error('4. انسخ الرابط الكامل');
+  console.error('\n📖 راجع ملف NETLIFY_ENV_QUICK_FIX.md للتعليمات التفصيلية');
 }
 
 // إنشاء عميل Neon
