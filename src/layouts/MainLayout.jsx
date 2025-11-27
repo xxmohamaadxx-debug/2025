@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from '@/components/Sidebar';
 import TopNav from '@/components/TopNav';
 import BottomNav from '@/components/BottomNav';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { initOfflineService, isOnline, syncOfflineData, getPendingCount } from '@/lib/offlineService';
 import { useAuth } from '@/contexts/AuthContext';
 import { neonService } from '@/lib/neonService';
@@ -176,13 +176,27 @@ const MainLayout = ({ children }) => {
         <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
       </div>
       
-      {/* Overlay for mobile sidebar */}
-      {isSidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-20 lg:hidden transition-opacity"
-          onClick={() => setIsSidebarOpen(false)}
-        />
-      )}
+      {/* Overlay for mobile sidebar - only show on mobile when sidebar is open */}
+      <AnimatePresence>
+        {isSidebarOpen && typeof window !== 'undefined' && window.innerWidth < 1024 && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-30 lg:hidden touch-manipulation"
+            onClick={() => setIsSidebarOpen(false)}
+            onTouchStart={(e) => {
+              // Close sidebar on touch outside
+              e.preventDefault();
+              e.stopPropagation();
+              if (e.target === e.currentTarget) {
+                setIsSidebarOpen(false);
+              }
+            }}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Main Content - No White Space, Seamless Connection */}
       <div className="flex-1 flex flex-col min-w-0 relative z-10">

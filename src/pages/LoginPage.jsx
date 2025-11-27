@@ -86,7 +86,7 @@ const LoginPage = () => {
         <title>{t('auth.loginTitle')} - {t('common.systemName')}</title>
       </Helmet>
       
-      <div className="relative z-10 w-full min-h-screen flex items-center justify-center p-3 sm:p-4 md:p-6">
+      <div className="relative z-10 w-full min-h-screen flex items-center justify-center p-3 sm:p-4 md:p-6 safe-area-inset">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -183,7 +183,7 @@ const LoginPage = () => {
                       type="email"
                       required
                       whileFocus={{ scale: 1.01 }}
-                      className="w-full px-4 sm:px-5 py-2.5 sm:py-3 text-sm sm:text-base rounded-xl border-2 border-white/20 bg-white/10 backdrop-blur-sm text-white placeholder-purple-300 focus:border-orange-400 focus:bg-white/20 focus:ring-4 focus:ring-orange-500/30 transition-all outline-none font-medium"
+                      className="w-full px-4 sm:px-5 py-2.5 sm:py-3 text-base sm:text-base rounded-xl border-2 border-white/20 bg-white/10 backdrop-blur-sm text-white placeholder-purple-300 focus:border-orange-400 focus:bg-white/20 focus:ring-4 focus:ring-orange-500/30 transition-all outline-none font-medium touch-manipulation"
                       placeholder={t('auth.email')}
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}

@@ -122,7 +122,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
       },
       closed: { 
         x: isDesktop ? 0 : (isRTL ? 256 : -256), 
-        opacity: 1,
+        opacity: isDesktop ? 1 : 0,
         transition: { type: "spring", stiffness: 300, damping: 30 }
       }
     };
@@ -136,8 +136,9 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
       animate={isOpen ? 'open' : 'closed'}
       variants={sidebarVariants}
       className={`
-        fixed inset-y-0 rtl:right-0 ltr:left-0 z-30 w-64 
-        lg:relative lg:translate-x-0 lg:static
+        fixed inset-y-0 rtl:right-0 ltr:left-0 z-40 w-64 
+        lg:relative lg:translate-x-0 lg:static lg:z-30
+        ${!isOpen ? 'pointer-events-none lg:pointer-events-auto' : 'pointer-events-auto'}
       `}
       style={{
         perspective: '1000px',
@@ -230,8 +231,17 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
             </Link>
           </motion.div>
           <motion.button 
-            onClick={() => setIsOpen(false)} 
-            className="lg:hidden text-gray-400 hover:text-white p-2 rounded-lg hover:bg-orange-500/20 backdrop-blur-sm relative z-10"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setIsOpen(false);
+            }}
+            onTouchStart={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setIsOpen(false);
+            }}
+            className="lg:hidden text-gray-400 hover:text-white active:text-orange-400 p-2.5 rounded-lg hover:bg-orange-500/20 backdrop-blur-sm relative z-50 touch-manipulation"
             whileHover={{ scale: 1.2, rotate: 90 }}
             whileTap={{ scale: 0.9 }}
             aria-label="إغلاق القائمة"
@@ -240,7 +250,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           </motion.button>
         </motion.div>
 
-      <nav className="flex-1 px-2 sm:px-4 overflow-y-auto h-[calc(100vh-80px)] pb-4 custom-scrollbar">
+      <nav className="flex-1 px-2 sm:px-4 overflow-y-auto h-[calc(100vh-80px)] pb-4 custom-scrollbar overscroll-contain">
         {/* Admin Panel - فقط للمشرفين */}
         {user?.isSuperAdmin && (
           <>

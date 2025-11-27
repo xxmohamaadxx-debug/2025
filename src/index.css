@@ -244,6 +244,53 @@
     -webkit-tap-highlight-color: transparent;
   }
 
+  /* Mobile optimizations for Android/iOS */
+  @media (max-width: 1024px) {
+    /* Touch optimization */
+    button, a, input, select, textarea {
+      touch-action: manipulation;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+    
+    /* Allow text selection in inputs */
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="number"],
+    input[type="date"],
+    textarea {
+      -webkit-user-select: text;
+      user-select: text;
+    }
+    
+    /* Prevent zoom on input focus (iOS) */
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="number"],
+    input[type="date"],
+    select,
+    textarea {
+      font-size: 16px !important;
+    }
+  }
+
+  /* Safe area insets for mobile devices */
+  .safe-area-inset {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+
+  /* Touch manipulation utility */
+  .touch-manipulation {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
   /* Custom scrollbar with neon effect */
   .custom-scrollbar::-webkit-scrollbar {
     width: 8px;

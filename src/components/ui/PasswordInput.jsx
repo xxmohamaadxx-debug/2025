@@ -28,7 +28,7 @@ const PasswordInput = ({
           type={showPassword ? 'text' : 'password'}
           required={required}
           whileFocus={{ scale: 1.01 }}
-          className={`w-full px-4 sm:px-5 py-2.5 sm:py-3 pr-12 rtl:pl-12 rtl:pr-4 text-sm sm:text-base rounded-xl border-2 border-white/20 bg-white/10 backdrop-blur-sm text-white placeholder-purple-300 focus:border-orange-400 focus:bg-white/20 focus:ring-4 focus:ring-orange-500/30 transition-all outline-none font-medium ${className}`}
+          className={`w-full px-4 sm:px-5 py-2.5 sm:py-3 pr-12 rtl:pl-12 rtl:pr-4 text-base rounded-xl border-2 border-white/20 bg-white/10 backdrop-blur-sm text-white placeholder-purple-300 focus:border-orange-400 focus:bg-white/20 focus:ring-4 focus:ring-orange-500/30 transition-all outline-none font-medium touch-manipulation ${className}`}
           placeholder={placeholder}
           value={value}
           onChange={onChange}
@@ -36,14 +36,24 @@ const PasswordInput = ({
         />
         <button
           type="button"
-          onClick={() => setShowPassword(!showPassword)}
-          className="absolute right-3 rtl:left-3 top-1/2 -translate-y-1/2 text-purple-300 hover:text-white transition-colors focus:outline-none"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setShowPassword(!showPassword);
+          }}
+          onTouchStart={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setShowPassword(!showPassword);
+          }}
+          className="absolute right-3 rtl:left-3 top-1/2 -translate-y-1/2 text-purple-300 hover:text-white active:text-orange-400 transition-colors focus:outline-none p-1 touch-manipulation"
           tabIndex={-1}
+          aria-label={showPassword ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}
         >
           {showPassword ? (
-            <EyeOff className="h-5 w-5" />
+            <EyeOff className="h-5 w-5 sm:h-6 sm:w-6" />
           ) : (
-            <Eye className="h-5 w-5" />
+            <Eye className="h-5 w-5 sm:h-6 sm:w-6" />
           )}
         </button>
       </div>
