@@ -465,7 +465,6 @@ const InvoicesInPage = () => {
                         ))}
                       </tbody>
                     </table>
-                  </div>
                   ) : (
                     Object.entries(groupedInvoices).map(([key, group]) => (
                       <div key={key} className="mb-6">

@@ -158,7 +158,7 @@ const InventoryPage = () => {
           
           return <InventoryTable items={filteredItems} onEdit={(i) => { setSelectedItem(i); setDialogOpen(true); }} onDelete={handleDelete} />;
         })()}
-      </div>
+      </GlassCard>
 
       <InventoryDialog open={dialogOpen} onOpenChange={setDialogOpen} item={selectedItem} onSave={handleSave} />
     </div>
