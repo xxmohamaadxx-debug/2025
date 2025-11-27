@@ -88,13 +88,31 @@
     outline-offset: 2px;
   }
 
-  /* Dialog centering fix */
-  [data-radix-dialog-content] {
+  /* Dialog centering fix - Force center positioning */
+  [data-radix-dialog-content],
+  [data-radix-dialog-content][data-state] {
     position: fixed !important;
     left: 50% !important;
     top: 50% !important;
     transform: translate(-50%, -50%) !important;
     margin: 0 !important;
+    right: auto !important;
+    bottom: auto !important;
+  }
+
+  /* Ensure dialog portal is properly positioned */
+  [data-radix-portal] {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: 50;
+  }
+
+  [data-radix-portal] > [data-radix-dialog-content] {
+    pointer-events: auto;
   }
 }
 
