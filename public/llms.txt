@@ -14,10 +14,17 @@
 - [- Ibrahim Accounting System](/users): No description available
 - [404 - Page Not Found - Ibrahim Accounting System](/notfound): The page you are looking for does not exist
 - [إدارة الفريق -](/storeusers): No description available
+- [استخدام الإنترنت -](/internetusage): No description available
+- [إعدادات الإشعارات -](/notificationsettings): No description available
 - [إعدادات المدير - نظام إبراهيم للمحاسبة](/adminsettings): No description available
 - [الحركة اليومية](/dailytransactions): No description available
 - [الدعم والمساعدة -](/support): No description available
 - [العملاء والديون](/customers): No description available
+- [المشتركين -](/subscribers): No description available
 - [النسخ الاحتياطي](/backup): No description available
+- [أنواع المتاجر -](/storetypes): No description available
+- [بنود الكميات (BOQ) -](/contractorprojectitems): No description available
+- [متجر المحروقات -](/fuelstation): No description available
+- [مشاريع المقاولين -](/contractorprojects): No description available
 - [Untitled Page](/employees): No description available
 - [Untitled Page](/invoicesin): No description available

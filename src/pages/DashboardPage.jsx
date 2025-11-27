@@ -512,7 +512,7 @@ const DashboardPage = () => {
             );
           })()
         )}
-      </div>
+      </motion.div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 relative z-10">
         <motion.div 
