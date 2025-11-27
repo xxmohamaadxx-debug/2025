@@ -6,17 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { neonService } from '@/lib/neonService';
 import { CURRENCIES } from '@/lib/constants';
 import { convertCurrency } from '@/lib/currencyService';
-
-// Dynamic import for ApexCharts (to avoid SSR issues)
-let Chart;
-if (typeof window !== 'undefined') {
-  try {
-    const ApexCharts = require('react-apexcharts');
-    Chart = ApexCharts.default || ApexCharts;
-  } catch (e) {
-    console.warn('ApexCharts not available:', e);
-  }
-}
+import ReactApexChart from 'react-apexcharts';
 
 const AdvancedFinancialBox = ({ t }) => {
   const { user } = useAuth();
@@ -251,17 +241,16 @@ const AdvancedFinancialBox = ({ t }) => {
       </div>
 
       {/* Chart */}
-      {typeof window !== 'undefined' && Chart && (
+      {typeof window !== 'undefined' ? (
         <div className="mt-4">
-          <Chart
+          <ReactApexChart
             options={chartData[chartType].options}
             series={chartData[chartType].series}
             type={chartType === 'pie' ? 'pie' : chartType === 'bar' ? 'bar' : 'line'}
             height={300}
           />
         </div>
-      )}
-      {(!Chart || typeof window === 'undefined') && (
+      ) : (
         <div className="mt-4 h-[300px] flex items-center justify-center text-gray-500">
           جاري تحميل الرسم البياني...
         </div>

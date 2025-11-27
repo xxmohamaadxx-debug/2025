@@ -6,6 +6,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { neonService } from '@/lib/neonService';
 import { TrendingUp, TrendingDown, Wallet, Users, AlertTriangle, Activity, CheckCircle } from 'lucide-react';
 import ActiveUsersCard from '@/components/ActiveUsersCard';
+import AdvancedFinancialBox from '@/components/AdvancedFinancialBox';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, ArcElement } from 'chart.js';
 import { Line } from 'react-chartjs-2';
 import { motion } from 'framer-motion';
