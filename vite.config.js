@@ -220,7 +220,10 @@ const addTransformIndexHtml = {
 	},
 };
 
-console.warn = () => {};
+// Suppress warnings in production
+if (process.env.NODE_ENV === 'production') {
+	console.warn = () => {};
+}
 
 const logger = createLogger()
 const loggerError = logger.error
@@ -234,7 +237,7 @@ logger.error = (msg, options) => {
 }
 
 export default defineConfig({
-	customLogger: logger,
+	...(isDev ? { customLogger: logger } : {}),
 	plugins: [
 		...(isDev ? [inlineEditPlugin(), editModeDevPlugin(), iframeRouteRestorationPlugin(), selectionModePlugin()] : []),
 		react(),

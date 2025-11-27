@@ -7,13 +7,11 @@
   NPM_FLAGS = "--legacy-peer-deps"
   NODE_OPTIONS = "--max-old-space-size=6144"
   CI = "false"
-  NPM_CONFIG_LOGLEVEL = "info"
+  NPM_CONFIG_LOGLEVEL = "warn"
   NETLIFY_NODE_VERSION = "18"
-  FORCE_COLOR = "1"
+  FORCE_COLOR = "0"
   NODE_ENV = "production"
   VITE_BUILD_MODE = "production"
-  VITE_LOG_LEVEL = "info"
-  NETLIFY_BUILD_DEBUG = "1"
   
 [build.processing]
   skip_processing = false
