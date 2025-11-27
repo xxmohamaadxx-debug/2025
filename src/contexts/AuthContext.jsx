@@ -230,11 +230,19 @@ export const AuthProvider = ({ children }) => {
     window.location.href = '/login';
   };
 
-  // Permission Helpers
-  const canDelete = user?.isSuperAdmin || (user?.isStoreOwner && !tenant?.isExpired) || user?.can_delete_data;
-  const canEdit = user?.isSuperAdmin || (user?.isStoreOwner && !tenant?.isExpired) || user?.can_edit_data;
-  const canCreateUsers = user?.isSuperAdmin || (user?.isStoreOwner && !tenant?.isExpired) || user?.can_create_users;
+  // Permission Helpers - ربط الصلاحيات بمدة صلاحية المتجر
+  // إذا انتهت صلاحية المتجر، يتم تعطيل جميع الصلاحيات (ماعدا Super Admin)
   const isExpired = tenant?.isExpired && !user?.isSuperAdmin;
+  const isSubscriptionValid = !isExpired && (user?.isSuperAdmin || (tenant && !tenant.isExpired));
+  
+  // صلاحيات المستخدم مرتبطة بصلاحية المتجر
+  const canDelete = user?.isSuperAdmin || (isSubscriptionValid && ((user?.isStoreOwner && !tenant?.isExpired) || user?.can_delete_data));
+  const canEdit = user?.isSuperAdmin || (isSubscriptionValid && ((user?.isStoreOwner && !tenant?.isExpired) || user?.can_edit_data));
+  const canCreateUsers = user?.isSuperAdmin || (isSubscriptionValid && ((user?.isStoreOwner && !tenant?.isExpired) || user?.can_create_users));
+  
+  // صلاحيات إضافية مرتبطة بالاشتراك
+  const canAccessData = user?.isSuperAdmin || isSubscriptionValid;
+  const canModifyData = user?.isSuperAdmin || (isSubscriptionValid && (user?.isStoreOwner || user?.can_edit_data));
 
   if (loading && !initialized) {
     return (
@@ -252,7 +260,15 @@ export const AuthProvider = ({ children }) => {
       register, 
       logout, 
       loading,
-      permissions: { canDelete, canEdit, canCreateUsers, isExpired }
+      permissions: { 
+        canDelete, 
+        canEdit, 
+        canCreateUsers, 
+        isExpired,
+        canAccessData,
+        canModifyData,
+        isSubscriptionValid
+      }
     }}>
       {children}
     </AuthContext.Provider>

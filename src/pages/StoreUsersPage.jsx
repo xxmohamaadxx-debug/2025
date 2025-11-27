@@ -254,24 +254,53 @@ const StoreUsersPage = () => {
                 <option value="Warehouse Manager">مدير مستودع</option>
               </select>
             </div>
-            <div className="space-y-2">
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={formData.can_edit_data}
-                  onChange={(e) => setFormData({ ...formData, can_edit_data: e.target.checked })}
-                />
-                <span className="text-sm">يمكن التعديل</span>
-              </label>
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={formData.can_delete_data}
-                  onChange={(e) => setFormData({ ...formData, can_delete_data: e.target.checked })}
-                />
-                <span className="text-sm">يمكن الحذف</span>
-              </label>
-            </div>
+            {/* الصلاحيات - فقط للمحاسب */}
+            {(formData.role === 'Accountant' || formData.role === ROLES.ACCOUNTANT) && (
+              <div className="space-y-3 p-4 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700/50 dark:to-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-600">
+                <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                  <Shield className="h-4 w-4 text-orange-500" />
+                  صلاحيات المحاسب
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <label className="flex items-center gap-2 cursor-pointer p-3 rounded-lg hover:bg-white dark:hover:bg-gray-700 transition-colors border border-transparent hover:border-orange-200 dark:hover:border-orange-800">
+                    <input
+                      type="checkbox"
+                      checked={formData.can_edit_data}
+                      onChange={(e) => setFormData({ ...formData, can_edit_data: e.target.checked })}
+                      className="w-5 h-5 text-orange-500 rounded border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-orange-500"
+                    />
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">يمكن التعديل</span>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">تعديل البيانات</span>
+                    </div>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer p-3 rounded-lg hover:bg-white dark:hover:bg-gray-700 transition-colors border border-transparent hover:border-red-200 dark:hover:border-red-800">
+                    <input
+                      type="checkbox"
+                      checked={formData.can_delete_data}
+                      onChange={(e) => setFormData({ ...formData, can_delete_data: e.target.checked })}
+                      className="w-5 h-5 text-red-500 rounded border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-red-500"
+                    />
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">يمكن الحذف</span>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">حذف البيانات</span>
+                    </div>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer p-3 rounded-lg hover:bg-white dark:hover:bg-gray-700 transition-colors border border-transparent hover:border-green-200 dark:hover:border-green-800">
+                    <input
+                      type="checkbox"
+                      checked={formData.can_create_users}
+                      onChange={(e) => setFormData({ ...formData, can_create_users: e.target.checked })}
+                      className="w-5 h-5 text-green-500 rounded border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-green-500"
+                    />
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">إدارة المستخدمين</span>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">إنشاء/تعديل المستخدمين</span>
+                    </div>
+                  </label>
+                </div>
+              </div>
+            )}
             <div className="flex gap-2">
               <Button onClick={() => setDialogOpen(false)} variant="outline" className="flex-1">
                 إلغاء

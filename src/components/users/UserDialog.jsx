@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { InteractiveButton } from '@/components/ui/InteractiveButton';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ROLES } from '@/lib/constants';
 
@@ -12,6 +13,9 @@ const UserDialog = ({ open, onOpenChange, user, onSave }) => {
     email: '',
     password: '',
     role: ROLES.ENTRY,
+    can_edit_data: false,
+    can_delete_data: false,
+    can_create_users: false,
   });
 
   useEffect(() => {
@@ -21,6 +25,9 @@ const UserDialog = ({ open, onOpenChange, user, onSave }) => {
         email: user.email || '',
         password: user.password || '',
         role: user.role || ROLES.ENTRY,
+        can_edit_data: user.can_edit_data || false,
+        can_delete_data: user.can_delete_data || false,
+        can_create_users: user.can_create_users || false,
       });
     } else {
       setFormData({
@@ -28,6 +35,9 @@ const UserDialog = ({ open, onOpenChange, user, onSave }) => {
         email: '',
         password: '',
         role: ROLES.ENTRY,
+        can_edit_data: false,
+        can_delete_data: false,
+        can_create_users: false,
       });
     }
   }, [user, open]);
@@ -93,13 +103,56 @@ const UserDialog = ({ open, onOpenChange, user, onSave }) => {
             </select>
           </div>
 
+          {/* الصلاحيات - فقط للمحاسب */}
+          {formData.role === 'Accountant' || formData.role === ROLES.ACCOUNTANT ? (
+            <div className="space-y-3 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600">
+              <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300">صلاحيات المحاسب</h4>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <label className="flex items-center gap-2 cursor-pointer p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={formData.can_edit_data || false}
+                    onChange={(e) => setFormData({ ...formData, can_edit_data: e.target.checked })}
+                    className="w-4 h-4 text-orange-500 rounded border-gray-300 dark:border-gray-600"
+                  />
+                  <span className="text-sm text-gray-700 dark:text-gray-300">يمكن التعديل</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={formData.can_delete_data || false}
+                    onChange={(e) => setFormData({ ...formData, can_delete_data: e.target.checked })}
+                    className="w-4 h-4 text-red-500 rounded border-gray-300 dark:border-gray-600"
+                  />
+                  <span className="text-sm text-gray-700 dark:text-gray-300">يمكن الحذف</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={formData.can_create_users || false}
+                    onChange={(e) => setFormData({ ...formData, can_create_users: e.target.checked })}
+                    className="w-4 h-4 text-green-500 rounded border-gray-300 dark:border-gray-600"
+                  />
+                  <span className="text-sm text-gray-700 dark:text-gray-300">إدارة المستخدمين</span>
+                </label>
+              </div>
+            </div>
+          ) : null}
+
           <div className="flex gap-4 mt-6">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="flex-1">
+            <InteractiveButton
+              variant="cancel"
+              type="button"
+              onClick={() => onOpenChange(false)}
+            >
               {t('common.cancel')}
-            </Button>
-            <Button type="submit" className="flex-1 bg-gradient-to-r from-orange-500 to-pink-500 text-white">
+            </InteractiveButton>
+            <InteractiveButton
+              variant="save"
+              type="submit"
+            >
               {t('common.save')}
-            </Button>
+            </InteractiveButton>
           </div>
         </form>
       </DialogContent>

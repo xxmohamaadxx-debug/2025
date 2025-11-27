@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { InteractiveButton } from '@/components/ui/InteractiveButton';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { neonService } from '@/lib/neonService';
@@ -528,12 +529,19 @@ const InvoiceDialog = ({ open, onOpenChange, invoice, onSave, type }) => {
           </div>
 
           <div className="flex gap-4">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="flex-1">
+            <InteractiveButton
+              variant="cancel"
+              type="button"
+              onClick={() => onOpenChange(false)}
+            >
               {t('common.cancel')}
-            </Button>
-            <Button type="submit" className="flex-1 bg-gradient-to-r from-orange-500 to-pink-500">
+            </InteractiveButton>
+            <InteractiveButton
+              variant="save"
+              type="submit"
+            >
               {t('common.save')}
-            </Button>
+            </InteractiveButton>
           </div>
         </form>
       </DialogContent>

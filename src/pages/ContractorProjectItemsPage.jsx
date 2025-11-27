@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
+import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { neonService } from '@/lib/neonService';
@@ -151,7 +152,27 @@ const ContractorProjectItemsPage = () => {
       </div>
 
       {/* الفلترة */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 space-y-4">
+      <div className="relative bg-gradient-to-br from-white/95 to-white/90 dark:from-gray-800/95 dark:to-gray-800/90 backdrop-blur-xl rounded-lg shadow-xl border border-gray-200/50 dark:border-gray-700/50 p-4 space-y-4 overflow-hidden"
+        style={{
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.1) inset',
+        }}
+      >
+        <motion.div
+          className="absolute inset-0 bg-gradient-to-br from-orange-500/0 via-pink-500/0 to-purple-500/0"
+          animate={{
+            background: [
+              'linear-gradient(135deg, rgba(255, 140, 0, 0) 0%, rgba(236, 72, 153, 0) 100%)',
+              'linear-gradient(135deg, rgba(255, 140, 0, 0.05) 0%, rgba(236, 72, 153, 0.05) 100%)',
+              'linear-gradient(135deg, rgba(255, 140, 0, 0) 0%, rgba(236, 72, 153, 0) 100%)',
+            ],
+          }}
+          transition={{
+            duration: 3,
+            repeat: Infinity,
+            ease: 'easeInOut',
+          }}
+        />
+        <div className="relative z-10">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="relative">
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -176,10 +197,31 @@ const ContractorProjectItemsPage = () => {
             ))}
           </select>
         </div>
+        </div>
       </div>
 
       {/* الجدول */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+      <div className="relative bg-gradient-to-br from-white/95 to-white/90 dark:from-gray-800/95 dark:to-gray-800/90 backdrop-blur-xl rounded-lg shadow-xl border border-gray-200/50 dark:border-gray-700/50 overflow-hidden"
+        style={{
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.1) inset',
+        }}
+      >
+        <motion.div
+          className="absolute inset-0 bg-gradient-to-br from-orange-500/0 via-pink-500/0 to-purple-500/0"
+          animate={{
+            background: [
+              'linear-gradient(135deg, rgba(255, 140, 0, 0) 0%, rgba(236, 72, 153, 0) 100%)',
+              'linear-gradient(135deg, rgba(255, 140, 0, 0.05) 0%, rgba(236, 72, 153, 0.05) 100%)',
+              'linear-gradient(135deg, rgba(255, 140, 0, 0) 0%, rgba(236, 72, 153, 0) 100%)',
+            ],
+          }}
+          transition={{
+            duration: 3,
+            repeat: Infinity,
+            ease: 'easeInOut',
+          }}
+        />
+        <div className="relative z-10">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50 dark:bg-gray-700">
@@ -266,6 +308,7 @@ const ContractorProjectItemsPage = () => {
               )}
             </tbody>
           </table>
+        </div>
         </div>
       </div>
 

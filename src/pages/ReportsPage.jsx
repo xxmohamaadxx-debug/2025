@@ -12,6 +12,8 @@ import { exportToExcel, generateReport, getPeriodDates } from '@/lib/exportUtils
 import { exportReportPDF } from '@/lib/pdfUtils';
 import { formatDateAR } from '@/lib/dateUtils';
 import { toast } from '@/components/ui/use-toast';
+import GlassCard from '@/components/ui/GlassCard';
+import { motion } from 'framer-motion';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -69,7 +71,8 @@ const ReportsPage = () => {
         startDate,
         endDate,
         currency: filterCurrency || undefined,
-        category: filterCategory || undefined
+        category: filterCategory || undefined,
+        locale: locale
       });
 
       const columns = [
@@ -108,7 +111,8 @@ const ReportsPage = () => {
       startDate,
       endDate,
       currency: filterCurrency || undefined,
-      category: filterCategory || undefined
+      category: filterCategory || undefined,
+      locale: locale
     });
 
     const columns = [
@@ -137,8 +141,13 @@ const ReportsPage = () => {
     startDate,
     endDate,
     currency: filterCurrency || undefined,
-    category: filterCategory || undefined
+    category: filterCategory || undefined,
+    locale: locale
   });
+
+  // حساب الإجماليات حسب اللغة
+  const incomeType = locale === 'ar' ? 'وارد' : locale === 'en' ? 'Income' : 'Gelir';
+  const expenseType = locale === 'ar' ? 'صادر' : locale === 'en' ? 'Expense' : 'Gider';
 
   const data = financialData ? {
     labels: [
@@ -172,8 +181,8 @@ const ReportsPage = () => {
     ],
   } : null;
 
-  const totalIncome = filteredData.reduce((sum, item) => item.type === 'وارد' ? sum + item.amount : sum, 0);
-  const totalExpenses = filteredData.reduce((sum, item) => item.type === 'صادر' ? sum + item.amount : sum, 0);
+  const totalIncome = filteredData.reduce((sum, item) => item.type === incomeType ? sum + item.amount : sum, 0);
+  const totalExpenses = filteredData.reduce((sum, item) => item.type === expenseType ? sum + item.amount : sum, 0);
   const netProfit = totalIncome - totalExpenses;
 
   return (
@@ -211,7 +220,7 @@ const ReportsPage = () => {
         </div>
 
         {/* Filters */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+        <GlassCard>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
             <div>
               <label className="block text-sm font-medium mb-2">{t('reports.selectPeriod')}</label>
@@ -265,33 +274,33 @@ const ReportsPage = () => {
               </select>
             </div>
           </div>
-        </div>
+        </GlassCard>
 
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+          <GlassCard>
             <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">{t('reports.totalIncome')}</h3>
-            <p className="text-2xl font-bold text-green-600">{totalIncome.toFixed(2)}</p>
-          </div>
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+            <p className="text-2xl font-bold text-green-600">{totalIncome.toLocaleString('ar-EG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+          </GlassCard>
+          <GlassCard>
             <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">{t('reports.totalExpenses')}</h3>
-            <p className="text-2xl font-bold text-red-600">{totalExpenses.toFixed(2)}</p>
-          </div>
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+            <p className="text-2xl font-bold text-red-600">{totalExpenses.toLocaleString('ar-EG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+          </GlassCard>
+          <GlassCard>
             <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">{t('reports.netProfit')}</h3>
             <p className={`text-2xl font-bold ${netProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {netProfit.toFixed(2)}
+              {netProfit.toLocaleString('ar-EG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </p>
-          </div>
+          </GlassCard>
         </div>
 
         {/* Charts */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+          <GlassCard>
             <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">{t('reports.financialOverview')}</h2>
             {financialData && data ? <Bar data={data} /> : <p className="text-gray-500">{t('common.loading')}</p>}
-          </div>
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+          </GlassCard>
+          <GlassCard>
             <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">{t('reports.summary')}</h2>
             <p className="text-gray-600 dark:text-gray-300 mb-4">
               {t('reports.summaryText')}

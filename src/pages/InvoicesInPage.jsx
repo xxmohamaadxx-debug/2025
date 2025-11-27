@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
+import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { neonService } from '@/lib/neonService';
@@ -11,6 +12,7 @@ import InvoiceDialog from '@/components/invoices/InvoiceDialog';
 import { formatDateAR, formatDateShort } from '@/lib/dateUtils';
 import { exportInvoicePDF, printInvoice } from '@/lib/pdfUtils';
 import { isOnline, storeOffline } from '@/lib/offlineService';
+import GlassCard from '@/components/ui/GlassCard';
 
 const InvoicesInPage = () => {
   const { user, tenant } = useAuth();
@@ -172,7 +174,7 @@ const InvoicesInPage = () => {
       </div>
 
       {/* Filters and Search */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 space-y-4">
+      <GlassCard>
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1 relative">
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -222,7 +224,7 @@ const InvoicesInPage = () => {
             <option value="category">تجميع حسب التصنيف</option>
           </select>
         </div>
-      </div>
+      </GlassCard>
 
       <div className="space-y-4">
         {loading ? <Loader2 className="animate-spin mx-auto" /> : (
@@ -285,7 +287,27 @@ const InvoicesInPage = () => {
                 <div className="block md:hidden space-y-4">
                   {groupBy === 'none' ? (
                     filteredInvoices.map(inv => (
-                      <div key={inv.id} className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow border border-gray-100 dark:border-gray-700">
+                      <div key={inv.id} className="relative bg-gradient-to-br from-white/95 to-white/90 dark:from-gray-800/95 dark:to-gray-800/90 backdrop-blur-xl p-4 rounded-lg shadow-xl border border-gray-200/50 dark:border-gray-700/50 overflow-hidden"
+                        style={{
+                          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.1) inset',
+                        }}
+                      >
+                        <motion.div
+                          className="absolute inset-0 bg-gradient-to-br from-orange-500/0 via-pink-500/0 to-purple-500/0 pointer-events-none"
+                          animate={{
+                            background: [
+                              'linear-gradient(135deg, rgba(255, 140, 0, 0) 0%, rgba(236, 72, 153, 0) 100%)',
+                              'linear-gradient(135deg, rgba(255, 140, 0, 0.05) 0%, rgba(236, 72, 153, 0.05) 100%)',
+                              'linear-gradient(135deg, rgba(255, 140, 0, 0) 0%, rgba(236, 72, 153, 0) 100%)',
+                            ],
+                          }}
+                          transition={{
+                            duration: 3,
+                            repeat: Infinity,
+                            ease: 'easeInOut',
+                          }}
+                        />
+                        <div className="relative z-10">
                         <div className="flex justify-between mb-2">
                           <span className="text-sm text-gray-500">{inv.date ? formatDateShort(inv.date) : '-'}</span>
                           <span className={`px-2 py-0.5 rounded text-xs ${inv.status === 'Paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>{inv.status}</span>
@@ -293,6 +315,7 @@ const InvoicesInPage = () => {
                         <p className="font-medium text-gray-900 dark:text-white mb-2">{inv.description}</p>
                         {inv.partner_name && <p className="text-sm text-gray-500 mb-1">المورد: {inv.partner_name}</p>}
                         <div className="text-lg font-bold text-red-500 text-right">{inv.amount} {inv.currency}</div>
+                        </div>
                       </div>
                     ))
                   ) : (
@@ -300,7 +323,27 @@ const InvoicesInPage = () => {
                       <div key={key} className="space-y-2">
                         <h3 className="font-semibold text-gray-700 dark:text-gray-300 p-2 bg-gray-100 dark:bg-gray-700 rounded">{key}</h3>
                         {group.map(inv => (
-                          <div key={inv.id} className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow border border-gray-100 dark:border-gray-700 mr-4">
+                          <div key={inv.id} className="relative bg-gradient-to-br from-white/95 to-white/90 dark:from-gray-800/95 dark:to-gray-800/90 backdrop-blur-xl p-4 rounded-lg shadow-xl border border-gray-200/50 dark:border-gray-700/50 mr-4 overflow-hidden"
+                            style={{
+                              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.1) inset',
+                            }}
+                          >
+                            <motion.div
+                              className="absolute inset-0 bg-gradient-to-br from-orange-500/0 via-pink-500/0 to-purple-500/0 pointer-events-none"
+                              animate={{
+                                background: [
+                                  'linear-gradient(135deg, rgba(255, 140, 0, 0) 0%, rgba(236, 72, 153, 0) 100%)',
+                                  'linear-gradient(135deg, rgba(255, 140, 0, 0.05) 0%, rgba(236, 72, 153, 0.05) 100%)',
+                                  'linear-gradient(135deg, rgba(255, 140, 0, 0) 0%, rgba(236, 72, 153, 0) 100%)',
+                                ],
+                              }}
+                              transition={{
+                                duration: 3,
+                                repeat: Infinity,
+                                ease: 'easeInOut',
+                              }}
+                            />
+                            <div className="relative z-10">
                             <div className="flex justify-between mb-2">
                               <span className="text-sm text-gray-500">{inv.date ? formatDateShort(inv.date) : '-'}</span>
                               <span className={`px-2 py-0.5 rounded text-xs ${inv.status === 'Paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>{inv.status}</span>
@@ -308,6 +351,7 @@ const InvoicesInPage = () => {
                             <p className="font-medium text-gray-900 dark:text-white mb-2">{inv.description}</p>
                             {inv.partner_name && <p className="text-sm text-gray-500 mb-1">المورد: {inv.partner_name}</p>}
                             <div className="text-lg font-bold text-red-500 text-right">{inv.amount} {inv.currency}</div>
+                            </div>
                           </div>
                         ))}
                       </div>
@@ -316,7 +360,27 @@ const InvoicesInPage = () => {
                 </div>
 
                 {/* Desktop Table View */}
-                <div className="hidden md:block bg-white dark:bg-gray-800 rounded-lg shadow p-6 overflow-x-auto">
+                <div className="hidden md:block relative bg-gradient-to-br from-white/95 to-white/90 dark:from-gray-800/95 dark:to-gray-800/90 backdrop-blur-xl rounded-lg shadow-xl border border-gray-200/50 dark:border-gray-700/50 p-6 overflow-x-auto"
+                  style={{
+                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.1) inset',
+                  }}
+                >
+                  <motion.div
+                    className="absolute inset-0 bg-gradient-to-br from-orange-500/0 via-pink-500/0 to-purple-500/0 pointer-events-none"
+                    animate={{
+                      background: [
+                        'linear-gradient(135deg, rgba(255, 140, 0, 0) 0%, rgba(236, 72, 153, 0) 100%)',
+                        'linear-gradient(135deg, rgba(255, 140, 0, 0.05) 0%, rgba(236, 72, 153, 0.05) 100%)',
+                        'linear-gradient(135deg, rgba(255, 140, 0, 0) 0%, rgba(236, 72, 153, 0) 100%)',
+                      ],
+                    }}
+                    transition={{
+                      duration: 3,
+                      repeat: Infinity,
+                      ease: 'easeInOut',
+                    }}
+                  />
+                  <div className="relative z-10">
                   {groupBy === 'none' ? (
                     <table className="w-full text-left rtl:text-right">
                       <thead>
@@ -401,6 +465,7 @@ const InvoicesInPage = () => {
                         ))}
                       </tbody>
                     </table>
+                  </div>
                   ) : (
                     Object.entries(groupedInvoices).map(([key, group]) => (
                       <div key={key} className="mb-6">
@@ -433,6 +498,39 @@ const InvoicesInPage = () => {
                                     <Button size="sm" variant="ghost" onClick={() => handleEdit(inv)}>
                                       <Edit className="h-4 w-4" />
                                     </Button>
+                                    <Button 
+                                      size="sm" 
+                                      variant="ghost" 
+                                      onClick={async () => {
+                                        try {
+                                          const items = await neonService.getInvoiceItems(inv.id, 'invoice_in', user.tenant_id);
+                                          await exportInvoicePDF(inv, 'in', tenant?.name, '/logo.png', inv.language || 'ar', items);
+                                          toast({ title: 'تم تصدير PDF بنجاح' });
+                                        } catch (error) {
+                                          console.error('Export PDF error:', error);
+                                          toast({ title: 'خطأ في التصدير', variant: "destructive" });
+                                        }
+                                      }}
+                                      title="تصدير PDF"
+                                    >
+                                      <FileDown className="h-4 w-4 text-blue-500" />
+                                    </Button>
+                                    <Button 
+                                      size="sm" 
+                                      variant="ghost" 
+                                      onClick={async () => {
+                                        try {
+                                          const items = await neonService.getInvoiceItems(inv.id, 'invoice_in', user.tenant_id);
+                                          await printInvoice(inv, 'in', tenant?.name, '/logo.png', inv.language || 'ar', items);
+                                        } catch (error) {
+                                          console.error('Print error:', error);
+                                          toast({ title: 'خطأ في الطباعة', variant: "destructive" });
+                                        }
+                                      }}
+                                      title="طباعة"
+                                    >
+                                      <Printer className="h-4 w-4 text-green-500" />
+                                    </Button>
                                     <Button size="sm" variant="ghost" onClick={async () => {
                                       if (window.confirm(t('common.confirmDelete'))) {
                                         try {
@@ -455,6 +553,7 @@ const InvoicesInPage = () => {
                       </div>
                     ))
                   )}
+                  </div>
                 </div>
               </>
             );

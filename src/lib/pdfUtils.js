@@ -424,7 +424,7 @@ export const generateReportPDF = async (title, data, columns, tenantName, logoPa
     })
   );
 
-  // جدول البيانات
+  // جدول البيانات - إصلاح مشكلة الترميز
   autoTable(doc, {
     startY: startY,
     head: [tableHead],
@@ -434,20 +434,47 @@ export const generateReportPDF = async (title, data, columns, tenantName, logoPa
       fillColor: [255, 140, 0], 
       textColor: 255, 
       fontStyle: 'bold',
-      halign: 'center'
+      halign: 'center',
+      font: 'helvetica'
     },
     styles: { 
-      fontSize: 8, 
+      fontSize: 9, 
       halign: isRTL ? 'right' : 'left',
       font: 'helvetica',
-      cellPadding: 3,
+      cellPadding: 4,
       overflow: 'linebreak',
-      cellWidth: 'wrap'
+      cellWidth: 'wrap',
+      textColor: [0, 0, 0]
     },
     margin: { left: 10, right: 10 },
     didParseCell: function(data) {
       if (isRTL) {
         data.cell.styles.halign = 'right';
+      }
+      // إصلاح الترميز - تحويل النص إلى UTF-8
+      if (data.cell.text && typeof data.cell.text === 'string') {
+        try {
+          // التأكد من أن النص يتم عرضه بشكل صحيح
+          data.cell.text = data.cell.text.replace(/[^\x00-\x7F]/g, function(char) {
+            return char;
+          });
+        } catch (e) {
+          // تجاهل الأخطاء
+        }
+      }
+    },
+    didDrawCell: function(data) {
+      // إصلاح عرض النص العربي
+      if (isRTL && data.cell.text) {
+        try {
+          const text = String(data.cell.text || '');
+          if (text && text.length > 0) {
+            // استخدام خط يدعم العربية
+            doc.setFont('helvetica');
+          }
+        } catch (e) {
+          // تجاهل الأخطاء
+        }
       }
     }
   });

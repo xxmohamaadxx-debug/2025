@@ -164,8 +164,29 @@ const AdvancedFinancialBox = ({ t }) => {
     <motion.div
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-gradient-to-br from-white via-gray-50 to-white dark:from-gray-800 dark:via-gray-800/90 dark:to-gray-800 backdrop-blur-xl p-6 rounded-2xl shadow-2xl border-2 border-gray-200/80 dark:border-gray-700/80 hover:shadow-3xl transition-all"
+      className="relative bg-gradient-to-br from-white/95 to-white/90 dark:from-gray-800/95 dark:to-gray-800/90 backdrop-blur-xl p-6 rounded-2xl shadow-xl border border-gray-200/50 dark:border-gray-700/50 overflow-hidden"
+      style={{
+        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.1) inset',
+      }}
     >
+      {/* Animated Background - matching dashboard style */}
+      <motion.div
+        className="absolute inset-0 bg-gradient-to-br from-orange-500/0 via-pink-500/0 to-purple-500/0"
+        animate={{
+          background: [
+            'linear-gradient(135deg, rgba(255, 140, 0, 0) 0%, rgba(236, 72, 153, 0) 100%)',
+            'linear-gradient(135deg, rgba(255, 140, 0, 0.1) 0%, rgba(236, 72, 153, 0.1) 100%)',
+            'linear-gradient(135deg, rgba(255, 140, 0, 0) 0%, rgba(236, 72, 153, 0) 100%)',
+          ],
+        }}
+        transition={{
+          duration: 3,
+          repeat: Infinity,
+          ease: 'easeInOut',
+        }}
+      />
+      
+      <div className="relative z-10">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <motion.div
@@ -260,6 +281,7 @@ const AdvancedFinancialBox = ({ t }) => {
           جاري تحميل الرسم البياني...
         </div>
       )}
+      </div>
     </motion.div>
   );
 };

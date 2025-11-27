@@ -84,14 +84,14 @@ const ActiveUsersCard = ({ t }) => {
         boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.1) inset',
       }}
     >
-      {/* Animated Background */}
+      {/* Animated Background - matching dashboard style */}
       <motion.div
-        className="absolute inset-0 bg-gradient-to-br from-blue-500/0 via-purple-500/0 to-pink-500/0"
+        className="absolute inset-0 bg-gradient-to-br from-orange-500/0 via-pink-500/0 to-purple-500/0"
         animate={{
           background: [
-            'linear-gradient(135deg, rgba(59, 130, 246, 0) 0%, rgba(168, 85, 247, 0) 50%, rgba(236, 72, 153, 0) 100%)',
-            'linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(168, 85, 247, 0.05) 50%, rgba(236, 72, 153, 0.05) 100%)',
-            'linear-gradient(135deg, rgba(59, 130, 246, 0) 0%, rgba(168, 85, 247, 0) 50%, rgba(236, 72, 153, 0) 100%)',
+            'linear-gradient(135deg, rgba(255, 140, 0, 0) 0%, rgba(236, 72, 153, 0) 100%)',
+            'linear-gradient(135deg, rgba(255, 140, 0, 0.1) 0%, rgba(236, 72, 153, 0.1) 100%)',
+            'linear-gradient(135deg, rgba(255, 140, 0, 0) 0%, rgba(236, 72, 153, 0) 100%)',
           ],
         }}
         transition={{

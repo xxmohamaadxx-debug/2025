@@ -9,6 +9,7 @@ import { Plus, Loader2 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import InventoryDialog from '@/components/inventory/InventoryDialog';
 import InventoryTable from '@/components/inventory/InventoryTable';
+import GlassCard from '@/components/ui/GlassCard';
 
 const InventoryPage = () => {
   const { user } = useAuth();
@@ -97,7 +98,7 @@ const InventoryPage = () => {
       </div>
       
       {/* Filters */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 space-y-4">
+      <GlassCard>
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1 relative">
             <input
@@ -105,13 +106,13 @@ const InventoryPage = () => {
               placeholder="بحث في المستودع..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm"
             />
           </div>
           <select
             value={filterPeriod}
             onChange={(e) => setFilterPeriod(e.target.value)}
-            className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
+            className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm"
           >
             <option value="all">الكل</option>
             <option value="day">اليوم</option>
@@ -119,9 +120,9 @@ const InventoryPage = () => {
             <option value="month">هذا الشهر</option>
           </select>
         </div>
-      </div>
+      </GlassCard>
 
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+      <GlassCard>
         {loading ? <Loader2 className="animate-spin mx-auto" /> : (() => {
           // Filter items
           let filteredItems = items.filter(item => {

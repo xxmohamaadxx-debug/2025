@@ -161,8 +161,18 @@ export const generateReport = (invoicesIn, invoicesOut, filters = {}) => {
     endDate, 
     currency, 
     category,
-    type = 'all' // 'all', 'in', 'out'
+    type = 'all', // 'all', 'in', 'out'
+    locale = 'ar' // دعم اللغة
   } = filters;
+
+  // الترجمات حسب اللغة
+  const translations = {
+    ar: { in: 'وارد', out: 'صادر', pending: 'معلق', paid: 'مدفوع' },
+    en: { in: 'Income', out: 'Expense', pending: 'Pending', paid: 'Paid' },
+    tr: { in: 'Gelir', out: 'Gider', pending: 'Beklemede', paid: 'Ödendi' }
+  };
+  
+  const t = translations[locale] || translations.ar;
 
   let data = [];
 
@@ -170,14 +180,14 @@ export const generateReport = (invoicesIn, invoicesOut, filters = {}) => {
     data = [
       ...data,
       ...invoicesIn.map(inv => ({
-        type: 'وارد',
+        type: t.in,
         amount: parseFloat(inv.amount || 0),
         currency: inv.currency || 'TRY',
         description: inv.description || '-',
         date: inv.date,
         category: inv.category || '-',
         partner: inv.partner_name || '-',
-        status: inv.status || 'pending'
+        status: inv.status === 'Paid' ? t.paid : t.pending
       }))
     ];
   }
@@ -186,14 +196,14 @@ export const generateReport = (invoicesIn, invoicesOut, filters = {}) => {
     data = [
       ...data,
       ...invoicesOut.map(inv => ({
-        type: 'صادر',
+        type: t.out,
         amount: parseFloat(inv.amount || 0),
         currency: inv.currency || 'TRY',
         description: inv.description || '-',
         date: inv.date,
         category: inv.category || '-',
         partner: inv.partner_name || '-',
-        status: inv.status || 'pending'
+        status: inv.status === 'Paid' ? t.paid : t.pending
       }))
     ];
   }
