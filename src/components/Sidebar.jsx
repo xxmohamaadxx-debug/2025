@@ -172,6 +172,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
   };
   
   const sidebarVariants = getSidebarVariants();
+  const RenderNavItem = (props) => <NavItem disableMotion={!isDesktop} {...props} />;
 
   return (
     <motion.div
@@ -310,7 +311,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
              <div className="px-4 mb-2 mt-4 text-xs font-semibold text-purple-500 dark:text-purple-400 uppercase tracking-wider">
                {t('common.adminPanel')}
              </div>
-             <NavItem
+             <RenderNavItem
                to="/admin"
                icon={Shield}
                label={t('common.adminPanel')}
@@ -318,7 +319,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                onClick={handleLinkClick}
                delay={0.05}
              />
-             <NavItem
+            <RenderNavItem
                to="/admin-settings"
                icon={Settings}
                label="إعدادات المدير"
@@ -331,7 +332,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
 
         <div className="px-4 mb-2 mt-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">{t('nav.overview') || 'نظرة عامة'}</div>
         
-        <NavItem
+        <RenderNavItem
           to="/dashboard"
           icon={LayoutDashboard}
           label={t('common.dashboard')}
@@ -339,7 +340,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           onClick={handleLinkClick}
           delay={0.15}
         />
-        <NavItem
+        <RenderNavItem
           to="/invoices-in"
           icon={FileText}
           label={t('common.invoicesIn')}
@@ -347,7 +348,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           onClick={handleLinkClick}
           delay={0.2}
         />
-        <NavItem
+        <RenderNavItem
           to="/invoices-out"
           icon={ShoppingCart}
           label={t('common.invoicesOut')}
@@ -355,7 +356,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           onClick={handleLinkClick}
           delay={0.25}
         />
-        <NavItem
+        <RenderNavItem
           to="/inventory"
           icon={Package}
           label={t('common.inventory')}
@@ -366,7 +367,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
 
         <div className="px-4 mb-2 mt-6 text-xs font-semibold text-gray-400 uppercase tracking-wider">{t('nav.management') || 'إدارة'}</div>
 
-        <NavItem
+        <RenderNavItem
           to="/daily-transactions"
           icon={Activity}
           label="الحركة اليومية"
@@ -374,7 +375,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           onClick={handleLinkClick}
           delay={0.35}
         />
-        <NavItem
+        <RenderNavItem
           to="/customers"
           icon={Users}
           label="العملاء والديون"
@@ -382,7 +383,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           onClick={handleLinkClick}
           delay={0.4}
         />
-        <NavItem
+        <RenderNavItem
           to="/partners"
           icon={Users}
           label={t('common.partners')}
@@ -390,7 +391,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           onClick={handleLinkClick}
           delay={0.45}
         />
-        <NavItem
+        <RenderNavItem
           to="/employees"
           icon={Briefcase}
           label={t('common.employees')}
@@ -399,7 +400,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           delay={0.5}
         />
         {(user?.isStoreOwner || user?.isSuperAdmin) && (
-          <NavItem
+          <RenderNavItem
             to="/store-users"
             icon={Users}
             label={t('common.storeUsers')}
@@ -408,7 +409,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
             delay={0.55}
           />
         )}
-        <NavItem
+        <RenderNavItem
           to="/reports"
           icon={BarChart}
           label={t('common.reports')}
@@ -416,7 +417,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           onClick={handleLinkClick}
           delay={0.6}
         />
-        <NavItem
+        <RenderNavItem
           to="/journal"
           icon={FileText}
           label="اليومية المحاسبية"
@@ -430,7 +431,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           <>
             <div className="px-4 mb-2 mt-6 text-xs font-semibold text-gray-400 uppercase tracking-wider">صالات الإنترنت</div>
             
-            <NavItem
+            <RenderNavItem
               to="/internet-cafe/subscribers"
               icon={Users}
               label="المشتركين"
@@ -438,7 +439,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
               onClick={handleLinkClick}
               delay={0.65}
             />
-            <NavItem
+            <RenderNavItem
               to="/internet-cafe/subscription-types"
               icon={CreditCard}
               label="أنواع الاشتراكات"
@@ -446,7 +447,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
               onClick={handleLinkClick}
               delay={0.66}
             />
-            <NavItem
+            <RenderNavItem
               to="/internet-cafe/sessions"
               icon={Wifi}
               label="الجلسات"
@@ -454,7 +455,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
               onClick={handleLinkClick}
               delay={0.67}
             />
-            <NavItem
+            <RenderNavItem
               to="/internet-cafe/devices"
               icon={Database}
               label="الأجهزة"
@@ -470,7 +471,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           <>
             <div className="px-4 mb-2 mt-6 text-xs font-semibold text-gray-400 uppercase tracking-wider">محطات المحروقات</div>
             
-            <NavItem
+            <RenderNavItem
               to="/fuel-station"
               icon={Fuel}
               label="متجر المحروقات"
@@ -486,7 +487,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           <>
             <div className="px-4 mb-2 mt-6 text-xs font-semibold text-gray-400 uppercase tracking-wider">متجر المقاولين</div>
             
-            <NavItem
+            <RenderNavItem
               to="/contractor-projects"
               icon={Building2}
               label="المشاريع"
@@ -494,7 +495,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
               onClick={handleLinkClick}
               delay={0.8}
             />
-            <NavItem
+            <RenderNavItem
               to="/contractor-project-items"
               icon={FileText}
               label="بنود الكميات (BOQ)"
@@ -510,7 +511,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           <>
             <div className="px-4 mb-2 mt-6 text-xs font-semibold text-gray-400 uppercase tracking-wider">متجر إكسسوارات الجوال</div>
             
-            <NavItem
+            <RenderNavItem
               to="/store/products"
               icon={Package}
               label="المنتجات"
@@ -518,7 +519,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
               onClick={handleLinkClick}
               delay={0.86}
             />
-            <NavItem
+            <RenderNavItem
               to="/store/pos"
               icon={ShoppingCart}
               label="نقاط البيع (POS)"
@@ -526,7 +527,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
               onClick={handleLinkClick}
               delay={0.87}
             />
-            <NavItem
+            <RenderNavItem
               to="/store/sales-invoices"
               icon={FileText}
               label="فواتير المبيعات"
@@ -534,7 +535,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
               onClick={handleLinkClick}
               delay={0.88}
             />
-            <NavItem
+            <RenderNavItem
               to="/store/purchase-invoices"
               icon={FileText}
               label="فواتير المشتريات"
@@ -542,7 +543,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
               onClick={handleLinkClick}
               delay={0.89}
             />
-            <NavItem
+            <RenderNavItem
               to="/store/bundles"
               icon={Package}
               label="الحزم"
@@ -554,7 +555,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         )}
 
         {/* التقارير الشاملة */}
-        <NavItem
+        <RenderNavItem
           to="/comprehensive-reports"
           icon={BarChart}
           label="التقارير الشاملة"
@@ -564,7 +565,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         />
 
         {user?.isSuperAdmin && (
-          <NavItem
+          <RenderNavItem
             to="/store-types"
             icon={Store}
             label="أنواع المتاجر"
@@ -578,7 +579,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           {t('nav.system') || 'النظام'}
         </div>
 
-        <NavItem
+        <RenderNavItem
           to="/subscription"
           icon={CreditCard}
           label={t('common.subscription')}
@@ -586,7 +587,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           onClick={handleLinkClick}
           delay={0.95}
         />
-        <NavItem
+        <RenderNavItem
           to="/notification-settings"
           icon={Bell}
           label="إعدادات الإشعارات"
@@ -594,7 +595,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           onClick={handleLinkClick}
           delay={1.0}
         />
-        <NavItem
+        <RenderNavItem
           to="/support"
           icon={MessageCircle}
           label="الدعم والمساعدة"
@@ -602,7 +603,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           onClick={handleLinkClick}
           delay={1.05}
         />
-        <NavItem
+        <RenderNavItem
           to="/messages"
           icon={MessageCircle}
           label={locale === 'ar' ? '💬 المراسلة' : locale === 'en' ? '💬 Messages' : '💬 Mesajlar'}
@@ -611,7 +612,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           delay={1.08}
         />
         {(user?.isStoreOwner || user?.isSuperAdmin) && (
-          <NavItem
+          <RenderNavItem
             to="/backup"
             icon={Database}
             label="النسخ الاحتياطي"
@@ -620,7 +621,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
             delay={1.1}
           />
         )}
-        <NavItem
+        <RenderNavItem
           to="/settings"
           icon={Settings}
           label={t('common.settings')}

@@ -3,7 +3,30 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { LucideIcon } from 'lucide-react';
 
-const NavItem = ({ to, icon: Icon, label, isActive, onClick, delay = 0 }) => {
+const NavItem = ({ to, icon: Icon, label, isActive, onClick, delay = 0, disableMotion = false }) => {
+  if (disableMotion) {
+    return (
+      <div className="mb-2">
+        <Link
+          to={to}
+          onClick={onClick}
+          className={`group relative flex items-center px-4 py-3 rounded-xl transition-all duration-200 ${
+            isActive
+              ? 'bg-orange-500/20 text-white font-semibold'
+              : 'text-gray-200 bg-white/5 hover:bg-white/10'
+          }`}
+        >
+          <Icon
+            className={`h-5 w-5 ltr:mr-3 rtl:ml-3 ${
+              isActive ? 'text-orange-300' : 'text-gray-400 group-hover:text-orange-300'
+            }`}
+          />
+          <span className="font-medium">{label}</span>
+        </Link>
+      </div>
+    );
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, x: -20 }}

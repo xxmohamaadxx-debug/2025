@@ -21,6 +21,7 @@ const MainLayout = ({ children }) => {
   const [isOffline, setIsOffline] = useState(() => typeof window !== 'undefined' && navigator ? !navigator.onLine : false);
   const [pendingSyncCount, setPendingSyncCount] = useState(0);
   const [enableBackgroundEffects, setEnableBackgroundEffects] = useState(() => shouldEnableBackground());
+  const [isMobileViewport, setIsMobileViewport] = useState(() => (typeof window !== 'undefined' ? window.innerWidth < 1024 : false));
   const [particles] = useState(() =>
     Array.from({ length: 18 }).map(() => ({
       width: Math.random() * 220 + 60,
@@ -144,9 +145,11 @@ const MainLayout = ({ children }) => {
   // Keep sidebar open on large screens
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth >= 1024) {
+      const width = window.innerWidth;
+      if (width >= 1024) {
         setIsSidebarOpen(true);
       }
+      setIsMobileViewport(width < 1024);
       setEnableBackgroundEffects(shouldEnableBackground());
     };
     window.addEventListener('resize', handleResize);
@@ -203,7 +206,7 @@ const MainLayout = ({ children }) => {
       
       {/* Overlay for mobile sidebar - only show on mobile when sidebar is open */}
       <AnimatePresence>
-        {isSidebarOpen && typeof window !== 'undefined' && window.innerWidth < 1024 && (
+        {isSidebarOpen && isMobileViewport && (
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -226,7 +229,7 @@ const MainLayout = ({ children }) => {
       {/* Main Content - No White Space, Seamless Connection */}
       <div className="flex-1 flex flex-col min-w-0 relative z-10">
         <TopNav 
-          onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} 
+          onMenuClick={() => setIsSidebarOpen((prev) => !prev)} 
           isOffline={isOffline}
           pendingSyncCount={pendingSyncCount}
         />
