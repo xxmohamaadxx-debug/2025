@@ -527,6 +527,199 @@ export const neonService = {
     }
   },
 
+  // ============================================
+  // Inventory Categories & Management
+  // ============================================
+  getInventoryCategories: async (tenantId) => {
+    if (!tenantId) return [];
+    try {
+      const result = await sql`SELECT * FROM inventory_categories WHERE tenant_id = ${tenantId} ORDER BY display_order ASC`;
+      return result || [];
+    } catch (error) {
+      console.error('getInventoryCategories error:', error);
+      return [];
+    }
+  },
+
+  createInventoryCategory: async (tenantId, data) => {
+    try {
+      const result = await sql`
+        INSERT INTO inventory_categories (tenant_id, name, description, color, display_order, is_active)
+        VALUES (${tenantId}, ${data.name}, ${data.description || null}, ${data.color || '#FF8C00'}, ${data.display_order || 0}, ${data.is_active !== undefined ? data.is_active : true})
+        RETURNING *
+      `;
+      return result[0];
+    } catch (error) {
+      console.error('createInventoryCategory error:', error);
+      throw error;
+    }
+  },
+
+  // ============================================
+  // Low Stock Thresholds (Per Store)
+  // ============================================
+  getLowStockThreshold: async (tenantId, productId) => {
+    try {
+      const result = await sql`SELECT * FROM low_stock_thresholds WHERE tenant_id = ${tenantId} AND product_id = ${productId}`;
+      return result[0] || null;
+    } catch (error) {
+      console.error('getLowStockThreshold error:', error);
+      return null;
+    }
+  },
+
+  setLowStockThreshold: async (tenantId, productId, data) => {
+    try {
+      const result = await sql`
+        INSERT INTO low_stock_thresholds (tenant_id, product_id, threshold_quantity, alert_enabled, alert_method, notes)
+        VALUES (${tenantId}, ${productId}, ${data.threshold_quantity || 5}, ${data.alert_enabled !== undefined ? data.alert_enabled : true}, ${data.alert_method || 'notification'}, ${data.notes || null})
+        ON CONFLICT (tenant_id, product_id) DO UPDATE SET 
+          threshold_quantity = ${data.threshold_quantity || 5}, 
+          alert_enabled = ${data.alert_enabled !== undefined ? data.alert_enabled : true},
+          alert_method = ${data.alert_method || 'notification'},
+          notes = ${data.notes || null},
+          updated_at = NOW()
+        RETURNING *
+      `;
+      return result[0];
+    } catch (error) {
+      console.error('setLowStockThreshold error:', error);
+      throw error;
+    }
+  },
+
+  // ============================================
+  // Inventory Changes History
+  // ============================================
+  getInventoryChanges: async (tenantId, productId = null, limit = 100) => {
+    try {
+      let query;
+      if (productId) {
+        query = sql`SELECT * FROM inventory_changes WHERE tenant_id = ${tenantId} AND product_id = ${productId} ORDER BY recorded_at DESC LIMIT ${limit}`;
+      } else {
+        query = sql`SELECT * FROM inventory_changes WHERE tenant_id = ${tenantId} ORDER BY recorded_at DESC LIMIT ${limit}`;
+      }
+      const result = await query;
+      return result || [];
+    } catch (error) {
+      console.error('getInventoryChanges error:', error);
+      return [];
+    }
+  },
+
+  // ============================================
+  // Fuel Counters (6 Configurable Per Store)
+  // ============================================
+  getFuelCounters: async (tenantId) => {
+    try {
+      const result = await sql`SELECT * FROM fuel_counters WHERE tenant_id = ${tenantId} ORDER BY counter_number ASC`;
+      return result || [];
+    } catch (error) {
+      console.error('getFuelCounters error:', error);
+      return [];
+    }
+  },
+
+  initializeFuelCounters: async (tenantId) => {
+    try {
+      const counters = [];
+      for (let i = 1; i <= 6; i++) {
+        const result = await sql`
+          INSERT INTO fuel_counters (tenant_id, counter_number, counter_name, liters_sold, price_per_liter, is_active)
+          VALUES (${tenantId}, ${i}, ${'عداد ' + i}, 0, 0, TRUE)
+          ON CONFLICT (tenant_id, counter_number) DO NOTHING
+          RETURNING *
+        `;
+        if (result.length > 0) counters.push(result[0]);
+      }
+      return counters;
+    } catch (error) {
+      console.error('initializeFuelCounters error:', error);
+      throw error;
+    }
+  },
+
+  updateFuelCounterName: async (fuelCounterId, name) => {
+    try {
+      const result = await sql`
+        UPDATE fuel_counters SET counter_name = ${name}, last_updated_at = NOW() WHERE id = ${fuelCounterId}
+        RETURNING *
+      `;
+      return result[0];
+    } catch (error) {
+      console.error('updateFuelCounterName error:', error);
+      throw error;
+    }
+  },
+
+  updateFuelCounterPrice: async (fuelCounterId, pricePerLiter) => {
+    try {
+      const result = await sql`
+        UPDATE fuel_counters SET price_per_liter = ${pricePerLiter}, last_updated_at = NOW() WHERE id = ${fuelCounterId}
+        RETURNING *
+      `;
+      return result[0];
+    } catch (error) {
+      console.error('updateFuelCounterPrice error:', error);
+      throw error;
+    }
+  },
+
+  getFuelCounterMovements: async (fuelCounterId, limit = 50) => {
+    try {
+      const result = await sql`SELECT * FROM fuel_counter_movements WHERE fuel_counter_id = ${fuelCounterId} ORDER BY recorded_at DESC LIMIT ${limit}`;
+      return result || [];
+    } catch (error) {
+      console.error('getFuelCounterMovements error:', error);
+      return [];
+    }
+  },
+
+  addFuelCounterMovement: async (tenantId, fuelCounterId, data) => {
+    try {
+      const result = await sql`
+        INSERT INTO fuel_counter_movements (tenant_id, fuel_counter_id, movement_type, liters, price_per_liter, total_amount, currency, reference_id, reference_type, notes, recorded_by, recorded_at)
+        VALUES (${tenantId}, ${fuelCounterId}, ${data.movement_type}, ${data.liters}, ${data.price_per_liter || null}, ${data.total_amount || null}, ${data.currency || 'SYP'}, ${data.reference_id || null}, ${data.reference_type || null}, ${data.notes || null}, ${data.recorded_by || null}, NOW())
+        RETURNING *
+      `;
+      await sql`UPDATE fuel_counters SET liters_sold = liters_sold + ${data.liters} WHERE id = ${fuelCounterId}`;
+      return result[0];
+    } catch (error) {
+      console.error('addFuelCounterMovement error:', error);
+      throw error;
+    }
+  },
+
+  getFuelCounterSummary: async (tenantId) => {
+    try {
+      const result = await sql`SELECT * FROM fuel_counters WHERE tenant_id = ${tenantId}`;
+      const summary = {};
+      result.forEach(counter => {
+        summary[counter.counter_number] = {
+          id: counter.id,
+          name: counter.counter_name,
+          liters: counter.liters_sold,
+          price: counter.price_per_liter,
+          total: counter.liters_sold * counter.price_per_liter
+        };
+      });
+      return summary;
+    } catch (error) {
+      console.error('getFuelCounterSummary error:', error);
+      return {};
+    }
+  },
+
+  getInventoryStats: async (tenantId) => {
+    try {
+      const result = await sql`SELECT * FROM get_inventory_stats(${tenantId})`;
+      return result[0] || { total_items: 0, low_stock_count: 0, total_value: 0, categories_count: 0 };
+    } catch (error) {
+      console.error('getInventoryStats error:', error);
+      return { total_items: 0, low_stock_count: 0, total_value: 0, categories_count: 0 };
+    }
+  },
+
   // Accounting - debts/payments/employees/deductions
   getDebts: async (tenantId) => {
     if (!tenantId) return [];
