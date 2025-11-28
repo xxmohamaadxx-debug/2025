@@ -69,7 +69,6 @@ const MessagesPage = React.lazy(() => import('@/pages/MessagesPage'));
 const DailyExpensesPage = React.lazy(() => import('@/pages/DailyExpensesPage'));
 
 // Warehouse
-const WarehouseTransactionsPage = React.lazy(() => import('@/pages/WarehouseTransactionsPage'));
 
 // Journal
 const JournalPage = React.lazy(() => import('@/pages/JournalPage'));
