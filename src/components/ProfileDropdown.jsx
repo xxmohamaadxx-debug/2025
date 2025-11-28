@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { motion, AnimatePresence } from 'framer-motion';
+import { shouldEnableMotion } from '@/lib/motionUtils';
 import { User, Settings, LogOut, Key, Shield, Clock, CheckCircle, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
@@ -147,8 +148,8 @@ const ProfileDropdown = ({ user }) => {
       <div className="relative">
         <motion.button
           onClick={() => setIsOpen(!isOpen)}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
+          whileHover={shouldEnableMotion() ? { scale: 1.05 } : undefined}
+          whileTap={shouldEnableMotion() ? { scale: 0.95 } : undefined}
           className="flex items-center gap-3 pl-4 rtl:pr-4 rtl:pl-0 border-l rtl:border-r rtl:border-l-0 border-gray-200 dark:border-gray-700"
         >
           <div className="text-right rtl:text-left hidden sm:block">
@@ -157,8 +158,8 @@ const ProfileDropdown = ({ user }) => {
           </div>
           <motion.div 
             className="h-10 w-10 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center border-2 border-white dark:border-gray-700 shadow-lg overflow-hidden"
-            whileHover={{ rotate: 360 }}
-            transition={{ duration: 0.5 }}
+            whileHover={shouldEnableMotion() ? { rotate: 360 } : undefined}
+            transition={shouldEnableMotion() ? { duration: 0.5 } : undefined}
           >
             {user?.avatar_url ? (
               <img 

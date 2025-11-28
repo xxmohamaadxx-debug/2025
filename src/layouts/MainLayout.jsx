@@ -15,27 +15,15 @@ const prefersReducedMotion = () =>
   typeof window !== 'undefined' && window.matchMedia
     ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
     : false;
-const shouldEnableBackground = (width = getViewportWidth()) => getIsDesktop(width) && !prefersReducedMotion();
+// Globally disable background effects for better performance on all devices
+const shouldEnableBackground = () => false;
 
 const MainLayout = ({ children }) => {
   const { user } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(() => getIsDesktop());
   const [isOffline, setIsOffline] = useState(() => (typeof window !== 'undefined' && navigator ? !navigator.onLine : false));
   const [pendingSyncCount, setPendingSyncCount] = useState(0);
-  const [enableBackgroundEffects, setEnableBackgroundEffects] = useState(() => shouldEnableBackground());
   const [isMobileViewport, setIsMobileViewport] = useState(() => !getIsDesktop());
-  const [particles] = useState(() =>
-    Array.from({ length: 18 }).map(() => ({
-      width: Math.random() * 220 + 60,
-      height: Math.random() * 220 + 60,
-      left: Math.random() * 100,
-      top: Math.random() * 100,
-      offsetX: Math.random() * 60 - 30,
-      offsetY: Math.random() * 60 - 30,
-      duration: 15 + Math.random() * 6,
-      delay: Math.random() * 4,
-    }))
-  );
 
   // Initialize offline service
   useEffect(() => {
@@ -152,19 +140,11 @@ const MainLayout = ({ children }) => {
         setIsSidebarOpen(true);
       }
       setIsMobileViewport(width < DESKTOP_BREAKPOINT);
-      setEnableBackgroundEffects(shouldEnableBackground(width));
     };
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  useEffect(() => {
-    if (typeof window === 'undefined' || !window.matchMedia) return;
-    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const handleChange = () => setEnableBackgroundEffects(shouldEnableBackground());
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
-  }, []);
 
   const baseBackgroundClass = isMobileViewport
     ? 'bg-slate-950 dark:bg-gray-950'
@@ -177,35 +157,7 @@ const MainLayout = ({ children }) => {
         <div className="fixed inset-0 bg-gradient-to-br from-slate-900 via-purple-900/30 to-slate-900 dark:from-gray-900 dark:via-purple-950/40 dark:to-gray-900 pointer-events-none z-0" />
       )}
       
-      {/* Animated Background Particles */}
-      {enableBackgroundEffects && (
-        <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-          {particles.map((particle, i) => (
-            <motion.div
-              key={i}
-              className="absolute rounded-full bg-purple-500/10 dark:bg-orange-500/5"
-              style={{
-                width: `${particle.width}px`,
-                height: `${particle.height}px`,
-                left: `${particle.left}%`,
-                top: `${particle.top}%`,
-              }}
-              animate={{
-                y: [0, particle.offsetY, 0],
-                x: [0, particle.offsetX, 0],
-                scale: [1, 1.1, 1],
-                opacity: [0.1, 0.25, 0.1],
-              }}
-              transition={{
-                duration: particle.duration,
-                repeat: Infinity,
-                delay: particle.delay,
-                ease: 'easeInOut',
-              }}
-            />
-          ))}
-        </div>
-      )}
+      {/* Static background only - no animations for performance */}
 
       {/* Sidebar - No White Space */}
       <div className="relative z-20">

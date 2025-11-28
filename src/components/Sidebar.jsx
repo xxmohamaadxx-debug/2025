@@ -9,7 +9,8 @@ import {
   LayoutDashboard, FileText, ShoppingCart, Package, 
   Users, Settings, LogOut, Shield, BarChart, 
   CreditCard, Briefcase, X, MessageCircle, Database, Activity,
-  Wifi, Fuel, Store, Building2, Bell, Receipt, Layers, AlertTriangle, History
+  Wifi, Fuel, Store, Building2, Bell, Receipt, Layers, AlertTriangle, History,
+  ArrowDownCircle, ArrowUpCircle
 } from 'lucide-react';
 import Logo from '@/components/Logo';
 import NavItem from './NavItem';
@@ -29,7 +30,9 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
   const [storeTypes, setStoreTypes] = useState([]);
   const [loadingStoreTypes, setLoadingStoreTypes] = useState(false);
   const [isDesktop, setIsDesktop] = useState(() => computeIsDesktop());
-  const [enableEffects, setEnableEffects] = useState(() => shouldEnableEffects());
+  // تعطيل الخلفيات المتحركة داخل الشريط الجانبي لزيادة سرعة الاستجابة
+  const [enableEffects, setEnableEffects] = useState(false);
+  const [sectionSettings, setSectionSettings] = useState([]);
   const ambientParticles = useMemo(
     () =>
       Array.from({ length: 6 }).map(() => ({
@@ -58,22 +61,34 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         // جلب أنواع المتاجر
         const types = await neonService.getTenantStoreTypes(user.tenant_id);
         // التأكد من أن البيانات في الصيغة الصحيحة
-        const formattedTypes = (types || []).map(type => ({
-          ...type,
-          store_type_code: type.store_type_code || type.code || '',
-          code: type.store_type_code || type.code || ''
-        }));
+        const formattedTypes = (types || []).map(type => {
+          const name = (type.name_ar || type.name_en || type.name_tr || '').toLowerCase();
+          let inferredCode = '';
+          if (name.includes('محروقات') || name.includes('بنزين') || name.includes('ديزل')) inferredCode = 'fuel';
+          if (name.includes('إنترنت') || name.includes('internet')) inferredCode = 'internet_cafe';
+          if (name.includes('مقاول') || name.includes('contractor')) inferredCode = 'contractor';
+          if (name.includes('اكسسوارات') || name.includes('x')) inferredCode = 'internet_cafe_accessories';
+          return {
+            ...type,
+            store_type_code: type.store_type_code || type.code || inferredCode || '',
+            code: type.store_type_code || type.code || inferredCode || ''
+          };
+        });
         setStoreTypes(formattedTypes);
         
-        // جلب إعدادات الأقسام المرئية (إذا كانت متوفرة)
+        // جلب إعدادات الأقسام المرئية
         try {
-          const sectionSettings = await neonService.getTenantSectionSettings?.(user.tenant_id);
-          if (sectionSettings && sectionSettings.length > 0) {
-            // حفظ الإعدادات في state إذا لزم الأمر
-            // يمكن استخدامها لتصفية الأقسام
+          const data = await neonService.getTenantSectionSettings?.(user.tenant_id);
+          if (Array.isArray(data) && data.length > 0) {
+            setSectionSettings(data.map((s, idx) => ({
+              section_code: s.section_code,
+              is_visible: !!s.is_visible,
+              display_order: typeof s.display_order === 'number' ? s.display_order : idx + 1,
+            })));
+          } else {
+            setSectionSettings([]);
           }
         } catch (e) {
-          // الدالة قد لا تكون موجودة بعد - لا مشكلة
           console.log('Section settings not available yet');
         }
       } catch (error) {
@@ -124,6 +139,14 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     return storeTypeCodes.includes(normalizedCode);
   };
 
+  // التحقق من ظهور عنصر حسب إعدادات الأقسام
+  const isSectionVisible = (code) => {
+    // إذا لم تُحدّد إعدادات الأقسام، افترض الظهور
+    if (!sectionSettings || sectionSettings.length === 0) return true;
+    const found = sectionSettings.find(s => s.section_code === code);
+    return found ? !!found.is_visible : true;
+  };
+
   // تحديد الأقسام لكل نوع متجر - فقط إذا كان نوع المتجر يطابق
   const isInternetCafe = shouldShowSection(['internet_cafe']);
   const isMobileAccessories = shouldShowSection(['internet_cafe_accessories', 'mobile_accessories']);
@@ -134,7 +157,8 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     const handleResize = () => {
       const desktop = computeIsDesktop();
       setIsDesktop(desktop);
-      setEnableEffects(shouldEnableEffects());
+      // نبقي الخلفيات المعطلة دائماً
+      setEnableEffects(false);
       if (desktop) {
         setIsOpen(true);
       }
@@ -146,7 +170,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
   useEffect(() => {
     if (typeof window === 'undefined' || !window.matchMedia) return;
     const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const handleChange = () => setEnableEffects(shouldEnableEffects());
+    const handleChange = () => setEnableEffects(false);
     mediaQuery.addEventListener('change', handleChange);
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
@@ -223,33 +247,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         )}
         
         {/* Glowing Particles Background */}
-        {enableEffects && (
-          <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            {ambientParticles.map((particle, i) => (
-              <motion.div
-                key={i}
-                className="absolute w-1.5 h-1.5 rounded-full"
-                style={{
-                  background: 'radial-gradient(circle, rgba(255, 140, 0, 1), transparent)',
-                  left: `${particle.left}%`,
-                  top: `${particle.top}%`,
-                  boxShadow: '0 0 15px rgba(255, 140, 0, 0.8), 0 0 30px rgba(255, 140, 0, 0.4)',
-                }}
-                animate={{
-                  y: [0, -30, 0],
-                  opacity: [0.1, 0.8, 0.1],
-                  scale: [1, 1.8, 1],
-                }}
-                transition={{
-                  duration: particle.duration,
-                  repeat: Infinity,
-                  delay: particle.delay,
-                  ease: 'easeInOut',
-                }}
-              />
-            ))}
-          </div>
-        )}
+        {/* الخلفية المتحركة معطلة لتحسين الأداء */}
         {/* Header with 3D Effect */}
         <motion.div 
           className="p-4 md:p-6 flex justify-between items-center border-b border-orange-500/20 relative z-10"
@@ -324,6 +322,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
 
         <div className="px-4 mb-2 mt-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">{t('nav.overview') || 'نظرة عامة'}</div>
         
+        {isSectionVisible('dashboard') && (
         <RenderNavItem
           to="/dashboard"
           icon={LayoutDashboard}
@@ -332,6 +331,8 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           onClick={handleLinkClick}
           delay={0.15}
         />
+        )}
+        {isSectionVisible('invoices_in') && (
         <RenderNavItem
           to="/invoices-in"
           icon={FileText}
@@ -340,6 +341,8 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           onClick={handleLinkClick}
           delay={0.2}
         />
+        )}
+        {isSectionVisible('invoices_out') && (
         <RenderNavItem
           to="/invoices-out"
           icon={ShoppingCart}
@@ -348,6 +351,8 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           onClick={handleLinkClick}
           delay={0.25}
         />
+        )}
+        {isSectionVisible('inventory') && (
         <RenderNavItem
           to="/inventory"
           icon={Package}
@@ -356,9 +361,11 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           onClick={handleLinkClick}
           delay={0.3}
         />
+        )}
 
         <div className="px-4 mb-2 mt-6 text-xs font-semibold text-gray-400 uppercase tracking-wider">{t('nav.management') || 'إدارة'}</div>
 
+        {isSectionVisible('daily_transactions') && (
         <RenderNavItem
           to="/daily-transactions"
           icon={Activity}
@@ -367,6 +374,8 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           onClick={handleLinkClick}
           delay={0.35}
         />
+        )}
+        {isSectionVisible('customers') && (
         <RenderNavItem
           to="/customers"
           icon={Users}
@@ -375,6 +384,8 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           onClick={handleLinkClick}
           delay={0.4}
         />
+        )}
+        {isSectionVisible('partners') && (
         <RenderNavItem
           to="/partners"
           icon={Users}
@@ -383,6 +394,8 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           onClick={handleLinkClick}
           delay={0.45}
         />
+        )}
+        {isSectionVisible('employees') && (
         <RenderNavItem
           to="/employees"
           icon={Briefcase}
@@ -391,7 +404,8 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           onClick={handleLinkClick}
           delay={0.5}
         />
-        {(user?.isStoreOwner || user?.isSuperAdmin) && (
+        )}
+        {(user?.isStoreOwner || user?.isSuperAdmin) && isSectionVisible('store_users') && (
           <RenderNavItem
             to="/store-users"
             icon={Users}
@@ -402,6 +416,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           />
         )}
         {/* RBAC is now available inside the Admin Panel */}
+        {isSectionVisible('reports') && (
         <RenderNavItem
           to="/reports"
           icon={BarChart}
@@ -410,6 +425,8 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           onClick={handleLinkClick}
           delay={0.6}
         />
+        )}
+        {isSectionVisible('journal') && (
         <RenderNavItem
           to="/journal"
           icon={FileText}
@@ -418,12 +435,14 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           onClick={handleLinkClick}
           delay={0.65}
         />
+        )}
 
         {/* صالات الإنترنت - تظهر فقط إذا كان نوع المتجر يدعمها */}
         {(isInternetCafe || user?.isSuperAdmin) && (
           <>
             <div className="px-4 mb-2 mt-6 text-xs font-semibold text-gray-400 uppercase tracking-wider">صالات الإنترنت</div>
             
+            {isSectionVisible('internet_cafe_subscribers') && (
             <RenderNavItem
               to="/internet-cafe/subscribers"
               icon={Users}
@@ -432,6 +451,8 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
               onClick={handleLinkClick}
               delay={0.65}
             />
+            )}
+            {isSectionVisible('internet_cafe_subscription_types') && (
             <RenderNavItem
               to="/internet-cafe/subscription-types"
               icon={CreditCard}
@@ -440,6 +461,8 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
               onClick={handleLinkClick}
               delay={0.66}
             />
+            )}
+            {isSectionVisible('internet_cafe_sessions') && (
             <RenderNavItem
               to="/internet-cafe/sessions"
               icon={Wifi}
@@ -448,6 +471,8 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
               onClick={handleLinkClick}
               delay={0.67}
             />
+            )}
+            {isSectionVisible('internet_cafe_devices') && (
             <RenderNavItem
               to="/internet-cafe/devices"
               icon={Database}
@@ -456,6 +481,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
               onClick={handleLinkClick}
               delay={0.68}
             />
+            )}
           </>
         )}
 
@@ -464,6 +490,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           <>
             <div className="px-4 mb-2 mt-6 text-xs font-semibold text-gray-400 uppercase tracking-wider">محطات المحروقات</div>
             
+            {isSectionVisible('fuel_station') && (
             <RenderNavItem
               to="/fuel-station"
               icon={Fuel}
@@ -472,6 +499,8 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
               onClick={handleLinkClick}
               delay={0.75}
             />
+            )}
+            {isSectionVisible('fuel_counters') && (
             <RenderNavItem
               to="/fuel-counters"
               icon={Fuel}
@@ -480,6 +509,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
               onClick={handleLinkClick}
               delay={0.76}
             />
+            )}
           </>
         )}
 
@@ -487,6 +517,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         <>
           <div className="px-4 mb-2 mt-6 text-xs font-semibold text-gray-400 uppercase tracking-wider">إدارة المخزون</div>
           
+          {isSectionVisible('inventory_categories') && (
           <RenderNavItem
             to="/inventory-categories"
             icon={Layers}
@@ -495,6 +526,8 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
             onClick={handleLinkClick}
             delay={0.77}
           />
+          )}
+          {isSectionVisible('inventory_thresholds') && (
           <RenderNavItem
             to="/inventory-thresholds"
             icon={AlertTriangle}
@@ -503,6 +536,8 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
             onClick={handleLinkClick}
             delay={0.78}
           />
+          )}
+          {isSectionVisible('inventory_audit') && (
           <RenderNavItem
             to="/inventory-audit"
             icon={History}
@@ -511,6 +546,17 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
             onClick={handleLinkClick}
             delay={0.79}
           />
+          )}
+          {isSectionVisible('warehouse_transactions') && (
+          <RenderNavItem
+            to="/warehouse-transactions"
+            icon={Activity}
+            label="الوارد والصادر"
+            isActive={isActive('/warehouse-transactions')}
+            onClick={handleLinkClick}
+            delay={0.80}
+          />
+          )}
         </>
 
         {/* متجر المقاولين - يظهر فقط إذا كان نوع المتجر يدعمه */}
@@ -518,6 +564,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           <>
             <div className="px-4 mb-2 mt-6 text-xs font-semibold text-gray-400 uppercase tracking-wider">متجر المقاولين</div>
             
+            {isSectionVisible('contractor_projects') && (
             <RenderNavItem
               to="/contractor-projects"
               icon={Building2}
@@ -526,6 +573,8 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
               onClick={handleLinkClick}
               delay={0.8}
             />
+            )}
+            {isSectionVisible('contractor_project_items') && (
             <RenderNavItem
               to="/contractor-project-items"
               icon={FileText}
@@ -534,6 +583,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
               onClick={handleLinkClick}
               delay={0.85}
             />
+            )}
           </>
         )}
 
@@ -542,6 +592,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           <>
             <div className="px-4 mb-2 mt-6 text-xs font-semibold text-gray-400 uppercase tracking-wider">متجر إكسسوارات الجوال</div>
             
+            {isSectionVisible('store_products') && (
             <RenderNavItem
               to="/store/products"
               icon={Package}
@@ -550,6 +601,8 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
               onClick={handleLinkClick}
               delay={0.86}
             />
+            )}
+            {isSectionVisible('store_pos') && (
             <RenderNavItem
               to="/store/pos"
               icon={ShoppingCart}
@@ -558,6 +611,8 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
               onClick={handleLinkClick}
               delay={0.87}
             />
+            )}
+            {isSectionVisible('store_sales_invoices') && (
             <RenderNavItem
               to="/store/sales-invoices"
               icon={FileText}
@@ -566,6 +621,8 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
               onClick={handleLinkClick}
               delay={0.88}
             />
+            )}
+            {isSectionVisible('store_purchase_invoices') && (
             <RenderNavItem
               to="/store/purchase-invoices"
               icon={FileText}
@@ -574,6 +631,8 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
               onClick={handleLinkClick}
               delay={0.89}
             />
+            )}
+            {isSectionVisible('store_bundles') && (
             <RenderNavItem
               to="/store/bundles"
               icon={Package}
@@ -582,10 +641,12 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
               onClick={handleLinkClick}
               delay={0.9}
             />
+            )}
           </>
         )}
 
         {/* التقارير الشاملة */}
+        {isSectionVisible('comprehensive_reports') && (
         <RenderNavItem
           to="/comprehensive-reports"
           icon={BarChart}
@@ -594,6 +655,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           onClick={handleLinkClick}
           delay={0.9}
         />
+        )}
 
         {/* Store types management moved into Admin Panel for super-admins */}
 
@@ -601,6 +663,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           {t('nav.system') || 'النظام'}
         </div>
 
+        {isSectionVisible('subscription') && (
         <RenderNavItem
           to="/subscription"
           icon={CreditCard}
@@ -609,6 +672,8 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           onClick={handleLinkClick}
           delay={0.95}
         />
+        )}
+        {isSectionVisible('notification_settings') && (
         <RenderNavItem
           to="/notification-settings"
           icon={Bell}
@@ -617,6 +682,8 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           onClick={handleLinkClick}
           delay={1.0}
         />
+        )}
+        {isSectionVisible('support') && (
         <RenderNavItem
           to="/support"
           icon={MessageCircle}
@@ -625,6 +692,8 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           onClick={handleLinkClick}
           delay={1.05}
         />
+        )}
+        {isSectionVisible('messages') && (
         <RenderNavItem
           to="/messages"
           icon={MessageCircle}
@@ -633,7 +702,8 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           onClick={handleLinkClick}
           delay={1.08}
         />
-        {(user?.isStoreOwner || user?.isSuperAdmin) && (
+        )}
+        {(user?.isStoreOwner || user?.isSuperAdmin) && isSectionVisible('backup') && (
           <RenderNavItem
             to="/backup"
             icon={Database}
@@ -643,6 +713,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
             delay={1.1}
           />
         )}
+        {isSectionVisible('settings') && (
         <RenderNavItem
           to="/settings"
           icon={Settings}
@@ -651,6 +722,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           onClick={handleLinkClick}
           delay={1.15}
         />
+        )}
 
         {/* Logout Button with Advanced Animation */}
         <motion.div 

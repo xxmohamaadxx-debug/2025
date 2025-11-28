@@ -68,6 +68,9 @@ const MessagesPage = React.lazy(() => import('@/pages/MessagesPage'));
 // Daily Expenses
 const DailyExpensesPage = React.lazy(() => import('@/pages/DailyExpensesPage'));
 
+// Warehouse
+const WarehouseTransactionsPage = React.lazy(() => import('@/pages/WarehouseTransactionsPage'));
+
 // Journal
 const JournalPage = React.lazy(() => import('@/pages/JournalPage'));
 
@@ -76,6 +79,7 @@ const FuelCountersManagementPage = React.lazy(() => import('@/pages/FuelCounters
 const InventoryCategoriesPage = React.lazy(() => import('@/pages/InventoryCategoriesPage'));
 const LowStockThresholdsPage = React.lazy(() => import('@/pages/LowStockThresholdsPage'));
 const InventoryAuditTrailPage = React.lazy(() => import('@/pages/InventoryAuditTrailPage'));
+const WarehouseTransactionsPage = React.lazy(() => import('@/pages/WarehouseTransactionsPage'));
 
 const LoadingSpinner = () => (
   <div className="flex h-screen items-center justify-center bg-gray-50 dark:bg-gray-900">
@@ -243,6 +247,7 @@ function App() {
                   <Route path="/inventory-categories" element={<PrivateRoute roles={['ANY']}><MainLayout><SubscriptionWarning /><InventoryCategoriesPage /></MainLayout></PrivateRoute>} />
                   <Route path="/inventory-thresholds" element={<PrivateRoute roles={['ANY']}><MainLayout><SubscriptionWarning /><LowStockThresholdsPage /></MainLayout></PrivateRoute>} />
                   <Route path="/inventory-audit" element={<PrivateRoute roles={['ANY']}><MainLayout><SubscriptionWarning /><InventoryAuditTrailPage /></MainLayout></PrivateRoute>} />
+                  <Route path="/warehouse-transactions" element={<PrivateRoute roles={['ANY']}><MainLayout><SubscriptionWarning /><WarehouseTransactionsPage /></MainLayout></PrivateRoute>} />
                   <Route path="/contractor-projects" element={<PrivateRoute roles={['ANY']}><MainLayout><SubscriptionWarning /><ContractorProjectsPage /></MainLayout></PrivateRoute>} />
                   <Route path="/contractor-project-items" element={<PrivateRoute roles={['ANY']}><MainLayout><SubscriptionWarning /><ContractorProjectItemsPage /></MainLayout></PrivateRoute>} />
                   <Route path="/store-types" element={<PrivateRoute roles={['SUPER_ADMIN']}><MainLayout><StoreTypesPage /></MainLayout></PrivateRoute>} />

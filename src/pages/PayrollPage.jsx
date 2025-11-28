@@ -8,14 +8,19 @@ import { Plus, Loader2 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import PayrollDialog from '@/components/payroll/PayrollDialog';
 import PayrollTable from '@/components/payroll/PayrollTable';
+import DeductionsDialog from '@/components/payroll/DeductionsDialog';
+import DeductionsDialog from '@/components/payroll/DeductionsDialog';
 
 const PayrollPage = () => {
   const { user } = useAuth();
   const { t } = useLanguage();
   const [payrolls, setPayrolls] = useState([]);
   const [employees, setEmployees] = useState([]);
+  const [deductions, setDeductions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [deductionDialogOpen, setDeductionDialogOpen] = useState(false);
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
 
   useEffect(() => {
     if (user?.tenant_id) {
@@ -25,12 +30,14 @@ const PayrollPage = () => {
 
   const loadData = async () => {
     try {
-      const [payrollData, employeesData] = await Promise.all([
+      const [payrollData, employeesData, deductionsData] = await Promise.all([
         neonService.getPayroll(user.tenant_id).catch(() => []),
-        neonService.getEmployees(user.tenant_id).catch(() => [])
+        neonService.getEmployees(user.tenant_id).catch(() => []),
+        neonService.getDeductions?.(user.tenant_id).catch(() => [])
       ]);
       setPayrolls(payrollData || []);
       setEmployees(employeesData || []);
+      setDeductions(deductionsData || []);
     } catch (error) {
       console.error('Load data error:', error);
       toast({ title: 'خطأ في تحميل البيانات', variant: 'destructive' });
@@ -138,9 +145,29 @@ const PayrollPage = () => {
               {t('common.payroll')}
             </h1>
           </div>
-          <Button onClick={() => setDialogOpen(true)} className="bg-gradient-to-r from-orange-500 to-pink-500 text-white">
-            <Plus className="h-4 w-4 ml-2 rtl:mr-2 rtl:ml-0" /> إنشاء راتب
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={() => setDialogOpen(true)} className="bg-gradient-to-r from-orange-500 to-pink-500 text-white">
+              <Plus className="h-4 w-4 ml-2 rtl:mr-2 rtl:ml-0" /> إنشاء راتب
+            </Button>
+            <Button 
+              onClick={() => {
+                if (employees.length === 0) {
+                  toast({ 
+                    title: 'تنبيه', 
+                    description: 'لا يوجد موظفون. يرجى إضافة موظف أولاً.',
+                    variant: 'destructive' 
+                  });
+                  return;
+                }
+                setSelectedEmployee(employees[0]);
+                setDeductionDialogOpen(true);
+              }} 
+              variant="outline"
+              className="border-blue-500 text-blue-600 hover:bg-blue-50 dark:border-blue-400 dark:text-blue-400"
+            >
+              إدارة الخصومات
+            </Button>
+          </div>
         </div>
 
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
@@ -152,6 +179,13 @@ const PayrollPage = () => {
             onOpenChange={setDialogOpen} 
             employees={employees}
             onSave={handleSave} 
+        />
+        
+        <DeductionsDialog
+          open={deductionDialogOpen}
+          onOpenChange={setDeductionDialogOpen}
+          employee={selectedEmployee}
+          onSave={loadData}
         />
       </div>
     </>

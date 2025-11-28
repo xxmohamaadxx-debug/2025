@@ -22,7 +22,9 @@ const PayrollTable = ({ payrolls, onDelete, onPay }) => {
             <th className="text-left py-3 px-4 text-sm font-semibold">الفترة</th>
             <th className="text-left py-3 px-4 text-sm font-semibold">الموظف</th>
             <th className="text-left py-3 px-4 text-sm font-semibold">الراتب الأساسي</th>
-            <th className="text-left py-3 px-4 text-sm font-semibold">الإجمالي</th>
+            <th className="text-left py-3 px-4 text-sm font-semibold">البدلات</th>
+            <th className="text-left py-3 px-4 text-sm font-semibold">الخصومات</th>
+            <th className="text-left py-3 px-4 text-sm font-semibold">الراتب الصافي</th>
             <th className="text-left py-3 px-4 text-sm font-semibold">الحالة</th>
             <th className="text-right py-3 px-4 text-sm font-semibold">الإجراءات</th>
           </tr>
@@ -30,18 +32,28 @@ const PayrollTable = ({ payrolls, onDelete, onPay }) => {
         <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
           {payrolls.map((item) => {
             const isPaid = item.is_paid || false;
-            const netSalary = item.net_salary || item.total || 0;
+            const baseSalary = parseFloat(item.base_salary || item.baseSalary || 0);
+            const allowances = parseFloat(item.allowances || item.bonuses || 0);
+            const deductions = parseFloat(item.deductions || item.total_deductions || 0);
+            const netSalary = item.net_salary || (baseSalary + allowances - deductions);
             const period = item.month && item.year 
               ? `${item.month}/${item.year}` 
               : item.period || '-';
+            const currency = item.currency || 'TRY';
             
             return (
               <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                 <td className="py-3 px-4 text-sm">{period}</td>
                 <td className="py-3 px-4 text-sm font-medium">{item.employee_name || item.employeeName}</td>
-                <td className="py-3 px-4 text-sm">{parseFloat(item.base_salary || item.baseSalary || 0).toLocaleString()} {item.currency || 'TRY'}</td>
-                <td className="py-3 px-4 text-sm font-bold text-green-600 dark:text-green-400">
-                  {parseFloat(netSalary).toLocaleString()} {item.currency || 'TRY'}
+                <td className="py-3 px-4 text-sm">{baseSalary.toLocaleString('ar-EG', { minimumFractionDigits: 2 })} {currency}</td>
+                <td className="py-3 px-4 text-sm text-green-600 dark:text-green-400">
+                  +{allowances.toLocaleString('ar-EG', { minimumFractionDigits: 2 })} {currency}
+                </td>
+                <td className="py-3 px-4 text-sm text-red-600 dark:text-red-400">
+                  -{deductions.toLocaleString('ar-EG', { minimumFractionDigits: 2 })} {currency}
+                </td>
+                <td className="py-3 px-4 text-sm font-bold text-blue-600 dark:text-blue-400">
+                  {parseFloat(netSalary).toLocaleString('ar-EG', { minimumFractionDigits: 2 })} {currency}
                 </td>
                 <td className="py-3 px-4 text-sm">
                   {isPaid ? (

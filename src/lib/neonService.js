@@ -4871,4 +4871,276 @@ export const neonService = {
       return [];
     }
   },
+
+  // ========== نظام حركات المستودع (الوارد/الصادر) ==========
+  getWarehouseTransactions: async (tenantId, filters = {}) => {
+    try {
+      let query = sql`
+        SELECT 
+          wt.*,
+          i.name as inventory_item_name,
+          i.unit,
+          u.name as created_by_name
+        FROM warehouse_transactions wt
+        LEFT JOIN inventory i ON wt.inventory_item_id = i.id
+        LEFT JOIN users u ON wt.created_by = u.id
+        WHERE wt.tenant_id = ${tenantId}
+      `;
+      
+      if (filters.transaction_type) {
+        query = sql`${query} AND wt.transaction_type = ${filters.transaction_type}`;
+      }
+      if (filters.start_date) {
+        query = sql`${query} AND wt.transaction_date >= ${filters.start_date}`;
+      }
+      if (filters.end_date) {
+        query = sql`${query} AND wt.transaction_date <= ${filters.end_date}`;
+      }
+      
+      query = sql`${query} ORDER BY wt.transaction_date DESC, wt.created_at DESC`;
+      
+      return await query;
+    } catch (error) {
+      console.error('getWarehouseTransactions error:', error);
+      return [];
+    }
+  },
+
+  createWarehouseTransaction: async (tenantId, data) => {
+    try {
+      const result = await sql`
+        INSERT INTO warehouse_transactions (
+          tenant_id, transaction_type, inventory_item_id, quantity,
+          unit_price, transaction_date, reference_number, notes, created_by
+        ) VALUES (
+          ${tenantId}, ${data.transaction_type}, ${data.inventory_item_id},
+          ${data.quantity}, ${data.unit_price || 0}, 
+          ${data.transaction_date || new Date().toISOString().split('T')[0]},
+          ${data.reference_number || null}, ${data.notes || null},
+          ${data.created_by || null}
+        )
+        RETURNING *
+      `;
+      return result[0];
+    } catch (error) {
+      console.error('createWarehouseTransaction error:', error);
+      throw error;
+    }
+  },
+
+  // ========== نظام الخصومات المتقدم ==========
+  getDeductions: async (tenantId, employeeId = null) => {
+    try {
+      let query = sql`
+        SELECT d.*, e.name as employee_name
+        FROM deductions d
+        JOIN employees e ON d.employee_id = e.employee_id
+        WHERE d.tenant_id = ${tenantId}
+      `;
+      
+      if (employeeId) {
+        query = sql`${query} AND d.employee_id = ${employeeId}`;
+      }
+      
+      query = sql`${query} ORDER BY d.start_date DESC`;
+      
+      return await query;
+    } catch (error) {
+      console.error('getDeductions error:', error);
+      return [];
+    }
+  },
+
+  updateDeduction: async (deductionId, data, tenantId) => {
+    try {
+      const result = await sql`
+        UPDATE deductions
+        SET type = ${data.type || null},
+            amount = ${data.amount !== undefined ? data.amount : null},
+            frequency = ${data.frequency || null},
+            start_date = ${data.start_date || null},
+            end_date = ${data.end_date || null},
+            status = ${data.status || null},
+            notes = ${data.notes || null},
+            updated_at = NOW()
+        WHERE deduction_id = ${deductionId} AND tenant_id = ${tenantId}
+        RETURNING *
+      `;
+      return result[0];
+    } catch (error) {
+      console.error('updateDeduction error:', error);
+      throw error;
+    }
+  },
+
+  deleteDeduction: async (deductionId, tenantId) => {
+    try {
+      await sql`DELETE FROM deductions WHERE deduction_id = ${deductionId} AND tenant_id = ${tenantId}`;
+      return true;
+    } catch (error) {
+      console.error('deleteDeduction error:', error);
+      throw error;
+    }
+  },
+
+  // حساب الراتب الصافي مع الخصومات
+  calculateNetSalary: async (employeeId, month, year, tenantId) => {
+    try {
+      // جلب الراتب الأساسي والبدلات
+      const employee = await sql`
+        SELECT base_salary, COALESCE(allowances, 0) as allowances
+        FROM employees
+        WHERE employee_id = ${employeeId} AND tenant_id = ${tenantId}
+      `;
+      
+      if (!employee[0]) throw new Error('الموظف غير موجود');
+      
+      const baseSalary = parseFloat(employee[0].base_salary || 0);
+      const allowances = parseFloat(employee[0].allowances || 0);
+      
+      // حساب الخصومات النشطة لهذا الشهر
+      const deductions = await sql`
+        SELECT COALESCE(SUM(amount), 0) as total_deductions
+        FROM deductions
+        WHERE employee_id = ${employeeId}
+          AND tenant_id = ${tenantId}
+          AND status = 'active'
+          AND (
+            (frequency = 'monthly' AND start_date <= DATE(${year} || '-' || ${month} || '-01'))
+            OR (frequency = 'once' AND DATE_PART('month', start_date) = ${month} AND DATE_PART('year', start_date) = ${year})
+          )
+      `;
+      
+      const totalDeductions = parseFloat(deductions[0]?.total_deductions || 0);
+      const netSalary = baseSalary + allowances - totalDeductions;
+      
+      return {
+        base_salary: baseSalary,
+        allowances: allowances,
+        deductions: totalDeductions,
+        net_salary: netSalary
+      };
+    } catch (error) {
+      console.error('calculateNetSalary error:', error);
+      throw error;
+    }
+  },
+
+  // ========== تحسين نظام الذمم والمدفوعات ==========
+  updateDebt: async (debtId, data, tenantId) => {
+    try {
+      const result = await sql`
+        UPDATE debts
+        SET amount = ${data.amount !== undefined ? data.amount : null},
+            status = ${data.status || null},
+            notes = ${data.notes || null},
+            updated_at = NOW()
+        WHERE debt_id = ${debtId} AND tenant_id = ${tenantId}
+        RETURNING *
+      `;
+      return result[0];
+    } catch (error) {
+      console.error('updateDebt error:', error);
+      throw error;
+    }
+  },
+
+  deleteDebt: async (debtId, tenantId) => {
+    try {
+      await sql`DELETE FROM debts WHERE debt_id = ${debtId} AND tenant_id = ${tenantId}`;
+      return true;
+    } catch (error) {
+      console.error('deleteDebt error:', error);
+      throw error;
+    }
+  },
+
+  getDebtPayments: async (debtId, tenantId) => {
+    try {
+      const result = await sql`
+        SELECT p.*, u.name as user_name
+        FROM payments p
+        LEFT JOIN users u ON p.user_id = u.id
+        WHERE p.debt_id = ${debtId} AND p.tenant_id = ${tenantId}
+        ORDER BY p.payment_date DESC, p.created_at DESC
+      `;
+      return result || [];
+    } catch (error) {
+      console.error('getDebtPayments error:', error);
+      return [];
+    }
+  },
+
+  // ========== عدادات المحروقات - تحسينات ==========
+  getFuelCounters: async (tenantId) => {
+    try {
+      const result = await sql`
+        SELECT * FROM fuel_counters
+        WHERE tenant_id = ${tenantId}
+        ORDER BY counter_number ASC
+      `;
+      return result || [];
+    } catch (error) {
+      console.error('getFuelCounters error:', error);
+      return [];
+    }
+  },
+
+  getFuelCounterTransactions: async (tenantId, counterId = null, startDate = null, endDate = null) => {
+    try {
+      let query = sql`
+        SELECT 
+          fct.*,
+          fc.counter_name,
+          p.name as customer_name
+        FROM fuel_counter_transactions fct
+        JOIN fuel_counters fc ON fct.counter_id = fc.counter_id
+        LEFT JOIN partners p ON fct.customer_id = p.id
+        WHERE fct.tenant_id = ${tenantId}
+      `;
+      
+      if (counterId) {
+        query = sql`${query} AND fct.counter_id = ${counterId}`;
+      }
+      if (startDate) {
+        query = sql`${query} AND fct.transaction_date >= ${startDate}`;
+      }
+      if (endDate) {
+        query = sql`${query} AND fct.transaction_date <= ${endDate}`;
+      }
+      
+      query = sql`${query} ORDER BY fct.transaction_date DESC, fct.created_at DESC`;
+      
+      return await query;
+    } catch (error) {
+      console.error('getFuelCounterTransactions error:', error);
+      return [];
+    }
+  },
+
+  recordFuelCounterTransaction: async (tenantId, data) => {
+    try {
+      // حساب اللترات المباعة تلقائياً
+      const litersSold = parseFloat(data.reading_after) - parseFloat(data.reading_before);
+      const totalAmount = litersSold * parseFloat(data.price_per_liter);
+      
+      const result = await sql`
+        INSERT INTO fuel_counter_transactions (
+          tenant_id, counter_id, reading_before, reading_after,
+          liters_sold, price_per_liter, total_amount, transaction_date,
+          customer_id, notes, created_by
+        ) VALUES (
+          ${tenantId}, ${data.counter_id}, ${data.reading_before},
+          ${data.reading_after}, ${litersSold}, ${data.price_per_liter},
+          ${totalAmount}, ${data.transaction_date || new Date().toISOString().split('T')[0]},
+          ${data.customer_id || null}, ${data.notes || null}, ${data.created_by || null}
+        )
+        RETURNING *
+      `;
+      return result[0];
+    } catch (error) {
+      console.error('recordFuelCounterTransaction error:', error);
+      throw error;
+    }
+  },
 };

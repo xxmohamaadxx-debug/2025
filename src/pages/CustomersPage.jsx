@@ -354,6 +354,23 @@ const CustomersPage = () => {
                           >
                             <DollarSign className="h-4 w-4" />
                           </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => {
+                              // عرض تفاصيل الديون والمدفوعات
+                              const debt = parseFloat(customer.debt || 0);
+                              const balance = parseFloat(customer.balance || 0);
+                              const totalPaid = parseFloat(customer.total_paid || 0);
+                              const totalReceived = parseFloat(customer.total_received || 0);
+                              
+                              alert(`تفاصيل العميل: ${customer.name}\n\nالدين الحالي: ${currencyInfo.symbol} ${debt.toLocaleString('ar-EG', { minimumFractionDigits: 2 })}\nالرصيد: ${currencyInfo.symbol} ${balance.toLocaleString('ar-EG', { minimumFractionDigits: 2 })}\nإجمالي المدفوع: ${currencyInfo.symbol} ${totalPaid.toLocaleString('ar-EG', { minimumFractionDigits: 2 })}\nإجمالي المستلم: ${currencyInfo.symbol} ${totalReceived.toLocaleString('ar-EG', { minimumFractionDigits: 2 })}`);
+                            }}
+                            title="عرض التفاصيل"
+                            className="text-green-500 hover:text-green-700"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
                           {permissions.canEdit && (
                             <Button
                               size="sm"
@@ -375,25 +392,6 @@ const CustomersPage = () => {
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           )}
-                          {permissions.canEdit && (
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => handleEditCustomer(customer)}
-                              title="تعديل"
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                          )}
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => handleAddPayment(customer)}
-                            title="إضافة دفعة/معاملة"
-                            className="text-blue-500 hover:text-blue-700"
-                          >
-                            <DollarSign className="h-4 w-4" />
-                          </Button>
                         </div>
                       </td>
                     </tr>

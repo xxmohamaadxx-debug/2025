@@ -14,7 +14,7 @@ import { toast } from '@/components/ui/use-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const TopNav = ({ onMenuClick, isOffline: propIsOffline = false, pendingSyncCount: propPendingSyncCount = 0 }) => {
-  const { user } = useAuth();
+  const { user, tenant } = useAuth();
   const { t, locale, setLocale } = useLanguage();
   const [isOffline, setIsOffline] = useState(() => typeof window !== 'undefined' ? !navigator.onLine : false);
   const [pendingSyncCount, setPendingSyncCount] = useState(propPendingSyncCount);
@@ -139,8 +139,24 @@ const TopNav = ({ onMenuClick, isOffline: propIsOffline = false, pendingSyncCoun
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isLangMenuOpen]);
 
+  const connectedLabel = locale === 'ar' ? 'المتجر المتصل' : locale === 'tr' ? 'Bağlı Mağaza' : 'Connected Store';
+  
+  // تحسين منطق جلب اسم المتجر المتصل
+  const getConnectedStoreName = () => {
+    if (tenant) {
+      return tenant.name || tenant.store_name || tenant.tenant_name || `متجر #${tenant.id}`;
+    }
+    if (user?.tenant_id) {
+      // محاولة جلب اسم المتجر من قاعدة البيانات
+      return user.tenant_name || user.store_name || `متجر #${user.tenant_id}`;
+    }
+    return locale === 'ar' ? 'غير معروف' : locale === 'tr' ? 'Bilinmiyor' : 'Unknown';
+  };
+  
+  const connectedName = getConnectedStoreName();
+
   return (
-    <header className="h-16 bg-gradient-to-r from-slate-900/95 via-purple-900/80 to-slate-900/95 dark:from-gray-900/95 dark:via-purple-950/90 dark:to-gray-900/95 backdrop-blur-xl border-b border-orange-500/20 dark:border-orange-400/20 px-4 md:px-6 flex items-center justify-between sticky top-0 z-40 transition-all shadow-lg shadow-black/20">
+    <header className="h-16 bg-white/75 dark:bg-gray-900/70 backdrop-blur-xl border-b border-gray-200/60 dark:border-gray-800/60 px-4 md:px-6 flex items-center justify-between sticky top-0 z-40 transition-all shadow-sm">
       <div className="flex items-center gap-4 flex-1">
         <button 
           onClick={onMenuClick}
@@ -155,6 +171,14 @@ const TopNav = ({ onMenuClick, isOffline: propIsOffline = false, pendingSyncCoun
           <Logo size="sm" showText={false} />
         </div>
         
+        {/* Connected store badge */}
+        <span
+          className="hidden md:inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium border border-blue-300/60 text-gray-700 dark:text-gray-200 bg-blue-50/70 dark:bg-blue-900/20"
+          title={connectedLabel}
+        >
+          {connectedLabel}: {connectedName}
+        </span>
+
         <div className="relative w-full max-w-md hidden md:block">
           <Search className="absolute left-3 rtl:right-3 rtl:left-auto top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
           <input
@@ -236,11 +260,11 @@ const TopNav = ({ onMenuClick, isOffline: propIsOffline = false, pendingSyncCoun
         {/* Connection Status Indicator with Animation */}
         <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all duration-300 ${
           connectionStatus === 'online' 
-            ? 'bg-green-100 dark:bg-green-900/20 border-green-200 dark:border-green-800 animate-pulse' 
+            ? 'bg-green-100 dark:bg-green-900/20 border-green-200 dark:border-green-800' 
             : 'bg-yellow-100 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800'
         }`}>
           {connectionStatus === 'online' ? (
-            <Wifi className="h-4 w-4 text-green-600 dark:text-green-400 animate-pulse" />
+            <Wifi className="h-4 w-4 text-green-600 dark:text-green-400" />
           ) : (
             <WifiOff className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
           )}
@@ -260,8 +284,8 @@ const TopNav = ({ onMenuClick, isOffline: propIsOffline = false, pendingSyncCoun
             size="sm"
             onClick={handleManualSync}
             disabled={isSyncing}
-            className={`gap-2 border-blue-500 text-blue-600 hover:bg-blue-50 dark:border-blue-400 dark:text-blue-400 dark:hover:bg-blue-900/20 transition-all hover:scale-105 active:scale-95 shadow-sm hover:shadow-md ${
-              isSyncing ? 'animate-pulse' : ''
+            className={`gap-2 border-blue-500 text-blue-600 hover:bg-blue-50 dark:border-blue-400 dark:text-blue-400 dark:hover:bg-blue-900/20 transition-all shadow-sm ${
+              isSyncing ? '' : ''
             }`}
           >
             {isSyncing ? (

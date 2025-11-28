@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Phone, MessageCircle, Mail, Lock, Save, UserPlus, Trash2, Shield, Smartphone, Download } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Switch } from '@/components/ui/switch';
+import { Store } from 'lucide-react';
 
 const AdminSettingsPage = () => {
   const { user } = useAuth();
@@ -36,10 +38,60 @@ const AdminSettingsPage = () => {
     password: ''
   });
 
+  // Sections visibility management (per tenant)
+  const [tenants, setTenants] = useState([]);
+  const [selectedTenantId, setSelectedTenantId] = useState('');
+  const [sectionSettings, setSectionSettings] = useState([]);
+  const [savingSections, setSavingSections] = useState(false);
+  const availableSections = [
+    { code: 'dashboard', label: 'لوحة التحكم', category: 'عام' },
+    { code: 'invoices_in', label: 'فواتير الوارد', category: 'عام' },
+    { code: 'invoices_out', label: 'فواتير الصادر', category: 'عام' },
+    { code: 'inventory', label: 'المخزون', category: 'عام' },
+    { code: 'daily_transactions', label: 'الحركة اليومية', category: 'عام' },
+    { code: 'customers', label: 'العملاء والديون', category: 'عام' },
+    { code: 'partners', label: 'الشركاء', category: 'عام' },
+    { code: 'employees', label: 'الموظفون', category: 'عام' },
+    { code: 'store_users', label: 'مستخدمو المتجر', category: 'عام' },
+    { code: 'reports', label: 'التقارير', category: 'عام' },
+    { code: 'journal', label: 'اليومية المحاسبية', category: 'عام' },
+
+    { code: 'internet_cafe_subscribers', label: 'مشتركو الإنترنت', category: 'صالات الإنترنت' },
+    { code: 'internet_cafe_subscription_types', label: 'أنواع الاشتراكات', category: 'صالات الإنترنت' },
+    { code: 'internet_cafe_sessions', label: 'الجلسات', category: 'صالات الإنترنت' },
+    { code: 'internet_cafe_devices', label: 'الأجهزة', category: 'صالات الإنترنت' },
+
+    { code: 'fuel_station', label: 'متجر المحروقات', category: 'المحروقات' },
+    { code: 'fuel_counters', label: 'إدارة العدادات', category: 'المحروقات' },
+
+    { code: 'inventory_categories', label: 'الأقسام والفئات', category: 'المخزون' },
+    { code: 'inventory_thresholds', label: 'تنبيهات المخزون', category: 'المخزون' },
+    { code: 'inventory_audit', label: 'سجل التغييرات', category: 'المخزون' },
+    { code: 'warehouse_transactions', label: 'الوارد والصادر', category: 'المخزون' },
+
+    { code: 'contractor_projects', label: 'مشاريع المقاول', category: 'المقاول' },
+    { code: 'contractor_project_items', label: 'بنود الكميات', category: 'المقاول' },
+
+    { code: 'store_products', label: 'منتجات المتجر', category: 'المتجر' },
+    { code: 'store_pos', label: 'نقاط البيع POS', category: 'المتجر' },
+    { code: 'store_sales_invoices', label: 'فواتير المبيعات', category: 'المتجر' },
+    { code: 'store_purchase_invoices', label: 'فواتير المشتريات', category: 'المتجر' },
+    { code: 'store_bundles', label: 'الحزم', category: 'المتجر' },
+
+    { code: 'comprehensive_reports', label: 'التقارير الشاملة', category: 'النظام' },
+    { code: 'subscription', label: 'الاشتراك', category: 'النظام' },
+    { code: 'notification_settings', label: 'إعدادات الإشعارات', category: 'النظام' },
+    { code: 'support', label: 'الدعم والمساعدة', category: 'النظام' },
+    { code: 'messages', label: 'المراسلة', category: 'النظام' },
+    { code: 'backup', label: 'النسخ الاحتياطي', category: 'النظام' },
+    { code: 'settings', label: 'الإعدادات', category: 'النظام' },
+  ];
+
   useEffect(() => {
     if (user?.isSuperAdmin) {
       loadSettings();
       loadSuperAdmins();
+      loadTenants();
     }
   }, [user]);
 
@@ -181,6 +233,100 @@ const AdminSettingsPage = () => {
     } catch (error) {
       console.error('Change password error:', error);
       toast({ title: 'خطأ في تحديث كلمة المرور', variant: 'destructive' });
+    }
+  };
+
+  const loadTenants = async () => {
+    try {
+      const list = await neonService.getAllTenants();
+      setTenants(list || []);
+      // select first by default
+      if (!selectedTenantId && list && list.length > 0) {
+        setSelectedTenantId(list[0].id);
+      }
+    } catch (error) {
+      console.error('Load tenants error:', error);
+    }
+  };
+
+  useEffect(() => {
+    const loadSectionSettings = async () => {
+      if (!selectedTenantId) return;
+      try {
+        const data = await neonService.getTenantSectionSettings?.(selectedTenantId);
+        if (Array.isArray(data) && data.length > 0) {
+          const normalized = data.map((s, idx) => ({
+            section_code: s.section_code,
+            is_visible: !!s.is_visible,
+            display_order: typeof s.display_order === 'number' ? s.display_order : idx + 1,
+          }));
+          setSectionSettings(normalized);
+        } else {
+          const defaults = availableSections.map((sec, idx) => ({
+            section_code: sec.code,
+            is_visible: true,
+            display_order: idx + 1,
+          }));
+          setSectionSettings(defaults);
+        }
+      } catch (error) {
+        console.error('Load section settings error:', error);
+      }
+    };
+    loadSectionSettings();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedTenantId]);
+
+  const getVisibilityFor = (code) => {
+    const found = sectionSettings.find((s) => s.section_code === code);
+    return found ? !!found.is_visible : true;
+  };
+
+  const toggleVisibility = (code) => {
+    setSectionSettings((prev) => {
+      const exists = prev.find((s) => s.section_code === code);
+      if (exists) {
+        return prev.map((s) => (s.section_code === code ? { ...s, is_visible: !s.is_visible } : s));
+      }
+      return [...prev, { section_code: code, is_visible: true, display_order: prev.length + 1 }];
+    });
+  };
+
+  const moveSection = (code, direction) => {
+    setSectionSettings((prev) => {
+      const list = [...prev];
+      list.sort((a, b) => a.display_order - b.display_order);
+      const idx = list.findIndex((s) => s.section_code === code);
+      if (idx === -1) return prev;
+      const swapWith = direction === 'up' ? idx - 1 : idx + 1;
+      if (swapWith < 0 || swapWith >= list.length) return prev;
+      const tempOrder = list[idx].display_order;
+      list[idx].display_order = list[swapWith].display_order;
+      list[swapWith].display_order = tempOrder;
+      list.sort((a, b) => a.display_order - b.display_order);
+      return list;
+    });
+  };
+
+  const saveSectionSettings = async () => {
+    if (!selectedTenantId) return;
+    try {
+      setSavingSections(true);
+      const merged = availableSections.map((sec, idx) => {
+        const existing = sectionSettings.find((s) => s.section_code === sec.code);
+        return {
+          section_code: sec.code,
+          is_visible: existing ? !!existing.is_visible : true,
+          display_order: existing && typeof existing.display_order === 'number' ? existing.display_order : idx + 1,
+        };
+      });
+      await neonService.updateTenantSectionSettings?.(selectedTenantId, merged);
+      toast({ title: 'تم حفظ الأقسام الظاهرة', description: 'تم تطبيق التغييرات على الشريط الجانبي' });
+    } catch (error) {
+      console.error('Save section settings error:', error);
+      toast({ title: 'خطأ', description: 'فشل حفظ إعدادات الأقسام', variant: 'destructive' });
+    } finally {
+      setSavingSections(false);
     }
   };
 
@@ -570,6 +716,54 @@ const AdminSettingsPage = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Tenant Sections Visibility Management */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+        <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex items-center gap-2">
+          <Store className="h-5 w-5" />
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">إدارة الأقسام الظاهرة للمتاجر</h2>
+        </div>
+        <div className="p-6 space-y-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">اختر المتجر</label>
+            <select
+              value={selectedTenantId}
+              onChange={(e) => setSelectedTenantId(e.target.value)}
+              className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900"
+            >
+              {tenants.map((t) => (
+                <option key={t.id} value={t.id}>{t.name || t.id}</option>
+              ))}
+            </select>
+          </div>
+
+          {['عام','صالات الإنترنت','المحروقات','المخزون','المقاول','المتجر','النظام'].map((cat) => (
+            <div key={cat}>
+              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">{cat}</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {availableSections.filter((s) => s.category === cat).map((sec) => (
+                  <div key={sec.code} className="flex items-center justify-between p-3 rounded-lg border border-gray-200 dark:border-gray-700">
+                    <div className="flex items-center gap-3">
+                      <Switch checked={getVisibilityFor(sec.code)} onCheckedChange={() => toggleVisibility(sec.code)} />
+                      <span className="text-sm text-gray-800 dark:text-gray-200">{sec.label}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button size="sm" variant="outline" onClick={() => moveSection(sec.code, 'up')}>↑</Button>
+                      <Button size="sm" variant="outline" onClick={() => moveSection(sec.code, 'down')}>↓</Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+
+          <div className="flex justify-end">
+            <Button onClick={saveSectionSettings} disabled={savingSections} className="bg-orange-600 text-white">
+              {savingSections ? 'جاري الحفظ...' : 'حفظ الأقسام الظاهرة'}
+            </Button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

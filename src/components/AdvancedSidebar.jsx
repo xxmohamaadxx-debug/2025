@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { neonService } from '@/lib/neonService';
 import { motion, AnimatePresence } from 'framer-motion';
+import { shouldEnableMotion } from '@/lib/motionUtils';
 import { 
   LayoutDashboard, FileText, ShoppingCart, Package, 
   Users, Settings, LogOut, Shield, BarChart, 
@@ -27,6 +28,7 @@ const AdvancedSidebar = ({ isOpen, setIsOpen, mode: initialMode = SIDEBAR_MODES.
   const [storeTypes, setStoreTypes] = useState([]);
   const [loadingStoreTypes, setLoadingStoreTypes] = useState(false);
   const [sidebarMode, setSidebarMode] = useState(initialMode);
+  const [enableEffects, setEnableEffects] = useState(() => shouldEnableMotion());
   const [isHovered, setIsHovered] = useState(false);
   
   const isActive = (path) => location.pathname === path;
@@ -41,11 +43,19 @@ const AdvancedSidebar = ({ isOpen, setIsOpen, mode: initialMode = SIDEBAR_MODES.
       try {
         setLoadingStoreTypes(true);
         const types = await neonService.getTenantStoreTypes(user.tenant_id);
-        const formattedTypes = (types || []).map(type => ({
-          ...type,
-          store_type_code: type.store_type_code || type.code || '',
-          code: type.store_type_code || type.code || ''
-        }));
+        const formattedTypes = (types || []).map(type => {
+          const name = (type.store_type_name_ar || type.store_type_name_en || type.name || '')?.toLowerCase() || '';
+          let inferredCode = '';
+          if (name.includes('محروقات') || name.includes('بنزين') || name.includes('ديزل')) inferredCode = 'fuel';
+          if (name.includes('إنترنت') || name.includes('internet')) inferredCode = 'internet_cafe';
+          if (name.includes('مقاول') || name.includes('contractor')) inferredCode = 'contractor';
+          if (name.includes('اكسسوارات') || name.includes('accessories')) inferredCode = 'internet_cafe_accessories';
+          return {
+            ...type,
+            store_type_code: type.store_type_code || type.code || inferredCode || '',
+            code: type.store_type_code || type.code || inferredCode || ''
+          };
+        });
         setStoreTypes(formattedTypes);
       } catch (error) {
         console.error('Load store types error:', error);
@@ -168,32 +178,34 @@ const AdvancedSidebar = ({ isOpen, setIsOpen, mode: initialMode = SIDEBAR_MODES.
           }}
         />
         
-        {/* Glowing Particles Background */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          {[...Array(25)].map((_, i) => (
-            <motion.div
-              key={i}
-              className="absolute w-1.5 h-1.5 rounded-full"
-              style={{
-                background: 'radial-gradient(circle, rgba(255, 140, 0, 1), transparent)',
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                boxShadow: '0 0 15px rgba(255, 140, 0, 0.8), 0 0 30px rgba(255, 140, 0, 0.4)',
-              }}
-              animate={{
-                y: [0, -40, 0],
-                opacity: [0.1, 1, 0.1],
-                scale: [1, 2, 1],
-              }}
-              transition={{
-                duration: 4 + Math.random() * 3,
-                repeat: Infinity,
-                delay: Math.random() * 3,
-                ease: 'easeInOut',
-              }}
-            />
-          ))}
-        </div>
+        {/* Glowing Particles Background (only when motion allowed) */}
+        {enableEffects && (
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            {[...Array(10)].map((_, i) => (
+              <motion.div
+                key={i}
+                className="absolute w-1.5 h-1.5 rounded-full"
+                style={{
+                  background: 'radial-gradient(circle, rgba(255, 140, 0, 1), transparent)',
+                  left: `${Math.random() * 100}%`,
+                  top: `${Math.random() * 100}%`,
+                  boxShadow: '0 0 15px rgba(255, 140, 0, 0.8), 0 0 30px rgba(255, 140, 0, 0.4)',
+                }}
+                animate={{
+                  y: [0, -40, 0],
+                  opacity: [0.1, 1, 0.1],
+                  scale: [1, 2, 1],
+                }}
+                transition={{
+                  duration: 4 + Math.random() * 3,
+                  repeat: Infinity,
+                  delay: Math.random() * 3,
+                  ease: 'easeInOut',
+                }}
+              />
+            ))}
+          </div>
+        )}
 
         {/* Header */}
         <motion.div 

@@ -22,28 +22,46 @@ const InventoryTable = ({ items, onEdit, onDelete }) => {
           <tr>
             <th className="text-right rtl:text-right ltr:text-left py-3 px-4 text-sm font-semibold text-gray-600 dark:text-gray-300">{t('inventory.sku') || 'الرمز'}</th>
             <th className="text-right rtl:text-right ltr:text-left py-3 px-4 text-sm font-semibold text-gray-600 dark:text-gray-300">{t('inventory.productName') || 'اسم المنتج'}</th>
+            <th className="text-right rtl:text-right ltr:text-left py-3 px-4 text-sm font-semibold text-gray-600 dark:text-gray-300">{t('inventory.availableQuantity') || 'الكمية المتاحة'}</th>
             <th className="text-right rtl:text-right ltr:text-left py-3 px-4 text-sm font-semibold text-gray-600 dark:text-gray-300">{t('common.price') || 'السعر'}</th>
             <th className="text-right rtl:text-right ltr:text-left py-3 px-4 text-sm font-semibold text-gray-600 dark:text-gray-300">{t('inventory.minStock') || 'الحد الأدنى'}</th>
             <th className="text-right py-3 px-4 text-sm font-semibold text-gray-600 dark:text-gray-300">{t('common.actions') || 'الإجراءات'}</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-          {items.map((item) => (
-            <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+          {items.map((item) => {
+            const min = item.min_stock ?? item.minStock ?? 0;
+            const available = item.available_quantity ?? item.quantity ?? 0;
+            const isLowStock = parseFloat(available) <= parseFloat(min);
+            return (
+            <tr
+              key={item.id}
+              className={`transition-colors ${
+                isLowStock ? 'bg-red-50 dark:bg-red-900/20' : 'hover:bg-gray-50 dark:hover:bg-gray-700/50'
+              }`}
+            >
               <td className="py-3 px-4 text-sm font-medium text-gray-900 dark:text-gray-100">
                 {item.sku}
               </td>
               <td className="py-3 px-4 text-sm text-gray-700 dark:text-gray-300">
                 <div className="flex items-center gap-2">
                   {item.name}
-                  {/* Mock alert if we had quantity tracking connected to stock */}
+                  {isLowStock && (
+                    <span className="inline-flex items-center gap-1 text-xs font-semibold text-red-600 dark:text-red-400">
+                      <AlertCircle className="h-3 w-3" />
+                      {t('inventory.lowStock') || 'مخزون منخفض'}
+                    </span>
+                  )}
                 </div>
+              </td>
+              <td className="py-3 px-4 text-sm text-gray-700 dark:text-gray-300">
+                {parseFloat(available).toLocaleString('ar-EG', { minimumFractionDigits: 0, maximumFractionDigits: 2 })} {item.unit}
               </td>
               <td className="py-3 px-4 text-sm text-gray-700 dark:text-gray-300">
                 {parseFloat(item.price).toFixed(2)} {item.currency}
               </td>
               <td className="py-3 px-4 text-sm text-gray-700 dark:text-gray-300">
-                {item.min_stock || item.minStock} {item.unit}
+                {(item.min_stock ?? item.minStock ?? 0)} {item.unit}
               </td>
               <td className="py-3 px-4 text-right">
                 <div className="flex justify-end gap-2">
@@ -56,7 +74,7 @@ const InventoryTable = ({ items, onEdit, onDelete }) => {
                 </div>
               </td>
             </tr>
-          ))}
+          );})}
         </tbody>
       </table>
     </div>

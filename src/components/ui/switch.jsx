@@ -1,25 +1,30 @@
-import * as React from "react"
-import * as SwitchPrimitives from "@radix-ui/react-switch"
+import React, { forwardRef } from 'react';
 
-import { cn } from "@/lib/utils"
+// Minimal, accessible switch component compatible with our UI
+export const Switch = forwardRef(({ checked = false, onCheckedChange, disabled = false, className = '' }, ref) => {
+  const handleToggle = (e) => {
+    if (disabled) return;
+    onCheckedChange?.(!checked);
+  };
 
-const Switch = React.forwardRef(({ className, ...props }, ref) => (
-  <SwitchPrimitives.Root
-    className={cn(
-      "peer inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-orange-500 data-[state=unchecked]:bg-gray-300 dark:data-[state=unchecked]:bg-gray-600",
-      className
-    )}
-    {...props}
-    ref={ref}
-  >
-    <SwitchPrimitives.Thumb
-      className={cn(
-        "pointer-events-none block h-5 w-5 rounded-full bg-white shadow-lg ring-0 transition-transform data-[state=checked]:translate-x-5 data-[state=unchecked]:translate-x-0"
-      )}
-    />
-  </SwitchPrimitives.Root>
-))
-Switch.displayName = SwitchPrimitives.Root.displayName
+  return (
+    <button
+      ref={ref}
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      disabled={disabled}
+      onClick={handleToggle}
+      className={`inline-flex items-center h-6 w-11 rounded-full transition-colors duration-200
+        ${checked ? 'bg-orange-500' : 'bg-gray-300 dark:bg-gray-600'}
+        ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'} ${className}`}
+    >
+      <span
+        className={`inline-block h-5 w-5 bg-white rounded-full shadow transform transition-transform duration-200
+          ${checked ? 'translate-x-5' : 'translate-x-1'}`}
+      />
+    </button>
+  );
+});
 
-export { Switch }
-
+export default Switch;

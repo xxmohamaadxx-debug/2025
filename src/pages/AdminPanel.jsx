@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Helmet } from 'react-helmet';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { neonService } from '@/lib/neonService';
 import { Button } from '@/components/ui/button';
-import { Loader2, Plus, Store, Edit, Trash2, MessageCircle, Download, FileDown, Package, Users, ShoppingCart, FolderPlus, Clock, CheckCircle, Send } from 'lucide-react';
+import { Loader2, Plus, Store, Edit, Trash2, MessageCircle, Download, FileDown, Package, Users, ShoppingCart, FolderPlus, Clock, CheckCircle, Send, Fuel, Cpu, Warehouse, Building, Shield, Settings, X } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from '@/components/ui/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
@@ -27,12 +28,99 @@ const AdminPanel = () => {
   const [selectedStore, setSelectedStore] = useState(null);
   const [supportTickets, setSupportTickets] = useState([]);
   const [loadingTickets, setLoadingTickets] = useState(false);
+  // Pagination for support tickets
+  const [ticketPage, setTicketPage] = useState(1);
+  const ticketsPerPage = 10;
   const [messageDialogOpen, setMessageDialogOpen] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [ticketMessages, setTicketMessages] = useState([]);
   const [loadingMessages, setLoadingMessages] = useState(false);
+  // Pagination for ticket messages
+  const [messagePage, setMessagePage] = useState(1);
+  const messagesPerPage = 12;
   const [replyText, setReplyText] = useState('');
   const [sendingReply, setSendingReply] = useState(false);
+
+  // Sections visibility management inside AdminPanel
+  const [selectedTenantId, setSelectedTenantId] = useState('');
+  const [sectionSettings, setSectionSettings] = useState([]);
+  const [savingSections, setSavingSections] = useState(false);
+
+  const availableSectionsAdmin = [
+    { code: 'dashboard', title: 'لوحة التحكم', category: 'عام' },
+    { code: 'invoices_in', title: 'فواتير المشتريات', category: 'عام' },
+    { code: 'invoices_out', title: 'فواتير المبيعات', category: 'عام' },
+    { code: 'inventory', title: 'المخزون', category: 'مخزون' },
+    { code: 'inventory_categories', title: 'أقسام المخزون', category: 'مخزون' },
+    { code: 'inventory_thresholds', title: 'حدود المخزون', category: 'مخزون' },
+    { code: 'inventory_audit', title: 'تدقيق المخزون', category: 'مخزون' },
+    { code: 'warehouse_transactions', title: 'الوارد والصادر', category: 'مخزون' },
+    { code: 'customers', title: 'العملاء', category: 'عام' },
+    { code: 'partners', title: 'الشركاء', category: 'عام' },
+    { code: 'employees', title: 'الموظفون', category: 'عام' },
+    { code: 'store_users', title: 'مستخدمي النظام', category: 'عام' },
+    { code: 'reports', title: 'التقارير', category: 'عام' },
+    { code: 'journal', title: 'اليومية', category: 'عام' },
+    { code: 'internet_cafe_subscribers', title: 'مشتركو الإنترنت', category: 'إنترنت' },
+    { code: 'internet_cafe_subscription_types', title: 'أنواع الاشتراكات', category: 'إنترنت' },
+    { code: 'internet_cafe_sessions', title: 'جلسات الاستخدام', category: 'إنترنت' },
+    { code: 'internet_cafe_devices', title: 'أجهزة الإنترنت', category: 'إنترنت' },
+    { code: 'fuel_station', title: 'إدارة المحروقات', category: 'محروقات' },
+    { code: 'fuel_counters', title: 'عدادات الوقود', category: 'محروقات' },
+    { code: 'contractor_projects', title: 'مشاريع المقاولين', category: 'مقاولات' },
+    { code: 'contractor_project_items', title: 'بنود الكميات', category: 'مقاولات' },
+    { code: 'store_products', title: 'منتجات المتجر', category: 'متجر' },
+    { code: 'store_pos', title: 'نقطة البيع', category: 'متجر' },
+    { code: 'store_sales_invoices', title: 'فواتير المبيعات (متجر)', category: 'متجر' },
+    { code: 'store_purchase_invoices', title: 'فواتير المشتريات (متجر)', category: 'متجر' },
+    { code: 'store_bundles', title: 'حزم المنتجات', category: 'متجر' },
+    { code: 'comprehensive_reports', title: 'تقارير شاملة', category: 'نظام' },
+    { code: 'subscription', title: 'الاشتراك', category: 'نظام' },
+    { code: 'notification_settings', title: 'الإشعارات', category: 'نظام' },
+    { code: 'support', title: 'الدعم', category: 'نظام' },
+    { code: 'messages', title: 'الرسائل', category: 'نظام' },
+    { code: 'backup', title: 'النسخ الاحتياطي', category: 'نظام' },
+    { code: 'settings', title: 'الإعدادات', category: 'نظام' }
+  ];
+
+  const loadSectionSettings = async (tenantId) => {
+    if (!tenantId) return;
+    try {
+      const settings = await neonService.getTenantSectionSettings?.(tenantId);
+      const map = {};
+      (settings || []).forEach(s => { map[s.section_code] = s; });
+      const normalized = availableSectionsAdmin.map((sec, idx) => ({
+        section_code: sec.code,
+        is_visible: map[sec.code]?.is_visible ?? true,
+        display_order: map[sec.code]?.display_order ?? (idx + 1)
+      }));
+      setSectionSettings(normalized);
+    } catch (err) {
+      console.error('Load section settings error:', err);
+      setSectionSettings(availableSectionsAdmin.map((sec, idx) => ({ section_code: sec.code, is_visible: true, display_order: idx + 1 })));
+    }
+  };
+
+  const toggleSectionVisibility = (code) => {
+    setSectionSettings(prev => prev.map(s => s.section_code === code ? { ...s, is_visible: !s.is_visible } : s));
+  };
+
+  const setAllSectionVisibility = (visible) => {
+    setSectionSettings(prev => prev.map(s => ({ ...s, is_visible: visible })));
+  };
+
+  const saveSectionSettings = async () => {
+    if (!selectedTenantId) return;
+    setSavingSections(true);
+    try {
+      await neonService.updateTenantSectionSettings?.(selectedTenantId, sectionSettings);
+      toast({ title: 'تم حفظ الأقسام الظاهرة', description: 'تم تحديث إعدادات الأقسام للمتجر بنجاح' });
+    } catch (err) {
+      toast({ title: 'فشل حفظ الأقسام', description: err.message || 'تعذر حفظ الإعدادات', variant: 'destructive' });
+    } finally {
+      setSavingSections(false);
+    }
+  };
   
   // New Store Form
   const [formData, setFormData] = useState({
@@ -75,6 +163,13 @@ const AdminPanel = () => {
     count: 1
   });
 
+  // Starter Kit options for seeding initial content on store creation
+  const [starterKitOptions, setStarterKitOptions] = useState({
+    seedProductsBasics: true,
+    seedCustomersBasics: true,
+    seedVendorsBasics: true
+  });
+
   useEffect(() => {
     if (user?.isSuperAdmin) {
       fetchStores();
@@ -91,8 +186,9 @@ const AdminPanel = () => {
     );
   }
 
-  const fetchStores = async () => {
+  const fetchStores = useCallback(async () => {
     try {
+      setLoading(true);
       const tenants = await neonService.getAllTenants();
       setStores(tenants || []);
     } catch (error) {
@@ -106,7 +202,7 @@ const AdminPanel = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
 
   const fetchStoreTypes = async () => {
     try {
@@ -122,6 +218,7 @@ const AdminPanel = () => {
     try {
       const tickets = await neonService.getSupportTickets(null, null, true);
       setSupportTickets(tickets || []);
+      setTicketPage(1);
     } catch (error) {
       console.error("Fetch support tickets error:", error);
       toast({
@@ -141,6 +238,7 @@ const AdminPanel = () => {
     try {
       const msgs = await neonService.getSupportTicketMessages(ticket.id);
       setTicketMessages(msgs || []);
+      setMessagePage(1);
     } catch (error) {
       console.error('Load messages error:', error);
       toast({
@@ -314,6 +412,156 @@ const AdminPanel = () => {
         tenant_id: newTenant.id
       });
 
+      // 6. Seed default sidebar section visibility based on selected store types
+      try {
+        // Fetch back the tenant store types to determine codes
+        const tenantTypes = await neonService.getTenantStoreTypes(newTenant.id);
+        const typeCodes = (tenantTypes || []).map(t => (t.store_type_code || t.code || '').toLowerCase().trim()).filter(Boolean);
+
+        // Define all available sections and map defaults
+        const availableSections = [
+          // عامة
+          'dashboard','invoices_in','invoices_out','inventory','daily_transactions','customers','partners','employees','store_users','reports','journal',
+          // صالات الإنترنت
+          'internet_cafe_subscribers','internet_cafe_subscription_types','internet_cafe_sessions','internet_cafe_devices',
+          // المحروقات
+          'fuel_station','fuel_counters',
+          // المخزون
+          'inventory_categories','inventory_thresholds','inventory_audit',
+          // المقاول
+          'contractor_projects','contractor_project_items',
+          // المتجر
+          'store_products','store_pos','store_sales_invoices','store_purchase_invoices','store_bundles',
+          // النظام
+          'comprehensive_reports','subscription','notification_settings','support','messages','backup','settings'
+        ];
+
+        // تحديد أنواع المتاجر بدقة
+        const isInternetCafe = typeCodes.some(c => c.includes('internet_cafe') && !c.includes('accessories'));
+        const isMobileAccessories = typeCodes.some(c => c.includes('accessories') || c.includes('mobile'));
+        const isInternetCafeAccessories = isInternetCafe && isMobileAccessories;
+        const isFuel = typeCodes.some(c => c.includes('fuel') && !c.includes('general'));
+        const isGeneralWithFuel = typeCodes.some(c => c.includes('general_with_fuel'));
+        const isWarehouse = typeCodes.some(c => c.includes('warehouse'));
+        const isContractor = typeCodes.some(c => c.includes('contractor'));
+        const isGeneralStore = typeCodes.some(c => c.includes('store') || c.includes('retail')) && !isInternetCafe && !isFuel && !isContractor && !isWarehouse;
+
+        const visibleSet = new Set([
+          // Always visible core - موجودة في كل متجر
+          'dashboard','daily_transactions','reports','journal','settings','backup','support','messages','notification_settings','subscription','comprehensive_reports'
+        ]);
+
+        // 1. صالة إنترنت
+        if (isInternetCafe && !isMobileAccessories) {
+          ['internet_cafe_subscribers','internet_cafe_subscription_types','internet_cafe_sessions','internet_cafe_devices'].forEach(c => visibleSet.add(c));
+        }
+
+        // 2. متجر إكسسوارات جوال
+        if (isMobileAccessories && !isInternetCafe) {
+          ['store_products','store_pos','store_sales_invoices','store_purchase_invoices','store_bundles','inventory','inventory_categories','inventory_thresholds','inventory_audit'].forEach(c => visibleSet.add(c));
+        }
+
+        // 3. مستودع
+        if (isWarehouse) {
+          ['inventory','inventory_categories','inventory_thresholds','inventory_audit','warehouse_transactions','invoices_in','invoices_out'].forEach(c => visibleSet.add(c));
+        }
+
+        // 4. متجر محروقات
+        if (isFuel && !isGeneralWithFuel) {
+          ['fuel_station','fuel_counters','inventory','inventory_categories','inventory_thresholds','inventory_audit','invoices_in','invoices_out','customers','partners'].forEach(c => visibleSet.add(c));
+        }
+
+        // 5. صالة إنترنت + إكسسوارات جوال
+        if (isInternetCafeAccessories) {
+          ['internet_cafe_subscribers','internet_cafe_subscription_types','internet_cafe_sessions','internet_cafe_devices','store_products','store_pos','store_sales_invoices','store_purchase_invoices','store_bundles','inventory','inventory_categories','inventory_thresholds','inventory_audit'].forEach(c => visibleSet.add(c));
+        }
+
+        // 6. متجر مقاولين ومواد بناء
+        if (isContractor) {
+          ['contractor_projects','contractor_project_items','invoices_in','invoices_out','inventory','inventory_categories','inventory_thresholds','inventory_audit','customers','partners'].forEach(c => visibleSet.add(c));
+        }
+
+        // 7. متجر عادي مع محروقات
+        if (isGeneralWithFuel) {
+          ['fuel_station','fuel_counters','invoices_in','invoices_out','inventory','inventory_categories','inventory_thresholds','inventory_audit','customers','partners','employees','store_users'].forEach(c => visibleSet.add(c));
+        }
+
+        // إضافة الأقسام الأساسية المشتركة
+        if (!isWarehouse) {
+          ['customers','partners','employees','store_users'].forEach(c => visibleSet.add(c));
+        }
+        if (!isWarehouse && !isInternetCafe) {
+          ['invoices_in','invoices_out'].forEach(c => visibleSet.add(c));
+        }
+
+        const seededSettings = availableSections.map((code, idx) => ({
+          section_code: code,
+          is_visible: visibleSet.has(code),
+          display_order: idx + 1,
+        }));
+
+        await neonService.updateTenantSectionSettings?.(newTenant.id, seededSettings);
+      } catch (seedErr) {
+        console.warn('Seeding section settings failed:', seedErr);
+      }
+
+      // 7. Optional: Seed starter kit content (safe operations only)
+      try {
+        // Seed basic customers
+        if (starterKitOptions.seedCustomersBasics) {
+          const customers = [
+            { name: 'عميل افتراضي 1', phone: '700000001' },
+            { name: 'عميل افتراضي 2', phone: '700000002' },
+            { name: 'عميل افتراضي 3', phone: '700000003' }
+          ];
+          for (const c of customers) {
+            await neonService.createPartner({
+              tenant_id: newTenant.id,
+              name: c.name,
+              phone: c.phone,
+              type: 'customer'
+            });
+          }
+        }
+
+        // Seed basic vendors
+        if (starterKitOptions.seedVendorsBasics) {
+          const vendors = [
+            { name: 'مورد افتراضي 1', phone: '710000001' },
+            { name: 'مورد افتراضي 2', phone: '710000002' }
+          ];
+          for (const v of vendors) {
+            await neonService.createPartner({
+              tenant_id: newTenant.id,
+              name: v.name,
+              phone: v.phone,
+              type: 'vendor'
+            });
+          }
+        }
+
+        // Seed basic products
+        if (starterKitOptions.seedProductsBasics) {
+          const products = [
+            { name: 'سلك USB-C', sku: 'USB-C-001', price: 5, category: 'إكسسوارات جوال' },
+            { name: 'سماعات سلكية', sku: 'HP-002', price: 8, category: 'إكسسوارات جوال' },
+            { name: 'قلم حبر', sku: 'ST-001', price: 1.5, category: 'أدوات مكتبية' }
+          ];
+          for (const p of products) {
+            await neonService.createProduct({
+              tenant_id: newTenant.id,
+              name: p.name,
+              sku: p.sku,
+              price: p.price,
+              category: p.category,
+              stock_quantity: 20
+            });
+          }
+        }
+      } catch (seedContentErr) {
+        console.warn('Starter kit seeding failed:', seedContentErr);
+      }
+
       toast({ 
         title: "تم بنجاح", 
         description: `تم إنشاء المتجر "${formData.storeName}" وحساب المدير بنجاح`,
@@ -330,6 +578,11 @@ const AdminPanel = () => {
         isTrial: true,
         store_type_ids: []
       });
+      setStarterKitOptions({
+        seedProductsBasics: true,
+        seedCustomersBasics: true,
+        seedVendorsBasics: true
+      });
       
       setDialogOpen(false);
       fetchStores();
@@ -343,6 +596,115 @@ const AdminPanel = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Build dynamic preview of sections based on selected store types - محسّن بدقة
+  const getSelectedTypeSectionPreview = (selectedTypeIds) => {
+    if (!selectedTypeIds || selectedTypeIds.length === 0) return null;
+    const selectedTypes = storeTypes.filter(st => selectedTypeIds.includes(st.id));
+    const nameTokens = selectedTypes.map(t => (t.name_ar || t.name || '').toLowerCase());
+    const codes = selectedTypes.map(t => (t.store_type_code || t.code || '').toLowerCase().trim()).filter(Boolean);
+    
+    const meta = [
+      { code: 'dashboard', label: 'لوحة التحكم', category: 'عام' },
+      { code: 'invoices_in', label: 'فواتير الوارد', category: 'عام' },
+      { code: 'invoices_out', label: 'فواتير الصادر', category: 'عام' },
+      { code: 'inventory', label: 'المخزون', category: 'عام' },
+      { code: 'daily_transactions', label: 'الحركة اليومية', category: 'عام' },
+      { code: 'customers', label: 'العملاء والديون', category: 'عام' },
+      { code: 'partners', label: 'الموردون والشركاء', category: 'عام' },
+      { code: 'employees', label: 'الموظفون', category: 'عام' },
+      { code: 'store_users', label: 'إدارة الفريق', category: 'عام' },
+      { code: 'reports', label: 'التقارير', category: 'عام' },
+      { code: 'journal', label: 'اليومية المحاسبية', category: 'عام' },
+      { code: 'internet_cafe_subscribers', label: 'المشتركون', category: 'صالات الإنترنت' },
+      { code: 'internet_cafe_subscription_types', label: 'أنواع الاشتراكات', category: 'صالات الإنترنت' },
+      { code: 'internet_cafe_sessions', label: 'الجلسات', category: 'صالات الإنترنت' },
+      { code: 'internet_cafe_devices', label: 'الأجهزة', category: 'صالات الإنترنت' },
+      { code: 'fuel_station', label: 'محطات المحروقات', category: 'المحروقات' },
+      { code: 'fuel_counters', label: 'إدارة العدادات', category: 'المحروقات' },
+      { code: 'inventory_categories', label: 'الأقسام والفئات', category: 'المخزون' },
+      { code: 'inventory_thresholds', label: 'تنبيهات المخزون', category: 'المخزون' },
+      { code: 'inventory_audit', label: 'سجل التغييرات', category: 'المخزون' },
+      { code: 'contractor_projects', label: 'المشاريع', category: 'المقاول' },
+      { code: 'contractor_project_items', label: 'بنود الكميات (BOQ)', category: 'المقاول' },
+      { code: 'store_products', label: 'المنتجات', category: 'المتجر' },
+      { code: 'store_pos', label: 'نقاط البيع POS', category: 'المتجر' },
+      { code: 'store_sales_invoices', label: 'فواتير المبيعات', category: 'المتجر' },
+      { code: 'store_purchase_invoices', label: 'فواتير المشتريات', category: 'المتجر' },
+      { code: 'store_bundles', label: 'الحزم', category: 'المتجر' },
+      { code: 'comprehensive_reports', label: 'التقارير الشاملة', category: 'النظام' },
+      { code: 'subscription', label: 'الاشتراك', category: 'النظام' },
+      { code: 'notification_settings', label: 'إعدادات الإشعارات', category: 'النظام' },
+      { code: 'support', label: 'الدعم والمساعدة', category: 'النظام' },
+      { code: 'messages', label: 'المراسلة', category: 'النظام' },
+      { code: 'backup', label: 'النسخ الاحتياطي', category: 'النظام' },
+      { code: 'settings', label: 'الإعدادات', category: 'النظام' },
+    ];
+
+    // تحديد أنواع المتاجر بدقة
+    const isInternetCafe = codes.some(c => c.includes('internet_cafe') && !c.includes('accessories')) || nameTokens.some(n => (n.includes('انترنت') || n.includes('صالة')) && !n.includes('اكسسوارات'));
+    const isMobileAccessories = codes.some(c => c.includes('accessories') || c.includes('mobile')) || nameTokens.some(n => n.includes('اكسسوارات') || n.includes('جوال'));
+    const isInternetCafeAccessories = isInternetCafe && isMobileAccessories;
+    const isFuelOnly = codes.some(c => c.includes('fuel') && !c.includes('general')) || nameTokens.some(n => n.includes('محروقات') && !n.includes('عادي'));
+    const isGeneralWithFuel = codes.some(c => c.includes('general_with_fuel')) || nameTokens.some(n => n.includes('عادي') && n.includes('محروقات'));
+    const isWarehouseOnly = codes.some(c => c.includes('warehouse')) || nameTokens.some(n => n.includes('مستودع'));
+    const isContractorOnly = codes.some(c => c.includes('contractor')) || nameTokens.some(n => n.includes('مقاول') || n.includes('مواد بناء'));
+
+    const core = ['dashboard','reports','journal','settings','backup','messages','support','notification_settings','subscription','comprehensive_reports','daily_transactions'];
+    const set = new Set(core);
+    
+    // 1. صالة إنترنت
+    if (previewIsInternetCafe && !previewIsMobileAccessories) {
+      ['internet_cafe_subscribers','internet_cafe_subscription_types','internet_cafe_sessions','internet_cafe_devices'].forEach(c => set.add(c));
+    }
+    
+    // 2. متجر إكسسوارات جوال
+    if (previewIsMobileAccessories && !previewIsInternetCafe) {
+      ['store_products','store_pos','store_sales_invoices','store_purchase_invoices','store_bundles','inventory','inventory_categories','inventory_thresholds','inventory_audit','invoices_in','invoices_out'].forEach(c => set.add(c));
+    }
+    
+    // 3. مستودع
+    if (previewIsWarehouseOnly) {
+      ['inventory','inventory_categories','inventory_thresholds','inventory_audit','warehouse_transactions','invoices_in','invoices_out'].forEach(c => set.add(c));
+    }
+    
+    // 4. متجر محروقات
+    if (previewIsFuelOnly && !previewIsGeneralWithFuel) {
+      ['fuel_station','fuel_counters','inventory','inventory_categories','inventory_thresholds','inventory_audit','invoices_in','invoices_out','customers','partners'].forEach(c => set.add(c));
+    }
+    
+    // 5. صالة إنترنت + إكسسوارات جوال
+    if (previewIsInternetCafeAccessories) {
+      ['internet_cafe_subscribers','internet_cafe_subscription_types','internet_cafe_sessions','internet_cafe_devices','store_products','store_pos','store_sales_invoices','store_purchase_invoices','store_bundles','inventory','inventory_categories','inventory_thresholds','inventory_audit'].forEach(c => set.add(c));
+    }
+    
+    // 6. متجر مقاولين ومواد بناء
+    if (previewIsContractorOnly) {
+      ['contractor_projects','contractor_project_items','invoices_in','invoices_out','inventory','inventory_categories','inventory_thresholds','inventory_audit','customers','partners'].forEach(c => set.add(c));
+    }
+    
+    // 7. متجر عادي مع محروقات
+    if (previewIsGeneralWithFuel) {
+      ['fuel_station','fuel_counters','invoices_in','invoices_out','inventory','inventory_categories','inventory_thresholds','inventory_audit','customers','partners','employees','store_users'].forEach(c => set.add(c));
+    }
+    
+    // إضافة الأقسام الأساسية المشتركة
+    if (!previewIsWarehouseOnly) {
+      ['customers','partners','employees','store_users'].forEach(c => set.add(c));
+    }
+    if (!previewIsWarehouseOnly && !previewIsInternetCafe) {
+      ['invoices_in','invoices_out'].forEach(c => set.add(c));
+    }
+
+    const grouped = {};
+    meta.forEach(m => {
+      if (set.has(m.code)) {
+        grouped[m.category] = grouped[m.category] || [];
+        grouped[m.category].push(m.label);
+      }
+    });
+    return grouped;
   };
 
   const handleEditStore = async (store) => {
@@ -722,49 +1084,68 @@ const AdminPanel = () => {
     <div className="space-y-6">
       <Helmet><title>{t('adminPanel.title')} - {t('common.systemName')}</title></Helmet>
       
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+        <div className="flex items-center gap-4">
+          <div className="p-3 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl shadow-lg">
+            <Shield className="h-8 w-8 text-white" />
+          </div>
           <div>
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">{t('adminPanel.title')}</h1>
             <p className="text-gray-500 dark:text-gray-400 mt-1">{t('adminPanel.subtitle')}</p>
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-3 flex-wrap">
           <Button 
             onClick={() => {
-              // تصدير جميع المتاجر
               const allStoresData = stores.map(store => ({
                 id: store.id,
                 name: store.name,
                 owner: store.owner_name,
+                email: store.owner_email,
                 plan: store.subscription_plan,
-                status: store.subscription_status
+                status: store.subscription_status,
+                expires_at: store.subscription_expires_at
               }));
               const blob = new Blob([JSON.stringify(allStoresData, null, 2)], { type: 'application/json' });
               const fileName = `all_stores_${new Date().toISOString().split('T')[0]}.json`;
               saveAs(blob, fileName);
-              toast({ title: 'تم تصدير قائمة المتاجر' });
+              toast({ title: 'تم تصدير قائمة المتاجر', description: `تم تصدير ${stores.length} متجر` });
             }}
-            variant="outline"
-            className="border-blue-500 text-blue-600 hover:bg-blue-50 dark:border-blue-400 dark:text-blue-400 dark:hover:bg-blue-900/20 transition-all hover:scale-105 active:scale-95"
+            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white hover:from-blue-600 hover:to-cyan-600 transition-all shadow-md hover:shadow-lg hover:scale-105 active:scale-95 font-medium rounded-lg"
           >
-            <Download className="h-4 w-4 ml-2 rtl:mr-2 rtl:ml-0" />
+            <Download className="h-4 w-4" />
             تصدير قائمة المتاجر
           </Button>
-          <Button onClick={() => setDialogOpen(true)} className="bg-purple-600 hover:bg-purple-700 text-white transition-all hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl">
-            <Plus className="ml-2 rtl:mr-2 rtl:ml-0 h-4 w-4" /> {t('adminPanel.createNewStore')}
+          <Button 
+            onClick={() => setDialogOpen(true)} 
+            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 transition-all shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 font-medium rounded-lg"
+          >
+            <Plus className="h-4 w-4" />
+            {t('adminPanel.createNewStore') || 'إنشاء متجر جديد'}
           </Button>
         </div>
       </div>
-      {/* Admin sub-navigation: centralized admin links */}
-      <div className="flex items-center gap-3 mt-4">
-        <Link to="/admin-settings" className="text-sm px-3 py-1 rounded-md bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-200 transition">
+      {/* Admin sub-navigation: centralized admin links with icons */}
+      <div className="flex items-center gap-3 mt-4 flex-wrap">
+        <Link 
+          to="/admin-settings" 
+          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-blue-500 to-cyan-500 text-white hover:from-blue-600 hover:to-cyan-600 transition-all shadow-md hover:shadow-lg hover:scale-105 active:scale-95 font-medium"
+        >
+          <Shield className="h-4 w-4" />
           {t('adminPanel.adminSettings') || 'إعدادات المدير'}
         </Link>
-        <Link to="/rbac" className="text-sm px-3 py-1 rounded-md bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-200 transition">
-          {t('rbac.title') || 'إدارة الأدوار'}
+        <Link 
+          to="/rbac" 
+          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 transition-all shadow-md hover:shadow-lg hover:scale-105 active:scale-95 font-medium"
+        >
+          <Shield className="h-4 w-4" />
+          {t('rbac.title') || 'إدارة الأدوار والصلاحيات (RBAC)'}
         </Link>
-        <Link to="/store-types" className="text-sm px-3 py-1 rounded-md bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-200 transition">
+        <Link 
+          to="/store-types" 
+          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600 transition-all shadow-md hover:shadow-lg hover:scale-105 active:scale-95 font-medium"
+        >
+          <Store className="h-4 w-4" />
           {t('adminPanel.storeTypes') || 'أنواع المتاجر'}
         </Link>
       </div>
@@ -903,6 +1284,112 @@ const AdminPanel = () => {
               </div>
             </div>
           )}
+
+          {/* إدارة الأقسام الظاهرة للمتاجر - محسّنة */}
+          <div className="bg-gradient-to-br from-white to-purple-50/30 dark:from-gray-800 dark:to-purple-900/20 rounded-xl shadow-lg border-2 border-purple-200 dark:border-purple-800 p-6">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg shadow-md">
+                  <FolderPlus className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">إدارة الأقسام الظاهرة للمتاجر</h2>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">تخصيص الأقسام المرئية في الشريط الجانبي لكل متجر</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="border-purple-300 text-purple-700 hover:bg-purple-50 dark:border-purple-700 dark:text-purple-300 dark:hover:bg-purple-900/30 transition-all hover:scale-105 active:scale-95 shadow-sm"
+                  onClick={() => setAllSectionVisibility(true)}
+                  disabled={!selectedTenantId}
+                >
+                  <CheckCircle className="h-4 w-4 ml-1 rtl:mr-1 rtl:ml-0" />
+                  تحديد الكل
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700 transition-all hover:scale-105 active:scale-95 shadow-sm"
+                  onClick={() => setAllSectionVisibility(false)}
+                  disabled={!selectedTenantId}
+                >
+                  <X className="h-4 w-4 ml-1 rtl:mr-1 rtl:ml-0" />
+                  إلغاء التحديد
+                </Button>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+              <div className="md:col-span-1 space-y-3">
+                <label className="block text-sm font-semibold mb-2 rtl:text-right text-gray-700 dark:text-gray-300">اختر المتجر</label>
+                <select
+                  value={selectedTenantId}
+                  onChange={(e) => { setSelectedTenantId(e.target.value); loadSectionSettings(e.target.value); }}
+                  className="w-full px-4 py-3 border-2 border-purple-200 dark:border-purple-700 rounded-lg dark:bg-gray-700 dark:text-gray-100 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all shadow-sm"
+                >
+                  <option value="">— اختر المتجر —</option>
+                  {stores.map(s => (
+                    <option key={s.id} value={s.id}>{s.name}</option>
+                  ))}
+                </select>
+                <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <p className="text-xs text-blue-700 dark:text-blue-300">
+                    <Shield className="h-3 w-3 inline ml-1 rtl:mr-1 rtl:ml-0" />
+                    عزل البيانات مضمون: كل متجر لديه إعداداته وقواعد بياناته الخاصة.
+                  </p>
+                </div>
+              </div>
+              <div className="md:col-span-2">
+                <div className="max-h-[500px] overflow-y-auto pr-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+                    {availableSectionsAdmin.map(sec => {
+                      const current = sectionSettings.find(s => s.section_code === sec.code);
+                      const checked = current ? current.is_visible : true;
+                      return (
+                        <div
+                          key={sec.code}
+                          className={`flex items-center justify-between p-3 rounded-lg border-2 transition-all cursor-pointer ${
+                            checked 
+                              ? 'border-purple-300 dark:border-purple-700 bg-purple-50/50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/30' 
+                              : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/60'
+                          }`}
+                          onClick={() => toggleSectionVisibility(sec.code)}
+                        >
+                          <div className="flex items-center gap-3 flex-1">
+                            <Switch checked={checked} onCheckedChange={() => toggleSectionVisibility(sec.code)} />
+                            <div className="flex flex-col gap-1 flex-1">
+                              <span className={`text-sm font-medium ${checked ? 'text-purple-900 dark:text-purple-100' : 'text-gray-800 dark:text-gray-200'}`}>
+                                {sec.title}
+                              </span>
+                              <span className="text-[10px] px-2 py-[2px] rounded-full bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-400 w-fit">
+                                {sec.category}
+                              </span>
+                            </div>
+                          </div>
+                          {checked && (
+                            <CheckCircle className="h-4 w-4 text-purple-600 dark:text-purple-400 flex-shrink-0" />
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-end">
+              <Button onClick={saveSectionSettings} disabled={savingSections || !selectedTenantId} className="bg-gradient-to-r from-purple-600 to-pink-600 text-white">
+                {savingSections ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin ml-2 rtl:mr-2 rtl:ml-0" />
+                    جاري الحفظ...
+                  </>
+                ) : (
+                  'حفظ الأقسام'
+                )}
+              </Button>
+            </div>
+          </div>
         </>
       )}
 
@@ -1005,7 +1492,14 @@ const AdminPanel = () => {
                         {storeTypes.length === 0 ? (
                             <p className="text-sm text-gray-500">لا توجد أنواع متاجر متاحة</p>
                         ) : (
-                            storeTypes.map(type => (
+                            storeTypes.map(type => {
+                                const name = (type.name_ar || type.name || '').toLowerCase();
+                                const isInternet = name.includes('انترنت') || name.includes('صالة') || name.includes('internet');
+                                const isFuel = name.includes('محروقات') || name.includes('fuel');
+                                const isWarehouse = name.includes('مستودع') || name.includes('warehouse');
+                                const isContractor = name.includes('مقاول') || name.includes('مواد بناء') || name.includes('contractor');
+                                const IconComp = isInternet ? Cpu : isFuel ? Fuel : isWarehouse ? Warehouse : isContractor ? Building : Store;
+                                return (
                                 <label key={type.id} className="flex items-center gap-2 p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded cursor-pointer">
                                     <input
                                         type="checkbox"
@@ -1025,12 +1519,14 @@ const AdminPanel = () => {
                                         }}
                                         className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
                                     />
-                                    <span className="text-sm text-gray-700 dark:text-gray-300">{type.name_ar}</span>
+                                    <IconComp className="h-4 w-4 text-gray-500" />
+                                    <span className="text-sm text-gray-700 dark:text-gray-300">{type.name_ar || type.name}</span>
                                     {type.description_ar && (
                                         <span className="text-xs text-gray-500 dark:text-gray-400">- {type.description_ar}</span>
                                     )}
                                 </label>
-                            ))
+                                );
+                            })
                         )}
                     </div>
                     {formData.store_type_ids && formData.store_type_ids.length > 0 && (
@@ -1038,28 +1534,104 @@ const AdminPanel = () => {
                             تم اختيار {formData.store_type_ids.length} نوع متجر
                         </p>
                     )}
+                    {/* Preview selected type sections */}
+                    {formData.store_type_ids && formData.store_type_ids.length > 0 && (
+                      <div className="mt-3 border border-gray-200 dark:border-gray-700 rounded-lg p-3">
+                        <div className="flex items-center gap-2 mb-2">
+                          <CheckCircle className="h-4 w-4 text-emerald-600" />
+                          <span className="text-sm font-semibold text-gray-800 dark:text-gray-200">سيُعرض في الشريط الجانبي:</span>
+                        </div>
+                        {(() => {
+                          const grouped = getSelectedTypeSectionPreview(formData.store_type_ids);
+                          return (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                              {Object.keys(grouped || {}).map(cat => (
+                                <div key={cat} className="bg-gray-50 dark:bg-gray-800/50 rounded p-2">
+                                  <div className="text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">{cat}</div>
+                                  <div className="flex flex-wrap gap-1">
+                                    {(grouped?.[cat] || []).map(lbl => (
+                                      <span key={lbl} className="text-xs px-2 py-1 rounded bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300">
+                                        {lbl}
+                                      </span>
+                                    ))}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          );
+                        })()}
+                      </div>
+                    )}
+                </div>
+
+                {/* Starter Kit: محتوى افتراضي سريع للانطلاق */}
+                <div className="mt-2 border border-gray-200 dark:border-gray-700 rounded-lg p-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <FolderPlus className="h-4 w-4 text-purple-600" />
+                    <span className="text-sm font-semibold text-gray-800 dark:text-gray-200">Starter Kit – إنشاء محتوى افتراضي</span>
+                  </div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">اختر الحزم التي ترغب بإضافتها تلقائياً بعد إنشاء المتجر (بيانات معزولة لكل متجر).</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <label className="flex items-center gap-2 p-2 rounded hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
+                      <Package className="h-4 w-4 text-indigo-600" />
+                      <input
+                        type="checkbox"
+                        checked={starterKitOptions.seedProductsBasics}
+                        onChange={(e) => setStarterKitOptions(prev => ({ ...prev, seedProductsBasics: e.target.checked }))}
+                        className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                      />
+                      <span className="text-sm text-gray-700 dark:text-gray-300">منتجات أساسية (عينات)</span>
+                    </label>
+
+                    <label className="flex items-center gap-2 p-2 rounded hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
+                      <Users className="h-4 w-4 text-green-600" />
+                      <input
+                        type="checkbox"
+                        checked={starterKitOptions.seedCustomersBasics}
+                        onChange={(e) => setStarterKitOptions(prev => ({ ...prev, seedCustomersBasics: e.target.checked }))}
+                        className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                      />
+                      <span className="text-sm text-gray-700 dark:text-gray-300">عملاء افتراضيون</span>
+                    </label>
+
+                    <label className="flex items-center gap-2 p-2 rounded hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
+                      <ShoppingCart className="h-4 w-4 text-amber-600" />
+                      <input
+                        type="checkbox"
+                        checked={starterKitOptions.seedVendorsBasics}
+                        onChange={(e) => setStarterKitOptions(prev => ({ ...prev, seedVendorsBasics: e.target.checked }))}
+                        className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                      />
+                      <span className="text-sm text-gray-700 dark:text-gray-300">موردون افتراضيون</span>
+                    </label>
+                  </div>
                 </div>
 
                 <div className="flex gap-2 pt-2">
-                    <Button 
-                        type="button"
-                        onClick={() => {
-                            setDialogOpen(false);
-                            setFormData({
-                                storeName: '',
-                                ownerName: '',
-                                email: '',
-                                password: '',
-                                plan: 'trial',
-                                customDays: '',
-                                isTrial: true,
-                                store_type_ids: []
-                            });
-                        }} 
-                        variant="outline" 
-                        className="flex-1"
-                        disabled={loading}
-                    >
+                  <Button 
+                    type="button"
+                    onClick={() => {
+                      setDialogOpen(false);
+                      setFormData({
+                        storeName: '',
+                        ownerName: '',
+                        email: '',
+                        password: '',
+                        plan: 'trial',
+                        customDays: '',
+                        isTrial: true,
+                        store_type_ids: []
+                      });
+                      setStarterKitOptions({
+                        seedProductsBasics: true,
+                        seedCustomersBasics: true,
+                        seedVendorsBasics: true
+                      });
+                    }} 
+                    variant="outline" 
+                    className="flex-1"
+                    disabled={loading}
+                  >
                         {t('common.cancel')}
                     </Button>
                     <Button 
@@ -1146,7 +1718,14 @@ const AdminPanel = () => {
                         {storeTypes.length === 0 ? (
                             <p className="text-sm text-gray-500">لا توجد أنواع متاجر متاحة</p>
                         ) : (
-                            storeTypes.map(type => (
+                            storeTypes.map(type => {
+                                const name = (type.name_ar || type.name || '').toLowerCase();
+                                const isInternet = name.includes('انترنت') || name.includes('صالة') || name.includes('internet');
+                                const isFuel = name.includes('محروقات') || name.includes('fuel');
+                                const isWarehouse = name.includes('مستودع') || name.includes('warehouse');
+                                const isContractor = name.includes('مقاول') || name.includes('مواد بناء') || name.includes('contractor');
+                                const IconComp = isInternet ? Cpu : isFuel ? Fuel : isWarehouse ? Warehouse : isContractor ? Building : Store;
+                                return (
                                 <label key={type.id} className="flex items-center gap-2 p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded cursor-pointer">
                                     <input
                                         type="checkbox"
@@ -1166,18 +1745,48 @@ const AdminPanel = () => {
                                         }}
                                         className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
                                     />
-                                    <span className="text-sm text-gray-700 dark:text-gray-300">{type.name_ar}</span>
+                                    <IconComp className="h-4 w-4 text-gray-500" />
+                                    <span className="text-sm text-gray-700 dark:text-gray-300">{type.name_ar || type.name}</span>
                                     {type.description_ar && (
                                         <span className="text-xs text-gray-500 dark:text-gray-400">- {type.description_ar}</span>
                                     )}
                                 </label>
-                            ))
+                                );
+                            })
                         )}
                     </div>
                     {editFormData.store_type_ids && editFormData.store_type_ids.length > 0 && (
                         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                             تم اختيار {editFormData.store_type_ids.length} نوع متجر
                         </p>
+                    )}
+                    {/* Preview selected type sections for edit */}
+                    {editFormData.store_type_ids && editFormData.store_type_ids.length > 0 && (
+                      <div className="mt-3 border border-gray-200 dark:border-gray-700 rounded-lg p-3">
+                        <div className="flex items-center gap-2 mb-2">
+                          <CheckCircle className="h-4 w-4 text-emerald-600" />
+                          <span className="text-sm font-semibold text-gray-800 dark:text-gray-200">سيُعرض في الشريط الجانبي:</span>
+                        </div>
+                        {(() => {
+                          const grouped = getSelectedTypeSectionPreview(editFormData.store_type_ids);
+                          return (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                              {Object.keys(grouped || {}).map(cat => (
+                                <div key={cat} className="bg-gray-50 dark:bg-gray-800/50 rounded p-2">
+                                  <div className="text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">{cat}</div>
+                                  <div className="flex flex-wrap gap-1">
+                                    {(grouped?.[cat] || []).map(lbl => (
+                                      <span key={lbl} className="text-xs px-2 py-1 rounded bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300">
+                                        {lbl}
+                                      </span>
+                                    ))}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          );
+                        })()}
+                      </div>
                     )}
                 </div>
 
@@ -1407,6 +2016,30 @@ const AdminPanel = () => {
           </p>
         ) : (
           <div className="overflow-x-auto">
+            {/* Pagination controls */}
+            <div className="flex items-center justify-between mb-3">
+              <div className="text-sm text-gray-600 dark:text-gray-300">
+                إجمالي: {supportTickets.length} — الصفحة {ticketPage} من {Math.max(1, Math.ceil(supportTickets.length / ticketsPerPage))}
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setTicketPage(p => Math.max(1, p - 1))}
+                  disabled={ticketPage === 1}
+                >
+                  السابق
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setTicketPage(p => Math.min(Math.ceil(supportTickets.length / ticketsPerPage), p + 1))}
+                  disabled={ticketPage >= Math.ceil(supportTickets.length / ticketsPerPage)}
+                >
+                  التالي
+                </Button>
+              </div>
+            </div>
             <table className="w-full">
               <thead className="bg-gray-50 dark:bg-gray-700">
                 <tr>
@@ -1420,7 +2053,9 @@ const AdminPanel = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                {supportTickets.map((ticket) => (
+                {supportTickets
+                  .slice((ticketPage - 1) * ticketsPerPage, ticketPage * ticketsPerPage)
+                  .map((ticket) => (
                   <tr key={ticket.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                     <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">
                       {ticket.tenant_name || '-'}
@@ -1510,7 +2145,33 @@ const AdminPanel = () => {
               <p className="text-center text-gray-500 dark:text-gray-400">لا توجد رسائل بعد</p>
             ) : (
               <div className="space-y-3">
-                {ticketMessages.map((msg) => (
+                {/* Pagination controls for messages */}
+                <div className="flex items-center justify-between mb-1">
+                  <div className="text-xs text-gray-600 dark:text-gray-300">
+                    إجمالي: {ticketMessages.length} — الصفحة {messagePage} من {Math.max(1, Math.ceil(ticketMessages.length / messagesPerPage))}
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setMessagePage(p => Math.max(1, p - 1))}
+                      disabled={messagePage === 1}
+                    >
+                      السابق
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setMessagePage(p => Math.min(Math.ceil(ticketMessages.length / messagesPerPage), p + 1))}
+                      disabled={messagePage >= Math.ceil(ticketMessages.length / messagesPerPage)}
+                    >
+                      التالي
+                    </Button>
+                  </div>
+                </div>
+                {ticketMessages
+                  .slice((messagePage - 1) * messagesPerPage, messagePage * messagesPerPage)
+                  .map((msg) => (
                   <div
                     key={msg.id}
                     className={`p-3 rounded-lg border ${msg.is_from_admin ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800' : 'bg-gray-50 dark:bg-gray-700/30 border-gray-200 dark:border-gray-700'}`}

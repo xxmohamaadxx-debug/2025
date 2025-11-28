@@ -33,7 +33,7 @@ const PaymentDialog = ({ open, onOpenChange, customer, onSave }) => {
     }
   }, [customer, open]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!customer) {
       return;
@@ -60,6 +60,42 @@ const PaymentDialog = ({ open, onOpenChange, customer, onSave }) => {
       transactionType = 'credit';
     }
 
+    // ربط مع نظام الذمم والمدفوعات الجديد
+    if (user?.tenant_id) {
+      try {
+        // البحث عن دين موجود للعميل أو إنشاء دين جديد
+        const debts = await neonService.getDebts(user.tenant_id);
+        const customerDebt = debts.find(d => 
+          d.entity_id === customer.id && 
+          d.entity_type === 'customer' && 
+          d.status !== 'fully_paid'
+        );
+        
+        if (customerDebt && transactionType === 'payment') {
+          // تسجيل دفعة مرتبطة بالدين
+          await neonService.createPayment(user.tenant_id, {
+            debt_id: customerDebt.debt_id,
+            amount: paymentAmount,
+            payment_date: formData.date,
+            method: formData.payment_method,
+            user_id: user.id,
+            notes: formData.notes || formData.description
+          });
+        } else if (transactionType === 'debt') {
+          // إنشاء دين جديد
+          await neonService.createDebt(user.tenant_id, {
+            entity_id: customer.id,
+            entity_type: 'customer',
+            amount: paymentAmount,
+            status: 'active',
+            notes: formData.notes || formData.description
+          });
+        }
+      } catch (error) {
+        console.error('Payment save error:', error);
+      }
+    }
+    
     onSave({
       ...formData,
       type: transactionType
