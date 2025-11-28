@@ -93,7 +93,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
   }, [user?.tenant_id, user?.isSuperAdmin]);
 
   const handleLinkClick = () => {
-    if (window.innerWidth < 1024) setIsOpen(false);
+    // Keep sidebar state controlled only via the menu button or close icon
   };
 
   // دالة للتحقق من إظهار قسم معين حسب نوع المتجر
