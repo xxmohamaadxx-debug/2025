@@ -198,6 +198,72 @@ export const neonService = {
     }
   },
 
+  // Check user access based on activity and subscription status
+  checkUserAccess: async (userId) => {
+    try {
+      const user = await neonService.getUserById(userId);
+      if (!user) return { allowed: false, reason: 'user_not_found' };
+
+      // Block inactive users
+      if (user.is_active === false) {
+        return { allowed: false, reason: 'user_inactive' };
+      }
+
+      // Super Admins bypass subscription checks
+      if (user.role === 'SUPER_ADMIN' || user.email?.toLowerCase() === 'admin@ibrahim.com') {
+        return { allowed: true };
+      }
+
+      // If no tenant, allow minimal access (e.g., before assignment)
+      if (!user.tenant_id) {
+        return { allowed: true };
+      }
+
+      const tenantResult = await sql`SELECT * FROM tenants WHERE id = ${user.tenant_id} LIMIT 1`;
+      const tenant = tenantResult[0] || null;
+      if (!tenant) {
+        return { allowed: false, reason: 'tenant_not_found' };
+      }
+
+      // Data suspension blocks access regardless of status
+      if (tenant.data_suspended === true) {
+        return { allowed: false, reason: 'data_suspended' };
+      }
+
+      // Handle subscription status and expiry
+      const status = tenant.subscription_status || 'active';
+      const expiresAt = tenant.subscription_expires_at ? new Date(tenant.subscription_expires_at) : null;
+      const now = new Date();
+
+      // Pending requests should not allow login
+      if (status === 'pending') {
+        return { allowed: false, reason: 'pending_approval' };
+      }
+
+      // Trial or active require expiry in the future (if defined)
+      if (status === 'trial' || status === 'active') {
+        if (expiresAt && !isNaN(expiresAt.getTime())) {
+          if (expiresAt <= now) {
+            return { allowed: false, reason: 'subscription_expired' };
+          }
+        }
+        return { allowed: true };
+      }
+
+      // Explicit expired or unknown states
+      if (status === 'expired' || status === 'suspended') {
+        return { allowed: false, reason: status };
+      }
+
+      // Fallback: allow if no explicit block
+      return { allowed: true };
+    } catch (error) {
+      console.error('checkUserAccess error:', error);
+      // Fail open unless clearly blocked
+      return { allowed: true };
+    }
+  },
+
   createTenant: async (tenantName, ownerUserId) => {
     try {
       const result = await sql`
@@ -208,6 +274,53 @@ export const neonService = {
       return result[0];
     } catch (error) {
       console.error('createTenant error:', error);
+      throw error;
+    }
+  },
+
+  // Request a trial tenant: creates inactive owner and pending tenant
+  requestTrialTenant: async ({ storeName, ownerName, email, password }) => {
+    try {
+      // 1) Create tenant without owner initially
+      const tenant = await neonService.createTenant(storeName, null);
+
+      // 2) Create inactive store owner user linked to tenant
+      const user = await neonService.createUserProfile({
+        email,
+        password,
+        name: ownerName,
+        role: 'STORE_OWNER',
+        tenant_id: tenant.id,
+        can_delete_data: true,
+        can_edit_data: true,
+        can_create_users: true,
+        is_active: false
+      });
+
+      // 3) Set owner and mark subscription as pending trial
+      await neonService.updateTenant(tenant.id, {
+        owner_user_id: user.id,
+        subscription_plan: 'trial',
+        subscription_status: 'pending',
+        subscription_expires_at: null
+      });
+
+      // 4) Notify admins of the new trial request
+      try {
+        await neonService.createNotification({
+          tenant_id: tenant.id,
+          user_id: user.id,
+          type: 'subscription',
+          title: 'طلب تجربة جديد',
+          message: `طلب تجربة لمتجر "${storeName}" من ${ownerName} (${email}).`
+        });
+      } catch (notifyErr) {
+        console.warn('Admin notification for trial request failed:', notifyErr);
+      }
+
+      return { tenant, user };
+    } catch (error) {
+      console.error('requestTrialTenant error:', error);
       throw error;
     }
   },

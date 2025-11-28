@@ -26,6 +26,10 @@ const AdminPanel = () => {
   const [selectedStore, setSelectedStore] = useState(null);
   const [supportTickets, setSupportTickets] = useState([]);
   const [loadingTickets, setLoadingTickets] = useState(false);
+  // Approval Dialog
+  const [approveDialogOpen, setApproveDialogOpen] = useState(false);
+  const [approvalStore, setApprovalStore] = useState(null);
+  const [approvalSelectedTypeIds, setApprovalSelectedTypeIds] = useState([]);
   
   // New Store Form
   const [formData, setFormData] = useState({
@@ -486,6 +490,111 @@ const AdminPanel = () => {
     }
   };
 
+  // Open approval dialog to choose visible sections (store types)
+  const openApproveDialog = (store) => {
+    setApprovalStore(store);
+    setApprovalSelectedTypeIds([]);
+    setApproveDialogOpen(true);
+  };
+
+  // Confirm approval with selected store types
+  const confirmApprovePendingStore = async () => {
+    if (!approvalStore) return;
+    if (!approvalSelectedTypeIds || approvalSelectedTypeIds.length === 0) {
+      toast({ title: 'الرجاء اختيار الأقسام/أنواع المتجر', variant: 'destructive' });
+      return;
+    }
+    try {
+      setLoading(true);
+      const expiryDate = new Date();
+      expiryDate.setDate(expiryDate.getDate() + 15);
+
+      await neonService.updateTenant(approvalStore.id, {
+        subscription_plan: 'trial',
+        subscription_status: 'trial',
+        subscription_expires_at: expiryDate.toISOString(),
+        data_suspended: false
+      });
+
+      // Attach selected store types with priority; mark first as primary
+      for (let i = 0; i < approvalSelectedTypeIds.length; i++) {
+        const typeId = approvalSelectedTypeIds[i];
+        await neonService.addStoreTypeToTenant(approvalStore.id, typeId, i === 0, i);
+      }
+
+      if (approvalStore.owner_user_id) {
+        await neonService.updateUserAdmin(approvalStore.owner_user_id, {
+          is_active: true,
+          tenant_id: approvalStore.id
+        });
+
+        await neonService.createNotification(
+          approvalStore.id,
+          approvalStore.owner_user_id,
+          'trial_approved',
+          'تمت الموافقة على طلب الحساب التجريبي',
+          `تمت الموافقة على حساب المتجر "${approvalStore.name}" لمدة 15 يومًا. بإمكانك تسجيل الدخول الآن.`
+        );
+      }
+
+      toast({
+        title: 'تمت الموافقة',
+        description: `تمت الموافقة وتحديد الأقسام للمتجر "${approvalStore.name}"`,
+        variant: 'default'
+      });
+      setApproveDialogOpen(false);
+      setApprovalStore(null);
+      setApprovalSelectedTypeIds([]);
+      await fetchStores();
+    } catch (error) {
+      console.error('Approve pending store error:', error);
+      toast({
+        title: 'خطأ',
+        description: error.message || 'حدث خطأ أثناء الموافقة على الطلب التجريبي',
+        variant: 'destructive'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Reject a pending trial store: mark tenant as rejected and notify owner
+  const rejectPendingStore = async (store) => {
+    try {
+      setLoading(true);
+      await neonService.updateTenant(store.id, {
+        subscription_status: 'rejected',
+        data_suspended: true
+      });
+
+      if (store.owner_user_id) {
+        await neonService.createNotification(
+          store.id,
+          store.owner_user_id,
+          'trial_rejected',
+          'تم رفض طلب الحساب التجريبي',
+          `عذراً، تم رفض طلب الحساب التجريبي للمتجر "${store.name}". للتواصل، استخدم واتساب: ${CONTACT_INFO.WHATSAPP_URL}`
+        );
+      }
+
+      toast({
+        title: 'تم الرفض',
+        description: `تم رفض الطلب التجريبي للمتجر "${store.name}"`,
+        variant: 'default'
+      });
+      await fetchStores();
+    } catch (error) {
+      console.error('Reject pending store error:', error);
+      toast({
+        title: 'خطأ',
+        description: error.message || 'حدث خطأ أثناء رفض الطلب التجريبي',
+        variant: 'destructive'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleDeleteStore = async (storeId, storeName) => {
     // حذف مباشر دون تأكيد كما طلب المستخدم
     try {
@@ -657,6 +766,48 @@ const AdminPanel = () => {
   return (
     <div className="space-y-6">
       <Helmet><title>{t('adminPanel.title')} - {t('common.systemName')}</title></Helmet>
+
+      {/* Approval Dialog: choose visible sections (store types) */}
+      <Dialog open={approveDialogOpen} onOpenChange={setApproveDialogOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>تفعيل المتجر وتحديد الأقسام</DialogTitle>
+            <DialogDescription>
+              اختر الأقسام التي تظهر في لوحة تحكم المتجر بعد التفعيل.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="text-sm text-gray-600 dark:text-gray-300">
+              المتجر: <span className="font-bold">{approvalStore?.name}</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {storeTypes.map((type) => (
+                <label key={type.id} className="flex items-center gap-2 p-2 rounded-md border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="accent-purple-600"
+                    checked={approvalSelectedTypeIds.includes(type.id)}
+                    onChange={(e) => {
+                      const checked = e.target.checked;
+                      setApprovalSelectedTypeIds((prev) => {
+                        if (checked) return [...prev, type.id];
+                        return prev.filter((id) => id !== type.id);
+                      });
+                    }}
+                  />
+                  <span className="text-sm text-gray-800 dark:text-gray-200">
+                    {type.name_ar || type.name_en || type.code}
+                  </span>
+                </label>
+              ))}
+            </div>
+            <div className="flex justify-end gap-2 pt-2">
+              <Button variant="outline" onClick={() => { setApproveDialogOpen(false); setApprovalSelectedTypeIds([]); setApprovalStore(null); }}>إلغاء</Button>
+              <Button className="bg-green-600 hover:bg-green-700 text-white" onClick={confirmApprovePendingStore}>تفعيل وتأكيد الأقسام</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
       
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div className="flex items-center gap-3">
@@ -699,6 +850,62 @@ const AdminPanel = () => {
         </div>
       ) : (
         <>
+          {/* Pending trial requests */}
+          {stores.filter(s => s.subscription_status === 'pending').length > 0 && (
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-yellow-200 dark:border-yellow-900/40 p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <Clock className="h-5 w-5 text-yellow-600" />
+                  <h2 className="text-lg font-bold text-gray-900 dark:text-white">طلبات تجريبية معلّقة</h2>
+                </div>
+                <span className="text-sm text-gray-600 dark:text-gray-400">
+                  الإجمالي: {stores.filter(s => s.subscription_status === 'pending').length}
+                </span>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead className="bg-gray-50 dark:bg-gray-700">
+                    <tr>
+                      <th className="p-3 text-sm font-semibold text-gray-700 dark:text-gray-300">المتجر</th>
+                      <th className="p-3 text-sm font-semibold text-gray-700 dark:text-gray-300">المدير</th>
+                      <th className="p-3 text-sm font-semibold text-gray-700 dark:text-gray-300">البريد</th>
+                      <th className="p-3 text-sm font-semibold text-gray-700 dark:text-gray-300">الإجراءات</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                    {stores.filter(s => s.subscription_status === 'pending').map(store => (
+                      <tr key={store.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                        <td className="p-3 font-medium text-gray-900 dark:text-white">{store.name}</td>
+                        <td className="p-3 text-sm text-gray-700 dark:text-gray-300">{store.owner_name || '-'}</td>
+                        <td className="p-3 text-sm text-gray-700 dark:text-gray-300">{store.owner_email || '-'}</td>
+                        <td className="p-3">
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              className="bg-green-600 hover:bg-green-700 text-white"
+                              onClick={() => openApproveDialog(store)}
+                            >
+                              <CheckCircle className="h-4 w-4 ml-2 rtl:mr-2 rtl:ml-0" />
+                              موافقة
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-red-600 border-red-200 hover:bg-red-50 dark:text-red-400 dark:border-red-800 dark:hover:bg-red-900/20"
+                              onClick={() => rejectPendingStore(store)}
+                            >
+                              <Trash2 className="h-4 w-4 ml-2 rtl:mr-2 rtl:ml-0" />
+                              رفض
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-purple-100 dark:border-purple-900/30">
                 <h3 className="text-gray-500 dark:text-gray-400 text-sm font-medium">{t('adminPanel.totalStores')}</h3>

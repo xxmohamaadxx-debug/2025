@@ -241,36 +241,21 @@ export const AuthProvider = ({ children }) => {
 
   const register = async ({ name, storeName, email, password }) => {
     try {
-      // إنشاء Tenant أولاً
-      const tenant = await neonService.createTenant(storeName, null);
-      
-      // إنشاء المستخدم
-      const userData = await neonService.createUser({
+      // إرسال طلب تجربة: إنشاء متجر مع حالة اشتراك "pending" ومستخدم غير نشط
+      const { tenant, user: userData } = await neonService.requestTrialTenant({
+        storeName,
+        ownerName: name,
         email,
-        password,
-        name,
-        tenant_id: tenant.id,
-        role: ROLES.STORE_OWNER,
-        can_delete_data: true,
-        can_edit_data: true,
-        can_create_users: true,
+        password
       });
-
-      // تحديث Tenant بالمالك
-      await neonService.updateTenant(tenant.id, { owner_user_id: userData.id });
-
-      // حفظ في localStorage
-      localStorage.setItem('userId', userData.id);
-      localStorage.setItem('userEmail', userData.email);
-      localStorage.setItem('userName', userData.name);
 
       toast({ 
-        title: 'تم إنشاء الحساب بنجاح!', 
-        description: 'مرحباً بك في نظام إبراهيم للمحاسبة. جاري تسجيل الدخول...' 
+        title: 'تم إرسال طلب التجربة بنجاح!', 
+        description: 'سيتم مراجعة طلبك من قبل الإدارة خلال وقت قصير. سيتم تفعيل حسابك بعد الموافقة.' 
       });
-      
-      await fetchProfile(userData);
-      return { user: userData };
+
+      // لا نقوم بتسجيل الدخول تلقائياً لأن الحساب غير نشط حتى الموافقة
+      return { user: userData, tenant };
     } catch (error) {
       console.error('Registration error:', error);
       toast({ 

@@ -28,17 +28,20 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
   const { user, tenant, logout } = useAuth();
   const [storeTypes, setStoreTypes] = useState([]);
   const [loadingStoreTypes, setLoadingStoreTypes] = useState(false);
+  const [sectionSettings, setSectionSettings] = useState([]);
   const [isDesktop, setIsDesktop] = useState(() => computeIsDesktop());
   const [enableEffects, setEnableEffects] = useState(() => shouldEnableEffects());
   const ambientParticles = useMemo(
-    () =>
-      Array.from({ length: 20 }).map(() => ({
+    () => {
+      if (!isDesktop) return [];
+      return Array.from({ length: 8 }).map(() => ({
         left: Math.random() * 100,
         top: Math.random() * 100,
         duration: 4 + Math.random() * 3,
         delay: Math.random() * 3,
-      })),
-    []
+      }));
+    },
+    [isDesktop]
   );
   
   const isActive = (path) => location.pathname === path;
@@ -67,14 +70,16 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         
         // جلب إعدادات الأقسام المرئية (إذا كانت متوفرة)
         try {
-          const sectionSettings = await neonService.getTenantSectionSettings?.(user.tenant_id);
-          if (sectionSettings && sectionSettings.length > 0) {
-            // حفظ الإعدادات في state إذا لزم الأمر
-            // يمكن استخدامها لتصفية الأقسام
+          const sections = await neonService.getTenantSectionSettings?.(user.tenant_id);
+          if (Array.isArray(sections)) {
+            setSectionSettings(sections);
+          } else {
+            setSectionSettings([]);
           }
         } catch (e) {
           // الدالة قد لا تكون موجودة بعد - لا مشكلة
           console.log('Section settings not available yet');
+          setSectionSettings([]);
         }
       } catch (error) {
         console.error('Load store types error:', error);
@@ -93,7 +98,10 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
   }, [user?.tenant_id, user?.isSuperAdmin]);
 
   const handleLinkClick = () => {
-    // Keep sidebar state controlled only via the menu button or close icon
+    // إغلاق الشريط الجانبي تلقائياً على الشاشات الصغيرة بعد التنقل
+    if (!isDesktop) {
+      setIsOpen(false);
+    }
   };
 
   // دالة للتحقق من إظهار قسم معين حسب نوع المتجر
@@ -113,15 +121,28 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
       return code.toLowerCase().trim();
     }).filter(Boolean);
     
-    // إذا كان القسم مطلوباً لأنواع متعددة، يجب أن يكون أحدها موجود
-    if (Array.isArray(sectionCodes)) {
-      const normalizedSectionCodes = sectionCodes.map(c => c.toLowerCase().trim());
-      const hasMatch = normalizedSectionCodes.some(code => storeTypeCodes.includes(code));
-      return hasMatch;
+    // تطبيع قائمة الأقسام المستهدفة
+    const normalizedSectionCodes = Array.isArray(sectionCodes)
+      ? sectionCodes.map(c => c.toLowerCase().trim())
+      : [String(sectionCodes).toLowerCase().trim()];
+
+    // تحقق من تطابق نوع المتجر مع أحد رموز القسم
+    const hasStoreTypeMatch = normalizedSectionCodes.some(code => storeTypeCodes.includes(code));
+    if (!hasStoreTypeMatch) return false;
+
+    // إذا كانت هناك إعدادات للأقسام المرئية، طبقها كصلاحيات إضافية
+    if (sectionSettings && sectionSettings.length > 0) {
+      const visibleCodes = new Set(
+        sectionSettings
+          .map(s => (s.section_code || '').toLowerCase().trim())
+          .filter(Boolean)
+      );
+      const hasSectionPermission = normalizedSectionCodes.some(code => visibleCodes.has(code));
+      return hasSectionPermission;
     }
-    
-    const normalizedCode = sectionCodes.toLowerCase().trim();
-    return storeTypeCodes.includes(normalizedCode);
+
+    // في حال عدم وجود إعدادات للأقسام، اعرض بناءً على نوع المتجر فقط
+    return true;
   };
 
   // تحديد الأقسام لكل نوع متجر - فقط إذا كان نوع المتجر يطابق
@@ -328,6 +349,14 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                isActive={isActive('/admin-settings')}
                onClick={handleLinkClick}
                delay={0.1}
+             />
+             <RenderNavItem
+               to="/admin"
+               icon={Store}
+               label="إنشاء متجر جديد"
+               isActive={isActive('/admin')}
+               onClick={handleLinkClick}
+               delay={0.12}
              />
           </>
         )}
