@@ -63,6 +63,22 @@ try {
   console.error('❌ خطأ في تهيئة عميل Neon:', error);
 }
 
-export const sql = sqlClient;
+// Export a safe sql wrapper. The Neon client is expected to be used as a
+// tagged template or as a regular function. If the environment variable is
+// missing or the client failed to initialize, throw a clear error instead
+// of letting the runtime produce a cryptic "is not a function" error.
+export const sql = (...args) => {
+  if (!sqlClient) {
+    const errMsg = 'VITE_NEON_DATABASE_URL is not configured or Neon client failed to initialize.\n' +
+      'Please set VITE_NEON_DATABASE_URL in your environment (Netlify Site settings or local .env)\n' +
+      'and redeploy. See NETLIFY_ENV_SETUP.md for details.';
+    console.error(errMsg);
+    throw new Error(errMsg);
+  }
+
+  // Forward call to the actual client. This supports both tagged template
+  // usage (sql`SELECT ...`) and direct function calls (sql(query, params)).
+  return sqlClient(...args);
+};
 
 export default sql;
