@@ -43,6 +43,20 @@ export const formatDateShort = (date) => {
 };
 
 /**
+ * Format time to Arabic locale (HH:mm)
+ * @param {Date|string} date
+ * @returns {string}
+ */
+export const formatTimeAR = (date) => {
+  if (!date) return '-';
+  const dateObj = date instanceof Date ? date : new Date(date);
+  if (isNaN(dateObj.getTime())) return '-';
+  const hours = dateObj.getHours().toString().padStart(2, '0');
+  const minutes = dateObj.getMinutes().toString().padStart(2, '0');
+  return `${hours}:${minutes}`;
+};
+
+/**
  * Get relative time in Arabic (منذ ساعة، منذ يومين، إلخ)
  */
 export const getRelativeTimeAR = (date) => {

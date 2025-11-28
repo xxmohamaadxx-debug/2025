@@ -736,7 +736,7 @@ export const neonService = {
     try {
       const result = await sql`
         INSERT INTO debts (tenant_id, partner_id, related_invoice_id, description, amount, currency, due_date, status, metadata)
-        VALUES (${tenantId}, ${data.partner_id || null}, ${data.related_invoice_id || null}, ${data.description || null}, ${data.amount}, ${data.currency || 'SYP'}, ${data.due_date || null}, ${data.status || 'open'}, ${data.metadata || {}::jsonb})
+        VALUES (${tenantId}, ${data.partner_id || null}, ${data.related_invoice_id || null}, ${data.description || null}, ${data.amount}, ${data.currency || 'SYP'}, ${data.due_date || null}, ${data.status || 'open'}, ${JSON.stringify(data.metadata || {})}::jsonb)
         RETURNING *
       `;
       return result[0];
@@ -761,7 +761,7 @@ export const neonService = {
     try {
       const result = await sql`
         INSERT INTO payments (tenant_id, debt_id, partner_id, amount, currency, payment_method, reference, recorded_by, recorded_at, metadata)
-        VALUES (${tenantId}, ${data.debt_id || null}, ${data.partner_id || null}, ${data.amount}, ${data.currency || 'SYP'}, ${data.payment_method || 'cash'}, ${data.reference || null}, ${data.recorded_by || null}, ${data.recorded_at || new Date().toISOString()}, ${data.metadata || {}::jsonb})
+        VALUES (${tenantId}, ${data.debt_id || null}, ${data.partner_id || null}, ${data.amount}, ${data.currency || 'SYP'}, ${data.payment_method || 'cash'}, ${data.reference || null}, ${data.recorded_by || null}, ${data.recorded_at || new Date().toISOString()}, ${JSON.stringify(data.metadata || {})}::jsonb)
         RETURNING *
       `;
       return result[0];
@@ -786,7 +786,7 @@ export const neonService = {
     try {
       const result = await sql`
         INSERT INTO employees (tenant_id, user_id, name, national_id, position, salary_amount, salary_currency, pay_frequency, is_active, meta)
-        VALUES (${tenantId}, ${data.user_id || null}, ${data.name}, ${data.national_id || null}, ${data.position || null}, ${data.salary_amount || 0}, ${data.salary_currency || 'SYP'}, ${data.pay_frequency || 'monthly'}, ${data.is_active !== undefined ? data.is_active : true}, ${data.meta || {}::jsonb})
+        VALUES (${tenantId}, ${data.user_id || null}, ${data.name}, ${data.national_id || null}, ${data.position || null}, ${data.salary_amount || 0}, ${data.salary_currency || 'SYP'}, ${data.pay_frequency || 'monthly'}, ${data.is_active !== undefined ? data.is_active : true}, ${JSON.stringify(data.meta || {})}::jsonb)
         RETURNING *
       `;
       return result[0];
@@ -800,7 +800,7 @@ export const neonService = {
     try {
       const result = await sql`
         INSERT INTO deductions (employee_id, tenant_id, deduction_type, amount, currency, is_recurring, recurring_rule, metadata)
-        VALUES (${data.employee_id}, ${tenantId}, ${data.deduction_type}, ${data.amount}, ${data.currency || 'SYP'}, ${data.is_recurring || false}, ${data.recurring_rule || null}, ${data.metadata || {}::jsonb})
+        VALUES (${data.employee_id}, ${tenantId}, ${data.deduction_type}, ${data.amount}, ${data.currency || 'SYP'}, ${data.is_recurring || false}, ${data.recurring_rule || null}, ${JSON.stringify(data.metadata || {})}::jsonb)
         RETURNING *
       `;
       return result[0];
