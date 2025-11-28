@@ -3895,4 +3895,477 @@ export const neonService = {
       return false;
     }
   },
+
+  // ========== نظام تنبيهات المخزون المتقدم ==========
+
+  // الحصول على جميع التنبيهات
+  getLowStockAlerts: async (tenantId) => {
+    try {
+      const result = await sql`
+        SELECT la.*, ii.name, ii.quantity, ii.sku
+        FROM inventory_low_stock_alerts la
+        JOIN inventory_items ii ON la.inventory_item_id = ii.id
+        WHERE la.tenant_id = ${tenantId}
+        ORDER BY la.is_active DESC, la.created_at DESC
+      `;
+      return result || [];
+    } catch (error) {
+      console.error('getLowStockAlerts error:', error);
+      return [];
+    }
+  },
+
+  // إنشاء تنبيه مخزون
+  createLowStockAlert: async (tenantId, data) => {
+    try {
+      const result = await sql`
+        INSERT INTO inventory_low_stock_alerts (
+          tenant_id, inventory_item_id, alert_threshold, is_active, notes, created_by
+        ) VALUES (${tenantId}, ${data.inventory_item_id}, ${data.alert_threshold}, true, ${data.notes || null}, ${data.created_by || null})
+        RETURNING *
+      `;
+      return result[0];
+    } catch (error) {
+      console.error('createLowStockAlert error:', error);
+      throw error;
+    }
+  },
+
+  // تحديث تنبيه مخزون
+  updateLowStockAlert: async (alertId, data, tenantId) => {
+    try {
+      const result = await sql`
+        UPDATE inventory_low_stock_alerts
+        SET alert_threshold = ${data.alert_threshold},
+            is_active = ${data.is_active !== undefined ? data.is_active : true},
+            notes = ${data.notes || null},
+            updated_at = NOW()
+        WHERE id = ${alertId} AND tenant_id = ${tenantId}
+        RETURNING *
+      `;
+      return result[0];
+    } catch (error) {
+      console.error('updateLowStockAlert error:', error);
+      throw error;
+    }
+  },
+
+  // حذف تنبيه مخزون
+  deleteLowStockAlert: async (alertId, tenantId) => {
+    try {
+      await sql`DELETE FROM inventory_low_stock_alerts WHERE id = ${alertId} AND tenant_id = ${tenantId}`;
+      return true;
+    } catch (error) {
+      console.error('deleteLowStockAlert error:', error);
+      throw error;
+    }
+  },
+
+  // التحقق من التنبيهات المنخفضة
+  checkLowStockAlerts: async (tenantId) => {
+    try {
+      const result = await sql`
+        SELECT
+            ila.id,
+            ila.tenant_id,
+            ila.inventory_item_id,
+            ii.name,
+            ii.quantity,
+            ila.alert_threshold,
+            CASE 
+                WHEN ii.quantity <= ila.alert_threshold THEN 'ALERT'
+                WHEN ii.quantity <= (ila.alert_threshold * 1.5) THEN 'WARNING'
+                ELSE 'OK'
+            END as status
+        FROM inventory_low_stock_alerts ila
+        JOIN inventory_items ii ON ila.inventory_item_id = ii.id
+        WHERE ila.tenant_id = ${tenantId} AND ila.is_active = true
+        ORDER BY ii.quantity ASC
+      `;
+      return result || [];
+    } catch (error) {
+      console.error('checkLowStockAlerts error:', error);
+      return [];
+    }
+  },
+
+  // ========== نظام إدارة عدادات الحروقات ==========
+
+  // التحقق من دعم المتجر للحروقات
+  checkStoreSupportsFuel: async (tenantId) => {
+    try {
+      const result = await sql`
+        SELECT check_store_supports_fuel(${tenantId}::UUID) as supports_fuel
+      `;
+      return result[0]?.supports_fuel || false;
+    } catch (error) {
+      console.error('checkStoreSupportsFuel error:', error);
+      // Fallback: التحقق المباشر من نوع المتجر
+      try {
+        const storeResult = await sql`
+          SELECT st.code, st.features
+          FROM tenants t
+          JOIN store_types st ON t.store_type = st.code
+          WHERE t.id = ${tenantId}
+        `;
+        if (storeResult && storeResult[0]) {
+          const code = storeResult[0].code || '';
+          const features = storeResult[0].features || {};
+          return code.toLowerCase().includes('fuel') || 
+                 features.fuel_management === true ||
+                 code.toLowerCase().includes('station');
+        }
+      } catch (fallbackError) {
+        console.error('checkStoreSupportsFuel fallback error:', fallbackError);
+      }
+      return false;
+    }
+  },
+
+  // الحصول على جميع العدادات
+  getFuelCounters: async (tenantId) => {
+    try {
+      // تحقق أولاً من دعم المتجر
+      const supportsFuel = await neonService.checkStoreSupportsFuel(tenantId);
+      if (!supportsFuel) {
+        return [];
+      }
+
+      const result = await sql`
+        SELECT *
+        FROM fuel_counters
+        WHERE tenant_id = ${tenantId}
+        ORDER BY counter_number ASC
+      `;
+      return result || [];
+    } catch (error) {
+      console.error('getFuelCounters error:', error);
+      return [];
+    }
+  },
+
+  // الحصول على عداد واحد
+  getFuelCounter: async (counterId, tenantId) => {
+    try {
+      const result = await sql`
+        SELECT *
+        FROM fuel_counters
+        WHERE id = ${counterId} AND tenant_id = ${tenantId}
+      `;
+      return result[0] || null;
+    } catch (error) {
+      console.error('getFuelCounter error:', error);
+      return null;
+    }
+  },
+
+  // إنشاء عداد حروقات
+  createFuelCounter: async (tenantId, data) => {
+    try {
+      // تحقق من دعم المتجر
+      const supportsFuel = await neonService.checkStoreSupportsFuel(tenantId);
+      if (!supportsFuel) {
+        throw new Error('هذا المتجر لا يدعم نظام الحروقات. يرجى اختيار متجر يدعم الحروقات.');
+      }
+
+      // التحقق من عدم تجاوز 6 عدادات
+      const countersCount = await sql`
+        SELECT COUNT(*) as count FROM fuel_counters WHERE tenant_id = ${tenantId}
+      `;
+      
+      if (parseInt(countersCount[0]?.count || 0) >= 6) {
+        throw new Error('لا يمكن إضافة أكثر من 6 عدادات لكل متجر');
+      }
+
+      // التحقق من عدم تكرار رقم العداد
+      const existingCounter = await sql`
+        SELECT id FROM fuel_counters 
+        WHERE tenant_id = ${tenantId} AND counter_number = ${data.counter_number}
+      `;
+      
+      if (existingCounter && existingCounter.length > 0) {
+        throw new Error('رقم العداد موجود بالفعل. يرجى اختيار رقم مختلف.');
+      }
+
+      const result = await sql`
+        INSERT INTO fuel_counters (
+          tenant_id, counter_name, counter_number, selling_price_per_liter,
+          current_reading, initial_reading, total_sold, is_active
+        ) VALUES (
+          ${tenantId}, ${data.counter_name}, ${data.counter_number},
+          ${data.selling_price_per_liter || 0}, ${data.current_reading || 0},
+          ${data.initial_reading || 0}, 0, true
+        )
+        RETURNING *
+      `;
+      return result[0];
+    } catch (error) {
+      console.error('createFuelCounter error:', error);
+      throw error;
+    }
+  },
+
+  // تحديث عداد حروقات
+  updateFuelCounter: async (counterId, data, tenantId) => {
+    try {
+      const result = await sql`
+        UPDATE fuel_counters
+        SET counter_name = ${data.counter_name || null},
+            selling_price_per_liter = ${data.selling_price_per_liter !== undefined ? data.selling_price_per_liter : null},
+            is_active = ${data.is_active !== undefined ? data.is_active : null},
+            updated_at = NOW()
+        WHERE id = ${counterId} AND tenant_id = ${tenantId}
+        RETURNING *
+      `;
+      return result[0];
+    } catch (error) {
+      console.error('updateFuelCounter error:', error);
+      throw error;
+    }
+  },
+
+  // حذف عداد حروقات
+  deleteFuelCounter: async (counterId, tenantId) => {
+    try {
+      await sql`DELETE FROM fuel_counters WHERE id = ${counterId} AND tenant_id = ${tenantId}`;
+      return true;
+    } catch (error) {
+      console.error('deleteFuelCounter error:', error);
+      throw error;
+    }
+  },
+
+  // ========== نظام حركات عدادات الحروقات ==========
+
+  // الحصول على حركات العداد
+  getFuelCounterMovements: async (tenantId, counterId = null) => {
+    try {
+      let query = `
+        SELECT fcm.*, fc.counter_name, fc.selling_price_per_liter
+        FROM fuel_counter_movements fcm
+        JOIN fuel_counters fc ON fcm.fuel_counter_id = fc.id
+        WHERE fcm.tenant_id = ${tenantId}
+      `;
+      
+      if (counterId) {
+        query += ` AND fcm.fuel_counter_id = ${counterId}`;
+      }
+      
+      query += ` ORDER BY fcm.recorded_at DESC`;
+      
+      const result = await sql(query);
+      return result || [];
+    } catch (error) {
+      console.error('getFuelCounterMovements error:', error);
+      return [];
+    }
+  },
+
+  // تسجيل حركة عداد
+  recordFuelCounterMovement: async (tenantId, data) => {
+    try {
+      const result = await sql`
+        SELECT record_fuel_counter_movement(
+          ${tenantId}::UUID,
+          ${data.counter_id}::UUID,
+          ${data.reading_after}::NUMERIC,
+          ${data.price_per_liter}::NUMERIC,
+          ${data.invoice_id || null}::UUID,
+          ${data.notes || null}::TEXT
+        ) as movement_id
+      `;
+      return result[0]?.movement_id || null;
+    } catch (error) {
+      console.error('recordFuelCounterMovement error:', error);
+      throw error;
+    }
+  },
+
+  // ========== نظام السجلات اليومية للحروقات ==========
+
+  // الحصول على السجلات اليومية
+  getFuelDailyLogs: async (tenantId, counterId = null, dateFrom = null, dateTo = null) => {
+    try {
+      let query = `
+        SELECT fdl.*, fc.counter_name
+        FROM fuel_daily_log fdl
+        JOIN fuel_counters fc ON fdl.fuel_counter_id = fc.id
+        WHERE fdl.tenant_id = ${tenantId}
+      `;
+      
+      if (counterId) {
+        query += ` AND fdl.fuel_counter_id = ${counterId}`;
+      }
+      
+      if (dateFrom) {
+        query += ` AND fdl.log_date >= '${dateFrom}'`;
+      }
+      
+      if (dateTo) {
+        query += ` AND fdl.log_date <= '${dateTo}'`;
+      }
+      
+      query += ` ORDER BY fdl.log_date DESC, fdl.fuel_counter_id ASC`;
+      
+      const result = await sql(query);
+      return result || [];
+    } catch (error) {
+      console.error('getFuelDailyLogs error:', error);
+      return [];
+    }
+  },
+
+  // إنشاء سجل يومي
+  createFuelDailyLog: async (tenantId, counterId, logDate) => {
+    try {
+      const result = await sql`
+        SELECT create_daily_fuel_log(
+          ${tenantId}::UUID,
+          ${counterId}::UUID,
+          ${logDate}::DATE
+        ) as log_id
+      `;
+      return result[0]?.log_id || null;
+    } catch (error) {
+      console.error('createFuelDailyLog error:', error);
+      throw error;
+    }
+  },
+
+  // ========== دالة حساب ملخص عدادات الحروقات ==========
+
+  // الحصول على ملخص العدادات
+  getFuelCountersSummary: async (tenantId) => {
+    try {
+      const result = await sql`
+        SELECT 
+          fc.id,
+          fc.counter_name,
+          fc.counter_number,
+          fc.current_reading,
+          fc.initial_reading,
+          fc.total_sold,
+          fc.selling_price_per_liter,
+          COALESCE(SUM(fcm.quantity_sold), 0) as calculated_total_sold,
+          fc.initial_reading - COALESCE(SUM(fcm.quantity_sold), 0) as remaining,
+          COALESCE(SUM(fcm.total_amount), 0) as total_revenue,
+          COUNT(DISTINCT DATE(fcm.recorded_at)) as days_active
+        FROM fuel_counters fc
+        LEFT JOIN fuel_counter_movements fcm ON fc.id = fcm.fuel_counter_id
+        WHERE fc.tenant_id = ${tenantId}
+        GROUP BY fc.id, fc.counter_name, fc.counter_number, 
+                 fc.current_reading, fc.initial_reading, fc.total_sold,
+                 fc.selling_price_per_liter
+        ORDER BY fc.counter_number ASC
+      `;
+      return result || [];
+    } catch (error) {
+      console.error('getFuelCountersSummary error:', error);
+      return [];
+    }
+  },
+
+  // ========== دالة تحديث فئة وحقل التغييرات ==========
+
+  // تحديث المنتج مع الفئة والتغييرات
+  updateInventoryWithCategory: async (itemId, data, tenantId) => {
+    try {
+      const result = await sql`
+        UPDATE inventory_items
+        SET name = ${data.name || null},
+            product_code = ${data.product_code || null},
+            category = ${data.category || null},
+            quantity = ${data.quantity !== undefined ? data.quantity : null},
+            price = ${data.price !== undefined ? data.price : null},
+            updated_at = NOW()
+        WHERE id = ${itemId} AND tenant_id = ${tenantId}
+        RETURNING *
+      `;
+      return result[0];
+    } catch (error) {
+      console.error('updateInventoryWithCategory error:', error);
+      throw error;
+    }
+  },
+
+  // تحديث الفاتورة الصادرة مع الفئة
+  updateInvoiceOutWithCategory: async (invoiceId, data, tenantId) => {
+    try {
+      const result = await sql`
+        UPDATE invoices_out
+        SET category = ${data.category || null},
+            updated_at = NOW()
+        WHERE id = ${invoiceId} AND tenant_id = ${tenantId}
+        RETURNING *
+      `;
+      return result[0];
+    } catch (error) {
+      console.error('updateInvoiceOutWithCategory error:', error);
+      throw error;
+    }
+  },
+
+  // تحديث الفاتورة الواردة مع الفئة
+  updateInvoiceInWithCategory: async (invoiceId, data, tenantId) => {
+    try {
+      const result = await sql`
+        UPDATE invoices_in
+        SET category = ${data.category || null},
+            updated_at = NOW()
+        WHERE id = ${invoiceId} AND tenant_id = ${tenantId}
+        RETURNING *
+      `;
+      return result[0];
+    } catch (error) {
+      console.error('updateInvoiceInWithCategory error:', error);
+      throw error;
+    }
+  },
+
+  // الحصول على إحصائيات المخزون المتقدمة
+  getInventoryStatistics: async (tenantId) => {
+    try {
+      const result = await sql`
+        SELECT
+          COUNT(*) as total_items,
+          SUM(quantity) as total_quantity,
+          SUM(quantity * price) as total_value,
+          AVG(quantity) as avg_quantity,
+          MIN(quantity) as min_quantity,
+          MAX(quantity) as max_quantity,
+          COUNT(CASE WHEN quantity <= 0 THEN 1 END) as out_of_stock_count,
+          COUNT(DISTINCT category) as categories_count
+        FROM inventory_items
+        WHERE tenant_id = ${tenantId}
+      `;
+      return result[0] || {};
+    } catch (error) {
+      console.error('getInventoryStatistics error:', error);
+      return {};
+    }
+  },
+
+  // الحصول على المنتجات حسب الفئة
+  getInventoryByCategory: async (tenantId, category = null) => {
+    try {
+      let query = `
+        SELECT category, COUNT(*) as item_count, SUM(quantity) as total_quantity,
+               SUM(quantity * price) as total_value
+        FROM inventory_items
+        WHERE tenant_id = ${tenantId}
+      `;
+      
+      if (category) {
+        query += ` AND category = ${category}`;
+      }
+      
+      query += ` GROUP BY category ORDER BY category ASC`;
+      
+      const result = await sql(query);
+      return result || [];
+    } catch (error) {
+      console.error('getInventoryByCategory error:', error);
+      return [];
+    }
+  },
 };
