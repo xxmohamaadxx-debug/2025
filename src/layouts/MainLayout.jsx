@@ -8,20 +8,22 @@ import { useAuth } from '@/contexts/AuthContext';
 import { neonService } from '@/lib/neonService';
 import { toast } from '@/components/ui/use-toast';
 
-const getIsDesktop = () => typeof window !== 'undefined' && window.innerWidth >= 1024;
+const DESKTOP_BREAKPOINT = 1024;
+const getViewportWidth = () => (typeof window !== 'undefined' ? window.innerWidth : DESKTOP_BREAKPOINT);
+const getIsDesktop = (width = getViewportWidth()) => width >= DESKTOP_BREAKPOINT;
 const prefersReducedMotion = () =>
   typeof window !== 'undefined' && window.matchMedia
     ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
     : false;
-const shouldEnableBackground = () => getIsDesktop() && !prefersReducedMotion();
+const shouldEnableBackground = (width = getViewportWidth()) => getIsDesktop(width) && !prefersReducedMotion();
 
 const MainLayout = ({ children }) => {
   const { user } = useAuth();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(() => (typeof window !== 'undefined' ? window.innerWidth >= 1024 : true));
-  const [isOffline, setIsOffline] = useState(() => typeof window !== 'undefined' && navigator ? !navigator.onLine : false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(() => getIsDesktop());
+  const [isOffline, setIsOffline] = useState(() => (typeof window !== 'undefined' && navigator ? !navigator.onLine : false));
   const [pendingSyncCount, setPendingSyncCount] = useState(0);
   const [enableBackgroundEffects, setEnableBackgroundEffects] = useState(() => shouldEnableBackground());
-  const [isMobileViewport, setIsMobileViewport] = useState(() => (typeof window !== 'undefined' ? window.innerWidth < 1024 : false));
+  const [isMobileViewport, setIsMobileViewport] = useState(() => !getIsDesktop());
   const [particles] = useState(() =>
     Array.from({ length: 18 }).map(() => ({
       width: Math.random() * 220 + 60,
@@ -146,11 +148,11 @@ const MainLayout = ({ children }) => {
   useEffect(() => {
     const handleResize = () => {
       const width = window.innerWidth;
-      if (width >= 1024) {
+      if (width >= DESKTOP_BREAKPOINT) {
         setIsSidebarOpen(true);
       }
-      setIsMobileViewport(width < 1024);
-      setEnableBackgroundEffects(shouldEnableBackground());
+      setIsMobileViewport(width < DESKTOP_BREAKPOINT);
+      setEnableBackgroundEffects(shouldEnableBackground(width));
     };
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
@@ -164,10 +166,16 @@ const MainLayout = ({ children }) => {
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
 
+  const baseBackgroundClass = isMobileViewport
+    ? 'bg-slate-950 dark:bg-gray-950'
+    : 'bg-gradient-to-br from-slate-900 via-purple-900/30 to-slate-900 dark:from-gray-900 dark:via-purple-950/40 dark:to-gray-900';
+
   return (
-    <div className="flex min-h-screen relative overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900/30 to-slate-900 dark:from-gray-900 dark:via-purple-950/40 dark:to-gray-900">
-      {/* Unified Dark Gradient Background - Full Coverage */}
-      <div className="fixed inset-0 bg-gradient-to-br from-slate-900 via-purple-900/30 to-slate-900 dark:from-gray-900 dark:via-purple-950/40 dark:to-gray-900 pointer-events-none z-0" />
+    <div className={`flex min-h-screen relative overflow-hidden ${baseBackgroundClass}`}>
+      {/* Unified Dark Gradient Background - disabled on mobile to avoid GPU cost */}
+      {!isMobileViewport && (
+        <div className="fixed inset-0 bg-gradient-to-br from-slate-900 via-purple-900/30 to-slate-900 dark:from-gray-900 dark:via-purple-950/40 dark:to-gray-900 pointer-events-none z-0" />
+      )}
       
       {/* Animated Background Particles */}
       {enableBackgroundEffects && (
@@ -224,18 +232,6 @@ const MainLayout = ({ children }) => {
         </main>
       </div>
       
-      <style jsx>{`
-        @keyframes float {
-          0%, 100% {
-            transform: translate(0, 0) scale(1);
-            opacity: 0.3;
-          }
-          50% {
-            transform: translate(${Math.random() * 50 - 25}px, ${Math.random() * 50 - 25}px) scale(1.1);
-            opacity: 0.6;
-          }
-        }
-      `}</style>
     </div>
   );
 };
