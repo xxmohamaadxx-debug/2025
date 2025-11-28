@@ -82,6 +82,14 @@ const AdminPanel = () => {
     }
   }, [user]);
 
+  if (!user?.isSuperAdmin) {
+    return (
+      <div className="p-8 text-center text-red-500">
+        <p>غير مصرح لك بالوصول إلى هذه الصفحة</p>
+      </div>
+    );
+  }
+
   const fetchStores = async () => {
     try {
       const tenants = await neonService.getAllTenants();

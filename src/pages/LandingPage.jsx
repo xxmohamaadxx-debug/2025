@@ -41,6 +41,13 @@ const LandingPage = () => {
 
   const currentLanguage = languages.find(lang => lang.code === locale) || languages[0];
 
+  // Animation preference and device detection
+  const prefersReduceMotion = typeof window !== 'undefined' && window.matchMedia
+    ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    : false;
+  const isDesktop = typeof window !== 'undefined' ? window.innerWidth >= 1024 : true;
+  const shouldAnimate = !prefersReduceMotion && isDesktop;
+
   // Update document direction when locale changes
   useEffect(() => {
     if (currentLanguage) {
@@ -869,8 +876,8 @@ const LandingPage = () => {
             className="text-center mb-12"
           >
             <motion.div
-              animate={{ rotate: [0, 10, -10, 0] }}
-              transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+              animate={shouldAnimate ? { rotate: [0, 10, -10, 0] } : undefined}
+              transition={shouldAnimate ? { duration: 2, repeat: Infinity, repeatDelay: 3 } : undefined}
               className="inline-block mb-6"
             >
               <div className="p-6 bg-gradient-to-br from-orange-500/30 to-pink-500/30 rounded-3xl backdrop-blur-xl border border-white/20">
@@ -917,8 +924,8 @@ const LandingPage = () => {
                   />
                   <div className="relative z-10 flex items-center justify-center gap-4">
                     <motion.div
-                      animate={{ rotate: [0, 5, -5, 0] }}
-                      transition={{ duration: 2, repeat: Infinity }}
+                      animate={shouldAnimate ? { rotate: [0, 5, -5, 0] } : undefined}
+                      transition={shouldAnimate ? { duration: 2, repeat: Infinity } : undefined}
                     >
                       <Smartphone className="h-10 w-10" />
                     </motion.div>
@@ -956,8 +963,8 @@ const LandingPage = () => {
                   />
                   <div className="relative z-10 flex items-center justify-center gap-4">
                     <motion.div
-                      animate={{ scale: [1, 1.1, 1] }}
-                      transition={{ duration: 2, repeat: Infinity }}
+                      animate={shouldAnimate ? { scale: [1, 1.1, 1] } : undefined}
+                      transition={shouldAnimate ? { duration: 2, repeat: Infinity } : undefined}
                     >
                       <Database className="h-10 w-10" />
                     </motion.div>

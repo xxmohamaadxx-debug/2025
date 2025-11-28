@@ -527,6 +527,106 @@ export const neonService = {
     }
   },
 
+  // Accounting - debts/payments/employees/deductions
+  getDebts: async (tenantId) => {
+    if (!tenantId) return [];
+    try {
+      const result = await sql`SELECT * FROM debts WHERE tenant_id = ${tenantId} ORDER BY created_at DESC`;
+      return result || [];
+    } catch (error) {
+      console.error('getDebts error:', error);
+      return [];
+    }
+  },
+
+  createDebt: async (tenantId, data) => {
+    try {
+      const result = await sql`
+        INSERT INTO debts (tenant_id, partner_id, related_invoice_id, description, amount, currency, due_date, status, metadata)
+        VALUES (${tenantId}, ${data.partner_id || null}, ${data.related_invoice_id || null}, ${data.description || null}, ${data.amount}, ${data.currency || 'SYP'}, ${data.due_date || null}, ${data.status || 'open'}, ${data.metadata || {}::jsonb})
+        RETURNING *
+      `;
+      return result[0];
+    } catch (error) {
+      console.error('createDebt error:', error);
+      throw error;
+    }
+  },
+
+  getPayments: async (tenantId) => {
+    if (!tenantId) return [];
+    try {
+      const result = await sql`SELECT * FROM payments WHERE tenant_id = ${tenantId} ORDER BY recorded_at DESC`;
+      return result || [];
+    } catch (error) {
+      console.error('getPayments error:', error);
+      return [];
+    }
+  },
+
+  createPayment: async (tenantId, data) => {
+    try {
+      const result = await sql`
+        INSERT INTO payments (tenant_id, debt_id, partner_id, amount, currency, payment_method, reference, recorded_by, recorded_at, metadata)
+        VALUES (${tenantId}, ${data.debt_id || null}, ${data.partner_id || null}, ${data.amount}, ${data.currency || 'SYP'}, ${data.payment_method || 'cash'}, ${data.reference || null}, ${data.recorded_by || null}, ${data.recorded_at || new Date().toISOString()}, ${data.metadata || {}::jsonb})
+        RETURNING *
+      `;
+      return result[0];
+    } catch (error) {
+      console.error('createPayment error:', error);
+      throw error;
+    }
+  },
+
+  getEmployees: async (tenantId) => {
+    if (!tenantId) return [];
+    try {
+      const result = await sql`SELECT * FROM employees WHERE tenant_id = ${tenantId} ORDER BY created_at DESC`;
+      return result || [];
+    } catch (error) {
+      console.error('getEmployees error:', error);
+      return [];
+    }
+  },
+
+  createEmployee: async (tenantId, data) => {
+    try {
+      const result = await sql`
+        INSERT INTO employees (tenant_id, user_id, name, national_id, position, salary_amount, salary_currency, pay_frequency, is_active, meta)
+        VALUES (${tenantId}, ${data.user_id || null}, ${data.name}, ${data.national_id || null}, ${data.position || null}, ${data.salary_amount || 0}, ${data.salary_currency || 'SYP'}, ${data.pay_frequency || 'monthly'}, ${data.is_active !== undefined ? data.is_active : true}, ${data.meta || {}::jsonb})
+        RETURNING *
+      `;
+      return result[0];
+    } catch (error) {
+      console.error('createEmployee error:', error);
+      throw error;
+    }
+  },
+
+  createDeduction: async (tenantId, data) => {
+    try {
+      const result = await sql`
+        INSERT INTO deductions (employee_id, tenant_id, deduction_type, amount, currency, is_recurring, recurring_rule, metadata)
+        VALUES (${data.employee_id}, ${tenantId}, ${data.deduction_type}, ${data.amount}, ${data.currency || 'SYP'}, ${data.is_recurring || false}, ${data.recurring_rule || null}, ${data.metadata || {}::jsonb})
+        RETURNING *
+      `;
+      return result[0];
+    } catch (error) {
+      console.error('createDeduction error:', error);
+      throw error;
+    }
+  },
+
+  processPayrollForEmployee: async (employeeId, periodDate, processedBy) => {
+    try {
+      const result = await sql`SELECT process_payroll_for_employee(${employeeId}::uuid, ${periodDate}::date, ${processedBy}::uuid) as result`;
+      return result && result[0] ? result[0].result : null;
+    } catch (error) {
+      console.error('processPayrollForEmployee error:', error);
+      throw error;
+    }
+  },
+
   // Partners
   getPartners: (tenantId) => getByTenant('partners', tenantId),
   createPartner: (data, tenantId) => createRecord('partners', data, tenantId),

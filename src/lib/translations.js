@@ -95,7 +95,8 @@ export const translations = {
     auth: {
       loginTitle: "Login to your account",
       registerTitle: "Create new account",
-      register: "Register",
+      register: "Request Registration",
+      registerBtn: "Request Registration",
       email: "Email Address",
       password: "Password",
       storeName: "Store/Company Name",
@@ -112,7 +113,8 @@ export const translations = {
       signingIn: "Signing in...",
       startTrial: "Start Free Trial",
       accountCreated: "Account created successfully!",
-      welcomeMessage: "Welcome to Ibrahim Accounting System"
+      welcomeMessage: "Welcome to Ibrahim Accounting System",
+      nameLabelAction: "Request Registration"
     },
     landing: {
       systemName: "Ibrahim Accounting System",
@@ -368,7 +370,8 @@ export const translations = {
     auth: {
       loginTitle: "تسجيل الدخول",
       registerTitle: "إنشاء حساب جديد",
-      register: "تسجيل",
+      register: "طلب تسجيل",
+      registerBtn: "طلب تسجيل",
       email: "البريد الإلكتروني",
       password: "كلمة المرور",
       storeName: "اسم المتجر/الشركة",
