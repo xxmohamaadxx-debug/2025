@@ -5,16 +5,18 @@ import { Button } from '@/components/ui/button';
 import { InteractiveButton } from '@/components/ui/InteractiveButton';
 import { useLanguage } from '@/contexts/LanguageContext';
 import HelpButton from '@/components/ui/HelpButton';
+import { getCurrencyOptions, withDefaultCurrency } from '@/lib/currencyHelpers';
 
 const InventoryDialog = ({ open, onOpenChange, item, onSave }) => {
   const { t } = useLanguage();
+  const currencyOptions = getCurrencyOptions();
   const [formData, setFormData] = useState({
     sku: '', // كود المنتج
     code: '', // كود إضافي
     name: '',
     unit: 'piece',
     price: '',
-    currency: 'USD',
+    currency: withDefaultCurrency(),
     min_stock: '5',
     notes: ''
   });
@@ -27,7 +29,7 @@ const InventoryDialog = ({ open, onOpenChange, item, onSave }) => {
         name: item.name || '',
         unit: item.unit || 'piece',
         price: item.price || '',
-        currency: item.currency || 'TRY',
+        currency: withDefaultCurrency(item.currency),
         min_stock: item.min_stock || item.minStock || '5',
         notes: item.notes || ''
       });
@@ -38,7 +40,7 @@ const InventoryDialog = ({ open, onOpenChange, item, onSave }) => {
         name: '',
         unit: 'piece',
         price: '',
-        currency: 'USD',
+        currency: withDefaultCurrency(),
         min_stock: '5',
         notes: ''
       });
@@ -137,11 +139,11 @@ const InventoryDialog = ({ open, onOpenChange, item, onSave }) => {
                 onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               >
-                <option value="USD">$ دولار أمريكي (USD)</option>
-                <option value="TRY">₺ ليرة تركية (TRY)</option>
-                <option value="SYP">£S ليرة سورية (SYP)</option>
-                <option value="SAR">﷼ ريال سعودي (SAR)</option>
-                <option value="EUR">€ يورو (EUR)</option>
+                {currencyOptions.map((option) => (
+                  <option key={option.code} value={option.code}>
+                    {option.label}
+                  </option>
+                ))}
               </select>
             </div>
           </div>

@@ -21,6 +21,9 @@ export const CURRENCIES = {
   EUR: { code: 'EUR', symbol: '€', name: 'Euro', nameAr: 'اليورو' },
 };
 
+export const AVAILABLE_CURRENCIES = ['USD', 'TRY', 'SYP', 'SAR', 'EUR'];
+export const DEFAULT_CURRENCY = 'USD';
+
 export const LANGUAGES = {
   EN: { code: 'en', name: 'English', dir: 'ltr' },
   AR: { code: 'ar', name: 'العربية', dir: 'rtl' },
