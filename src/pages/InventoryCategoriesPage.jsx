@@ -113,13 +113,15 @@ const InventoryCategoriesPage = () => {
             <p className="text-gray-500 dark:text-gray-400 mt-1">تنظيم المنتجات حسب الأقسام والفئات</p>
           </div>
         </div>
-        <button
-          onClick={() => openDialog()}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-        >
-          <Plus className="h-4 w-4" />
-          إضافة قسم
-        </button>
+        {user?.isSuperAdmin ? (
+          <button
+            onClick={() => openDialog()}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+          >
+            <Plus className="h-4 w-4" />
+            إضافة قسم
+          </button>
+        ) : null}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -132,20 +134,26 @@ const InventoryCategoriesPage = () => {
                 <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">{category.description}</p>
               )}
               <div className="flex gap-2">
-                <button
-                  onClick={() => openDialog(category)}
-                  className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 text-sm bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 text-blue-700 dark:text-blue-300 rounded transition-colors"
-                >
-                  <Edit2 className="h-4 w-4" />
-                  تعديل
-                </button>
-                <button
-                  onClick={() => handleDelete(category.id)}
-                  className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 text-sm bg-red-100 hover:bg-red-200 dark:bg-red-900/30 dark:hover:bg-red-900/50 text-red-700 dark:text-red-300 rounded transition-colors"
-                >
-                  <Trash2 className="h-4 w-4" />
-                  حذف
-                </button>
+                {user?.isSuperAdmin ? (
+                  <>
+                    <button
+                      onClick={() => openDialog(category)}
+                      className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 text-sm bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 text-blue-700 dark:text-blue-300 rounded transition-colors"
+                    >
+                      <Edit2 className="h-4 w-4" />
+                      تعديل
+                    </button>
+                    <button
+                      onClick={() => handleDelete(category.id)}
+                      className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 text-sm bg-red-100 hover:bg-red-200 dark:bg-red-900/30 dark:hover:bg-red-900/50 text-red-700 dark:text-red-300 rounded transition-colors"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      حذف
+                    </button>
+                  </>
+                ) : (
+                  <div className="text-sm text-gray-500">عرض فقط - لا يسمح بالتعديل</div>
+                )}
               </div>
             </div>
           </div>
@@ -164,6 +172,7 @@ const InventoryCategoriesPage = () => {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{selectedCategory ? 'تعديل القسم' : 'إضافة قسم جديد'}</DialogTitle>
+            <DialogDescription className="text-sm text-gray-500">استخدم هذا النموذج لإضافة أو تعديل أقسام المنتجات. هذه الخاصية متاحة للمشرفين فقط.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>

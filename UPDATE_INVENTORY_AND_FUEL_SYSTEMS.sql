@@ -432,7 +432,7 @@ DECLARE
 BEGIN
     SELECT EXISTS (
         SELECT 1 FROM tenants t
-        JOIN store_types st ON t.store_type = st.code
+        JOIN store_types st ON t.store_type_id = st.id
         WHERE t.id = p_tenant_id
         AND (st.code ILIKE '%fuel%' 
              OR st.features @> '{"fuel_management": true}'::jsonb)

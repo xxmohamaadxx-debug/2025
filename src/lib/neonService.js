@@ -4469,7 +4469,7 @@ export const neonService = {
         const storeResult = await sql`
           SELECT st.code, st.features
           FROM tenants t
-          JOIN store_types st ON t.store_type = st.code
+          JOIN store_types st ON t.store_type_id = st.id
           WHERE t.id = ${tenantId}
         `;
         if (storeResult && storeResult[0]) {
