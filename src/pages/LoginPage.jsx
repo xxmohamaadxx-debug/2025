@@ -4,13 +4,13 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { Helmet } from 'react-helmet';
 import Logo from '@/components/Logo';
 import PasswordInput from '@/components/ui/PasswordInput';
 import { neonService } from '@/lib/neonService';
-import { Download } from 'lucide-react';
+import { Download, Smartphone, Monitor } from 'lucide-react';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -21,6 +21,16 @@ const LoginPage = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const [appLinks, setAppLinks] = React.useState({ mobile_app_android_url: '', mobile_app_windows_url: '' });
+  const reduceMotion = useReducedMotion();
+  const [isSmallScreen, setIsSmallScreen] = useState(false);
+
+  React.useEffect(() => {
+    const mq = window.matchMedia('(max-width: 768px)');
+    const onChange = () => setIsSmallScreen(mq.matches);
+    onChange();
+    try { mq.addEventListener('change', onChange); } catch(e) { mq.addListener(onChange); }
+    return () => { try { mq.removeEventListener('change', onChange); } catch(e) { mq.removeListener(onChange); } };
+  }, []);
 
   React.useEffect(() => {
     let mounted = true;
@@ -62,44 +72,27 @@ const LoginPage = () => {
 
   return (
     <div className="fixed inset-0 w-full h-full overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-      {/* Animated Background */}
+      {/* Animated Background (reduced on small screens or when user prefers reduced motion) */}
       <div className="absolute inset-0 w-full h-full overflow-hidden">
-        <motion.div
-          className="absolute -top-40 -right-40 w-96 h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20"
-          animate={{
-            x: [0, 50, 0],
-            y: [0, 50, 0],
-          }}
-          transition={{
-            duration: 10,
-            repeat: Infinity,
-            ease: 'easeInOut',
-          }}
-        />
-        <motion.div
-          className="absolute -bottom-40 -left-40 w-96 h-96 bg-orange-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20"
-          animate={{
-            x: [0, -50, 0],
-            y: [0, -50, 0],
-          }}
-          transition={{
-            duration: 12,
-            repeat: Infinity,
-            ease: 'easeInOut',
-          }}
-        />
-        <motion.div
-          className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-pink-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20"
-          animate={{
-            scale: [1, 1.2, 1],
-            rotate: [0, 90, 0],
-          }}
-          transition={{
-            duration: 15,
-            repeat: Infinity,
-            ease: 'easeInOut',
-          }}
-        />
+        {!reduceMotion && !isSmallScreen ? (
+          <>
+            <motion.div
+              className="absolute -top-40 -right-40 w-72 h-72 sm:w-96 sm:h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20"
+              animate={{ x: [0, 30, 0], y: [0, 30, 0] }}
+              transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
+            />
+            <motion.div
+              className="absolute -bottom-40 -left-40 w-72 h-72 sm:w-96 sm:h-96 bg-orange-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20"
+              animate={{ x: [0, -30, 0], y: [0, -30, 0] }}
+              transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
+            />
+            <motion.div
+              className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-72 h-72 sm:w-96 sm:h-96 bg-pink-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20"
+              animate={{ scale: [1, 1.08, 1], rotate: [0, 45, 0] }}
+              transition={{ duration: 15, repeat: Infinity, ease: 'easeInOut' }}
+            />
+          </>
+        ) : null}
       </div>
 
       <Helmet>
@@ -138,35 +131,14 @@ const LoginPage = () => {
             <div className="relative z-10">
               <div className="text-center mb-8">
                 <motion.div
-                  initial={{ scale: 0, rotate: -180 }}
-                  animate={{ scale: 1, rotate: 0 }}
-                  transition={{ type: "spring", stiffness: 200, damping: 15 }}
+                  initial={reduceMotion || isSmallScreen ? {} : { scale: 0, rotate: -180 }}
+                  animate={reduceMotion || isSmallScreen ? {} : { scale: 1, rotate: 0 }}
+                  transition={reduceMotion || isSmallScreen ? {} : { type: 'spring', stiffness: 200, damping: 15 }}
                   className="flex justify-center mb-6"
                 >
                   <Logo size="xl" showText={true} />
                 </motion.div>
-                {/* Compact app download links (restore missing download buttons) */}
-                <div className="flex items-center justify-center gap-3 mb-4">
-                  {appLinks.mobile_app_android_url ? (
-                    <button
-                      onClick={() => window.open(appLinks.mobile_app_android_url, '_blank')}
-                      className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-green-600 hover:bg-green-500 text-white text-sm font-semibold"
-                    >
-                      <Download className="h-4 w-4" />
-                      {t('landing.android') || 'تحميل الأندرويد'}
-                    </button>
-                  ) : null}
-
-                  {appLinks.mobile_app_windows_url ? (
-                    <button
-                      onClick={() => window.open(appLinks.mobile_app_windows_url, '_blank')}
-                      className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold"
-                    >
-                      <Download className="h-4 w-4" />
-                      {t('landing.windows') || 'تحميل ويندوز'}
-                    </button>
-                  ) : null}
-                </div>
+                {/* Download buttons moved below the form for better UX on mobile */}
                 <motion.h2 
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -283,6 +255,33 @@ const LoginPage = () => {
                   </Link>
                 </motion.div>
               </form>
+
+              {/* Icon-only download buttons placed after the form for clarity and mobile friendliness */}
+              <div className="flex items-center justify-center gap-3 mt-4">
+                {appLinks.mobile_app_android_url ? (
+                  <button
+                    onClick={() => window.open(appLinks.mobile_app_android_url, '_blank')}
+                    className="inline-flex items-center justify-center p-3 rounded-full bg-green-600 hover:bg-green-500 text-white shadow-md"
+                    aria-label={t('landing.android') || 'تحميل الأندرويد'}
+                    title={t('landing.android') || 'تحميل الأندرويد'}
+                  >
+                    <Smartphone className="h-5 w-5" />
+                    <span className="sr-only">{t('landing.android')}</span>
+                  </button>
+                ) : null}
+
+                {appLinks.mobile_app_windows_url ? (
+                  <button
+                    onClick={() => window.open(appLinks.mobile_app_windows_url, '_blank')}
+                    className="inline-flex items-center justify-center p-3 rounded-full bg-blue-600 hover:bg-blue-500 text-white shadow-md"
+                    aria-label={t('landing.windows') || 'تحميل ويندوز'}
+                    title={t('landing.windows') || 'تحميل ويندوز'}
+                  >
+                    <Monitor className="h-5 w-5" />
+                    <span className="sr-only">{t('landing.windows')}</span>
+                  </button>
+                ) : null}
+              </div>
             </div>
           </div>
         </motion.div>
