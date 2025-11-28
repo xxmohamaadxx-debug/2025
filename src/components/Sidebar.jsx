@@ -125,9 +125,11 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
   };
 
   // تحديد الأقسام لكل نوع متجر - فقط إذا كان نوع المتجر يطابق
-  const isInternetCafe = shouldShowSection(['internet_cafe']);
+  // دعم رموز متعددة لصالة الإنترنت لضمان التوافق
+  const isInternetCafe = shouldShowSection(['internet_cafe', 'cyber_cafe']);
   const isMobileAccessories = shouldShowSection(['internet_cafe_accessories', 'mobile_accessories']);
-  const isFuelStation = shouldShowSection(['fuel', 'general_with_fuel']);
+  // تضمين fuel_station كرمز محتمل
+  const isFuelStation = shouldShowSection(['fuel', 'general_with_fuel', 'fuel_station']);
   const isContractor = shouldShowSection(['contractor']);
 
   useEffect(() => {

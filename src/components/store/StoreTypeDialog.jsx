@@ -78,7 +78,7 @@ const StoreTypeDialog = ({ open, onOpenChange, storeType, onSave }) => {
                 value={formData.code}
                 onChange={(e) => setFormData({ ...formData, code: e.target.value })}
                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
-                placeholder="cyber_cafe"
+                placeholder="internet_cafe"
                 disabled={!!storeType}
               />
               {storeType && <p className="text-xs text-gray-500 mt-1">لا يمكن تعديل الكود</p>}
