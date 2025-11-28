@@ -9,7 +9,6 @@ import { toast } from '@/components/ui/use-toast';
 import PayrollDialog from '@/components/payroll/PayrollDialog';
 import PayrollTable from '@/components/payroll/PayrollTable';
 import DeductionsDialog from '@/components/payroll/DeductionsDialog';
-import DeductionsDialog from '@/components/payroll/DeductionsDialog';
 
 const PayrollPage = () => {
   const { user } = useAuth();
