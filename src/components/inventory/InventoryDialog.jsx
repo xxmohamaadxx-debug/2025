@@ -285,35 +285,3 @@ const InventoryDialog = ({ open, onOpenChange, item, onSave }) => {
 };
 
 export default InventoryDialog;
-            <label className="block text-sm font-medium mb-2 rtl:text-right">{t('common.notes')}</label>
-            <textarea
-              value={formData.notes}
-              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none"
-              rows="2"
-              placeholder={t('common.notes')}
-            />
-          </div>
-
-          <div className="flex gap-4 mt-6 rtl:flex-row-reverse">
-            <InteractiveButton
-              variant="cancel"
-              type="button"
-              onClick={() => onOpenChange(false)}
-            >
-              {t('common.cancel')}
-            </InteractiveButton>
-            <InteractiveButton
-              variant="save"
-              type="submit"
-            >
-              {t('common.save')}
-            </InteractiveButton>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
-  );
-};
-
-export default InventoryDialog;
