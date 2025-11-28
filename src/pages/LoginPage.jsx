@@ -9,6 +9,8 @@ import { Loader2, AlertCircle } from 'lucide-react';
 import { Helmet } from 'react-helmet';
 import Logo from '@/components/Logo';
 import PasswordInput from '@/components/ui/PasswordInput';
+import { neonService } from '@/lib/neonService';
+import { Download } from 'lucide-react';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -18,6 +20,24 @@ const LoginPage = () => {
   const { login } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const [appLinks, setAppLinks] = React.useState({ mobile_app_android_url: '', mobile_app_windows_url: '' });
+
+  React.useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const settings = await neonService.getSystemSettings();
+        if (!mounted) return;
+        setAppLinks({
+          mobile_app_android_url: settings.mobile_app_android_url || '',
+          mobile_app_windows_url: settings.mobile_app_windows_url || ''
+        });
+      } catch (e) {
+        console.error('Failed to load app links:', e);
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -125,6 +145,28 @@ const LoginPage = () => {
                 >
                   <Logo size="xl" showText={true} />
                 </motion.div>
+                {/* Compact app download links (restore missing download buttons) */}
+                <div className="flex items-center justify-center gap-3 mb-4">
+                  {appLinks.mobile_app_android_url ? (
+                    <button
+                      onClick={() => window.open(appLinks.mobile_app_android_url, '_blank')}
+                      className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-green-600 hover:bg-green-500 text-white text-sm font-semibold"
+                    >
+                      <Download className="h-4 w-4" />
+                      {t('landing.android') || 'تحميل الأندرويد'}
+                    </button>
+                  ) : null}
+
+                  {appLinks.mobile_app_windows_url ? (
+                    <button
+                      onClick={() => window.open(appLinks.mobile_app_windows_url, '_blank')}
+                      className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold"
+                    >
+                      <Download className="h-4 w-4" />
+                      {t('landing.windows') || 'تحميل ويندوز'}
+                    </button>
+                  ) : null}
+                </div>
                 <motion.h2 
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
