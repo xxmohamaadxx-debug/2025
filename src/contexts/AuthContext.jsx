@@ -319,9 +319,33 @@ export const AuthProvider = ({ children }) => {
 
   // صلاحيات المستخدم مرتبطة بصلاحية المتجر
   const isOwnerActive = user?.isStoreOwner && !tenant?.isExpired;
-  const canDelete = user?.isSuperAdmin || (isSubscriptionValid && (isOwnerActive || (rbacPermissions?.canDelete ?? user?.can_delete_data))));
-  const canEdit = user?.isSuperAdmin || (isSubscriptionValid && (isOwnerActive || (rbacPermissions?.canEdit ?? user?.can_edit_data))));
-  const canCreateUsers = user?.isSuperAdmin || (isSubscriptionValid && (isOwnerActive || (rbacPermissions?.canCreateUsers ?? user?.can_create_users))));
+  const canDelete = user?.isSuperAdmin || (
+    isSubscriptionValid && (
+      isOwnerActive || (
+        (rbacPermissions && rbacPermissions.canDelete != null)
+          ? rbacPermissions.canDelete
+          : user?.can_delete_data
+      )
+    )
+  );
+  const canEdit = user?.isSuperAdmin || (
+    isSubscriptionValid && (
+      isOwnerActive || (
+        (rbacPermissions && rbacPermissions.canEdit != null)
+          ? rbacPermissions.canEdit
+          : user?.can_edit_data
+      )
+    )
+  );
+  const canCreateUsers = user?.isSuperAdmin || (
+    isSubscriptionValid && (
+      isOwnerActive || (
+        (rbacPermissions && rbacPermissions.canCreateUsers != null)
+          ? rbacPermissions.canCreateUsers
+          : user?.can_create_users
+      )
+    )
+  );
   
   // صلاحيات إضافية مرتبطة بالاشتراك
   const canAccessData = user?.isSuperAdmin || isSubscriptionValid;
