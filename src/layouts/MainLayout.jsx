@@ -2,23 +2,37 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from '@/components/Sidebar';
 import TopNav from '@/components/TopNav';
-import BottomNav from '@/components/BottomNav';
 import { motion, AnimatePresence } from 'framer-motion';
-import { initOfflineService, isOnline, syncOfflineData, getPendingCount } from '@/lib/offlineService';
+import { initOfflineService, syncOfflineData, getPendingCount } from '@/lib/offlineService';
 import { useAuth } from '@/contexts/AuthContext';
 import { neonService } from '@/lib/neonService';
 import { toast } from '@/components/ui/use-toast';
 
+const getIsDesktop = () => typeof window !== 'undefined' && window.innerWidth >= 1024;
+const prefersReducedMotion = () =>
+  typeof window !== 'undefined' && window.matchMedia
+    ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    : false;
+const shouldEnableBackground = () => getIsDesktop() && !prefersReducedMotion();
+
 const MainLayout = ({ children }) => {
   const { user } = useAuth();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return window.innerWidth >= 1024;
-    }
-    return true;
-  });
+  const [isSidebarOpen, setIsSidebarOpen] = useState(() => (typeof window !== 'undefined' ? window.innerWidth >= 1024 : true));
   const [isOffline, setIsOffline] = useState(() => typeof window !== 'undefined' && navigator ? !navigator.onLine : false);
   const [pendingSyncCount, setPendingSyncCount] = useState(0);
+  const [enableBackgroundEffects, setEnableBackgroundEffects] = useState(() => shouldEnableBackground());
+  const [particles] = useState(() =>
+    Array.from({ length: 18 }).map(() => ({
+      width: Math.random() * 220 + 60,
+      height: Math.random() * 220 + 60,
+      left: Math.random() * 100,
+      top: Math.random() * 100,
+      offsetX: Math.random() * 60 - 30,
+      offsetY: Math.random() * 60 - 30,
+      duration: 15 + Math.random() * 6,
+      delay: Math.random() * 4,
+    }))
+  );
 
   // Initialize offline service
   useEffect(() => {
@@ -133,9 +147,18 @@ const MainLayout = ({ children }) => {
       if (window.innerWidth >= 1024) {
         setIsSidebarOpen(true);
       }
+      setEnableBackgroundEffects(shouldEnableBackground());
     };
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return;
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const handleChange = () => setEnableBackgroundEffects(shouldEnableBackground());
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
 
   return (
@@ -144,32 +167,34 @@ const MainLayout = ({ children }) => {
       <div className="fixed inset-0 bg-gradient-to-br from-slate-900 via-purple-900/30 to-slate-900 dark:from-gray-900 dark:via-purple-950/40 dark:to-gray-900 pointer-events-none z-0" />
       
       {/* Animated Background Particles */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-        {[...Array(30)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute rounded-full bg-purple-500/10 dark:bg-orange-500/5"
-            style={{
-              width: `${Math.random() * 300 + 50}px`,
-              height: `${Math.random() * 300 + 50}px`,
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-            }}
-            animate={{
-              y: [0, Math.random() * 100 - 50],
-              x: [0, Math.random() * 100 - 50],
-              scale: [1, 1.2, 1],
-              opacity: [0.1, 0.3, 0.1],
-            }}
-            transition={{
-              duration: 15 + Math.random() * 10,
-              repeat: Infinity,
-              delay: Math.random() * 5,
-              ease: 'easeInOut',
-            }}
-          />
-        ))}
-      </div>
+      {enableBackgroundEffects && (
+        <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+          {particles.map((particle, i) => (
+            <motion.div
+              key={i}
+              className="absolute rounded-full bg-purple-500/10 dark:bg-orange-500/5"
+              style={{
+                width: `${particle.width}px`,
+                height: `${particle.height}px`,
+                left: `${particle.left}%`,
+                top: `${particle.top}%`,
+              }}
+              animate={{
+                y: [0, particle.offsetY, 0],
+                x: [0, particle.offsetX, 0],
+                scale: [1, 1.1, 1],
+                opacity: [0.1, 0.25, 0.1],
+              }}
+              transition={{
+                duration: particle.duration,
+                repeat: Infinity,
+                delay: particle.delay,
+                ease: 'easeInOut',
+              }}
+            />
+          ))}
+        </div>
+      )}
 
       {/* Sidebar - No White Space */}
       <div className="relative z-20">
@@ -211,15 +236,12 @@ const MainLayout = ({ children }) => {
             {pendingSyncCount > 0 && ` (${pendingSyncCount} عنصر في انتظار الرفع)`}
           </div>
         )}
-        <main className="flex-1 overflow-y-auto scroll-smooth pb-20 lg:pb-6 custom-scrollbar relative z-10">
+        <main className="flex-1 overflow-y-auto scroll-smooth pb-10 lg:pb-6 custom-scrollbar relative z-10">
           <div className="w-full h-full">
             {children}
           </div>
         </main>
       </div>
-      
-      {/* Bottom Navigation for Mobile */}
-      <BottomNav />
       
       <style jsx>{`
         @keyframes float {

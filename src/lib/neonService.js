@@ -844,7 +844,8 @@ export const neonService = {
         UPDATE support_tickets 
         SET status = ${status}, 
             assigned_to = ${assignedTo || null},
-            resolved_at = ${status === 'resolved' ? sql`NOW()` : null},
+            resolved_at = CASE WHEN ${status} = 'resolved' THEN NOW() ELSE resolved_at END,
+            resolved_by = CASE WHEN ${status} = 'resolved' AND ${assignedTo} IS NOT NULL THEN ${assignedTo} ELSE resolved_by END,
             updated_at = NOW()
         WHERE id = ${ticketId}
       `;
