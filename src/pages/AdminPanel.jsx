@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
+import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { neonService } from '@/lib/neonService';
@@ -754,6 +755,18 @@ const AdminPanel = () => {
             <Plus className="ml-2 rtl:mr-2 rtl:ml-0 h-4 w-4" /> {t('adminPanel.createNewStore')}
           </Button>
         </div>
+      </div>
+      {/* Admin sub-navigation: centralized admin links */}
+      <div className="flex items-center gap-3 mt-4">
+        <Link to="/admin-settings" className="text-sm px-3 py-1 rounded-md bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-200 transition">
+          {t('adminPanel.adminSettings') || 'إعدادات المدير'}
+        </Link>
+        <Link to="/rbac" className="text-sm px-3 py-1 rounded-md bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-200 transition">
+          {t('rbac.title') || 'إدارة الأدوار'}
+        </Link>
+        <Link to="/store-types" className="text-sm px-3 py-1 rounded-md bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-200 transition">
+          {t('adminPanel.storeTypes') || 'أنواع المتاجر'}
+        </Link>
       </div>
 
       {loading ? (

@@ -305,28 +305,20 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         </motion.div>
 
       <nav className="flex-1 px-2 sm:px-4 overflow-y-auto h-[calc(100vh-80px)] pb-4 custom-scrollbar overscroll-contain bg-transparent">
-        {/* Admin Panel - فقط للمشرفين */}
+        {/* Admin Panel (single entry) - only visible to super admins */}
         {user?.isSuperAdmin && (
           <>
-             <div className="px-4 mb-2 mt-4 text-xs font-semibold text-purple-500 dark:text-purple-400 uppercase tracking-wider">
-               {t('common.adminPanel')}
-             </div>
-             <RenderNavItem
-               to="/admin"
-               icon={Shield}
-               label={t('common.adminPanel')}
-               isActive={isActive('/admin')}
-               onClick={handleLinkClick}
-               delay={0.05}
-             />
+            <div className="px-4 mb-2 mt-4 text-xs font-semibold text-purple-500 dark:text-purple-400 uppercase tracking-wider">
+              {t('common.adminPanel')}
+            </div>
             <RenderNavItem
-               to="/admin-settings"
-               icon={Settings}
-               label="إعدادات المدير"
-               isActive={isActive('/admin-settings')}
-               onClick={handleLinkClick}
-               delay={0.1}
-             />
+              to="/admin"
+              icon={Shield}
+              label={t('common.adminPanel')}
+              isActive={isActive('/admin')}
+              onClick={handleLinkClick}
+              delay={0.05}
+            />
           </>
         )}
 
@@ -409,16 +401,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
             delay={0.55}
           />
         )}
-        {user?.isSuperAdmin && (
-          <RenderNavItem
-            to="/rbac"
-            icon={Shield}
-            label={t('rbac.title')}
-            isActive={isActive('/rbac')}
-            onClick={handleLinkClick}
-            delay={0.575}
-          />
-        )}
+        {/* RBAC is now available inside the Admin Panel */}
         <RenderNavItem
           to="/reports"
           icon={BarChart}
@@ -612,16 +595,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           delay={0.9}
         />
 
-        {user?.isSuperAdmin && (
-          <RenderNavItem
-            to="/store-types"
-            icon={Store}
-            label="أنواع المتاجر"
-            isActive={isActive('/store-types')}
-            onClick={handleLinkClick}
-            delay={0.91}
-          />
-        )}
+        {/* Store types management moved into Admin Panel for super-admins */}
 
         <div className="px-4 mb-2 mt-6 text-xs font-semibold text-gray-400 uppercase tracking-wider relative z-10">
           {t('nav.system') || 'النظام'}

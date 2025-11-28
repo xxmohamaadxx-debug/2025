@@ -291,16 +291,7 @@ const AdvancedSidebar = ({ isOpen, setIsOpen, mode: initialMode = SIDEBAR_MODES.
                 compact={sidebarMode !== SIDEBAR_MODES.FULL}
                 iconOnly={sidebarMode === SIDEBAR_MODES.ICON_ONLY}
               />
-              <NavItem
-                to="/admin-settings"
-                icon={Settings}
-                label="إعدادات المدير"
-                isActive={isActive('/admin-settings')}
-                onClick={handleLinkClick}
-                delay={0.1}
-                compact={sidebarMode !== SIDEBAR_MODES.FULL}
-                iconOnly={sidebarMode === SIDEBAR_MODES.ICON_ONLY}
-              />
+              {/* Admin settings, RBAC and store-types are consolidated inside AdminPanel to reduce sidebar clutter */}
             </>
           )}
 

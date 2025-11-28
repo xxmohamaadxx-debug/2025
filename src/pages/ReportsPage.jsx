@@ -12,6 +12,7 @@ import { exportToExcel, generateReport, getPeriodDates } from '@/lib/exportUtils
 import { exportReportPDF } from '@/lib/pdfUtils';
 import { formatDateAR } from '@/lib/dateUtils';
 import { toast } from '@/components/ui/use-toast';
+import { safeNumber } from '@/lib/numberUtils';
 import GlassCard from '@/components/ui/GlassCard';
 import { motion } from 'framer-motion';
 
@@ -52,7 +53,19 @@ const ReportsPage = () => {
           if (expense[i.currency] !== undefined) expense[i.currency] += parseFloat(i.amount || 0);
         });
 
-        setFinancialData({ income, expense });
+            // coerce to numbers to avoid NaN in charts
+            const coercedIncome = {
+              TRY: safeNumber(income.TRY),
+              USD: safeNumber(income.USD),
+              SYP: safeNumber(income.SYP),
+            };
+            const coercedExpense = {
+              TRY: safeNumber(expense.TRY),
+              USD: safeNumber(expense.USD),
+              SYP: safeNumber(expense.SYP),
+            };
+
+            setFinancialData({ income: coercedIncome, expense: coercedExpense });
       } catch (error) {
         console.error('Load reports error:', error);
         setFinancialData({ income: { TRY: 0, USD: 0, SYP: 0 }, expense: { TRY: 0, USD: 0, SYP: 0 } });
@@ -156,12 +169,12 @@ const ReportsPage = () => {
       {
         label: t('common.amount'),
         data: [
-          financialData.income.TRY || 0, 
-          financialData.expense.TRY || 0, 
-          financialData.income.USD || 0, 
-          financialData.expense.USD || 0,
-          financialData.income.SYP || 0,
-          financialData.expense.SYP || 0
+          safeNumber(financialData.income.TRY, 0),
+          safeNumber(financialData.expense.TRY, 0),
+          safeNumber(financialData.income.USD, 0),
+          safeNumber(financialData.expense.USD, 0),
+          safeNumber(financialData.income.SYP, 0),
+          safeNumber(financialData.expense.SYP, 0),
         ],
         backgroundColor: [
             'rgba(34, 197, 94, 0.6)',

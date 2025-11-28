@@ -13,6 +13,17 @@
   - [ ] `fuel_counter_movements`
 - [ ] تم التحقق من الـ Triggers والدوال
 
+**تطبيق ترحيل موحّد:** بدلاً من تشغيل ملفات SQL منفصلة، يمكنك تشغيل `APPLY_INVENTORY_FUEL_UPDATES.sql` باستخدام سكربت PowerShell المساعد:
+
+```powershell
+# اضبط متغير الاتصال
+$env:PG_CONN = 'postgresql://username:password@host:5432/dbname?sslmode=require'
+# من جذر المشروع
+.\scripts\apply_migrations.ps1
+```
+
+راجع `scripts/APPLY_MIGRATIONS_README.md` لمزيد من التفاصيل والتحذيرات.
+
 ### 2. الواجهة الأمامية (Frontend) ✅
 - [ ] تم إضافة الصفحات الثلاث الجديدة:
   - [ ] `InventoryCategoriesPage.jsx`

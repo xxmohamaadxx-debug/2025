@@ -570,14 +570,20 @@ export const neonService = {
 
   setLowStockThreshold: async (tenantId, productId, data) => {
     try {
+      // Accept either a number (minimum quantity) or an object with detailed fields
+      const thresholdQty = typeof data === 'number' ? data : (data && (data.threshold_quantity ?? data.minimum_quantity)) || 5;
+      const alertEnabled = typeof data === 'object' ? (data.alert_enabled !== undefined ? data.alert_enabled : true) : true;
+      const alertMethod = typeof data === 'object' ? (data.alert_method || 'notification') : 'notification';
+      const notes = typeof data === 'object' ? (data.notes || null) : null;
+
       const result = await sql`
         INSERT INTO low_stock_thresholds (tenant_id, product_id, threshold_quantity, alert_enabled, alert_method, notes)
-        VALUES (${tenantId}, ${productId}, ${data.threshold_quantity || 5}, ${data.alert_enabled !== undefined ? data.alert_enabled : true}, ${data.alert_method || 'notification'}, ${data.notes || null})
+        VALUES (${tenantId}, ${productId}, ${thresholdQty}, ${alertEnabled}, ${alertMethod}, ${notes})
         ON CONFLICT (tenant_id, product_id) DO UPDATE SET 
-          threshold_quantity = ${data.threshold_quantity || 5}, 
-          alert_enabled = ${data.alert_enabled !== undefined ? data.alert_enabled : true},
-          alert_method = ${data.alert_method || 'notification'},
-          notes = ${data.notes || null},
+          threshold_quantity = ${thresholdQty}, 
+          alert_enabled = ${alertEnabled},
+          alert_method = ${alertMethod},
+          notes = ${notes},
           updated_at = NOW()
         RETURNING *
       `;
@@ -585,6 +591,39 @@ export const neonService = {
     } catch (error) {
       console.error('setLowStockThreshold error:', error);
       throw error;
+    }
+  },
+
+  // Return all low-stock thresholds for a tenant with product info and current quantities
+  getAllLowStockThresholds: async (tenantId) => {
+    if (!tenantId) return [];
+    try {
+      const result = await sql`
+        SELECT
+          l.id,
+          l.tenant_id,
+          l.product_id,
+          l.threshold_quantity AS minimum_quantity,
+          l.alert_enabled,
+          l.alert_method,
+          l.last_alert_sent,
+          l.notes,
+          l.created_at,
+          l.updated_at,
+          p.name AS product_name,
+          p.sku AS product_code,
+          COALESCE(SUM(inv.quantity), 0) AS current_quantity
+        FROM low_stock_thresholds l
+        LEFT JOIN products p ON l.product_id = p.id
+        LEFT JOIN inventory_items inv ON inv.product_id = p.id AND inv.tenant_id = l.tenant_id
+        WHERE l.tenant_id = ${tenantId}
+        GROUP BY l.id, p.id, p.name, p.sku, l.threshold_quantity, l.alert_enabled, l.alert_method, l.last_alert_sent, l.notes, l.created_at, l.updated_at, l.tenant_id, l.product_id
+        ORDER BY p.name ASC
+      `;
+      return result || [];
+    } catch (error) {
+      console.error('getAllLowStockThresholds error:', error);
+      return [];
     }
   },
 

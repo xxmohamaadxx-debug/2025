@@ -31,7 +31,20 @@ const LowStockThresholdsPage = () => {
     setLoading(true);
     try {
       const data = await neonService.getAllLowStockThresholds(user.tenant_id);
-      setThresholds(data || []);
+      // Normalize fields to avoid NaN in charts / renders
+      const normalized = (data || []).map((it) => ({
+        id: it.id,
+        tenant_id: it.tenant_id,
+        product_id: it.product_id,
+        product_name: it.product_name || 'منتج',
+        product_code: it.product_code || it.sku || null,
+        current_quantity: parseFloat(it.current_quantity || 0) || 0,
+        minimum_quantity: parseFloat(it.minimum_quantity || it.threshold_quantity || 0) || 0,
+        alert_enabled: it.alert_enabled,
+        alert_method: it.alert_method,
+        notes: it.notes,
+      }));
+      setThresholds(normalized);
     } catch (error) {
       console.error('Load thresholds error:', error);
       toast({ title: 'خطأ', description: 'فشل تحميل التنبيهات', variant: 'destructive' });

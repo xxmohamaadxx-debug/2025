@@ -12,6 +12,7 @@ import {
 } from 'chart.js';
 import { Bar, Doughnut } from 'react-chartjs-2';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { safeNumber } from '@/lib/numberUtils';
 
 ChartJS.register(
   CategoryScale,
@@ -32,14 +33,14 @@ const DashboardCharts = ({ income, expenses }) => {
     datasets: [
       {
         label: t('dashboard.totalIncome'),
-        data: [income.TRY, income.USD, income.SYP],
+        data: [safeNumber(income.TRY, 0), safeNumber(income.USD, 0), safeNumber(income.SYP, 0)],
         backgroundColor: 'rgba(34, 197, 94, 0.7)', // Green
         borderColor: 'rgb(34, 197, 94)',
         borderWidth: 1,
       },
       {
         label: t('dashboard.totalExpenses'),
-        data: [expenses.TRY, expenses.USD, expenses.SYP],
+        data: [safeNumber(expenses.TRY, 0), safeNumber(expenses.USD, 0), safeNumber(expenses.SYP, 0)],
         backgroundColor: 'rgba(239, 68, 68, 0.7)', // Red
         borderColor: 'rgb(239, 68, 68)',
         borderWidth: 1,
