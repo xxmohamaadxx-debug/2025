@@ -3,7 +3,7 @@ import { Helmet } from 'react-helmet';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { neonService } from '@/lib/neonService';
-import { Loader2, Search, Filter, Calendar, User, FileText, Trash2, Edit, Plus, AlertCircle, CheckCircle, X, Clock, Activity } from 'lucide-react';
+import { Loader2, Search, Filter, Calendar, User, FileText, Trash2, Edit, Plus, AlertCircle, CheckCircle, X, Clock, Activity, Eye, Download } from 'lucide-react';
 import { formatDateAR } from '@/lib/dateUtils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -22,6 +22,7 @@ const AuditLogPage = () => {
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [filterUser, setFilterUser] = useState('all');
   const [users, setUsers] = useState([]);
+  const [showDiff, setShowDiff] = useState({ old: true, new: true });
 
   useEffect(() => {
     if (user?.tenant_id) {
@@ -65,18 +66,20 @@ const AuditLogPage = () => {
     // Filter by search term
     if (searchTerm) {
       filtered = filtered.filter(log => {
-        const action = log.action || '';
+        const action = log.action_type || log.action || '';
         const details = typeof log.details === 'string' ? log.details : JSON.stringify(log.details || {});
         const userName = users.find(u => u.id === log.user_id)?.name || '';
+        const changeSummary = log.change_summary || '';
         return action.toLowerCase().includes(searchTerm.toLowerCase()) ||
                details.toLowerCase().includes(searchTerm.toLowerCase()) ||
+               changeSummary.toLowerCase().includes(searchTerm.toLowerCase()) ||
                userName.toLowerCase().includes(searchTerm.toLowerCase());
       });
     }
 
     // Filter by action type
     if (filterAction !== 'all') {
-      filtered = filtered.filter(log => log.action === filterAction);
+      filtered = filtered.filter(log => (log.action_type || log.action) === filterAction);
     }
 
     // Filter by user
@@ -112,18 +115,24 @@ const AuditLogPage = () => {
   }, [searchTerm, filterAction, filterDate, filterUser, allLogs, users]);
 
   const getActionIcon = (action) => {
-    if (action?.includes('CREATE') || action?.includes('ADD')) return <Plus className="h-4 w-4 text-green-500" />;
-    if (action?.includes('UPDATE') || action?.includes('EDIT')) return <Edit className="h-4 w-4 text-blue-500" />;
-    if (action?.includes('DELETE')) return <Trash2 className="h-4 w-4 text-red-500" />;
-    if (action?.includes('LOGIN') || action?.includes('LOGOUT')) return <User className="h-4 w-4 text-purple-500" />;
+    const a = action || '';
+    if (a.includes('CREATE') || a.includes('ADD')) return <Plus className="h-4 w-4 text-green-500" />;
+    if (a.includes('UPDATE') || a.includes('EDIT')) return <Edit className="h-4 w-4 text-blue-500" />;
+    if (a.includes('DELETE')) return <Trash2 className="h-4 w-4 text-red-500" />;
+    if (a.includes('VIEW')) return <Eye className="h-4 w-4 text-teal-500" />;
+    if (a.includes('EXPORT')) return <Download className="h-4 w-4 text-cyan-500" />;
+    if (a.includes('LOGIN') || a.includes('LOGOUT')) return <User className="h-4 w-4 text-purple-500" />;
     return <Activity className="h-4 w-4 text-orange-500" />;
   };
 
   const getActionColor = (action) => {
-    if (action?.includes('CREATE') || action?.includes('ADD')) return 'bg-green-500/20 text-green-400 border-green-500/30';
-    if (action?.includes('UPDATE') || action?.includes('EDIT')) return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
-    if (action?.includes('DELETE')) return 'bg-red-500/20 text-red-400 border-red-500/30';
-    if (action?.includes('LOGIN') || action?.includes('LOGOUT')) return 'bg-purple-500/20 text-purple-400 border-purple-500/30';
+    const a = action || '';
+    if (a.includes('CREATE') || a.includes('ADD')) return 'bg-green-500/20 text-green-400 border-green-500/30';
+    if (a.includes('UPDATE') || a.includes('EDIT')) return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
+    if (a.includes('DELETE')) return 'bg-red-500/20 text-red-400 border-red-500/30';
+    if (a.includes('VIEW')) return 'bg-teal-500/20 text-teal-400 border-teal-500/30';
+    if (a.includes('EXPORT')) return 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30';
+    if (a.includes('LOGIN') || a.includes('LOGOUT')) return 'bg-purple-500/20 text-purple-400 border-purple-500/30';
     return 'bg-orange-500/20 text-orange-400 border-orange-500/30';
   };
 
@@ -137,8 +146,10 @@ const AuditLogPage = () => {
     { value: 'CREATE', label: 'إضافة' },
     { value: 'UPDATE', label: 'تعديل' },
     { value: 'DELETE', label: 'حذف' },
+    { value: 'VIEW', label: 'عرض' },
+    { value: 'EXPORT', label: 'تصدير' },
     { value: 'LOGIN', label: 'تسجيل دخول' },
-    { value: 'CUSTOMER_TRANSACTION', label: 'معاملة عميل' },
+    { value: 'LOGOUT', label: 'تسجيل خروج' },
   ];
 
   if (loading) {
@@ -319,11 +330,11 @@ const AuditLogPage = () => {
                     <div className="flex items-start gap-4 flex-1">
                       {/* Action Icon */}
                       <motion.div
-                        className={`p-3 rounded-xl border-2 ${getActionColor(log.action)} relative overflow-hidden`}
+                        className={`p-3 rounded-xl border-2 ${getActionColor(log.action_type || log.action)} relative overflow-hidden`}
                         whileHover={{ rotate: 360, scale: 1.1 }}
                         transition={{ duration: 0.5 }}
                       >
-                        {getActionIcon(log.action)}
+                        {getActionIcon(log.action_type || log.action)}
                         <motion.div
                           className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
                           animate={{ x: ['-100%', '100%'] }}
@@ -335,10 +346,10 @@ const AuditLogPage = () => {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-2">
                           <h3 className="font-bold text-white text-lg group-hover:text-orange-300 transition-colors">
-                            {log.action || 'عملية غير معروفة'}
+                            {(log.change_summary || log.action_type || log.action || 'عملية غير معروفة')}
                           </h3>
-                          <span className={`px-2 py-1 rounded-lg text-xs font-bold border ${getActionColor(log.action)}`}>
-                            {log.action?.replace(/_/g, ' ')}
+                          <span className={`px-2 py-1 rounded-lg text-xs font-bold border ${getActionColor(log.action_type || log.action)}`}>
+                            {(log.action_type || log.action || '').toString().replace(/_/g, ' ')}
                           </span>
                         </div>
                         <div className="flex items-center gap-4 text-sm text-purple-200 mb-2">
@@ -356,12 +367,22 @@ const AuditLogPage = () => {
                               minute: '2-digit'
                             })}</span>
                           </div>
+                          {(log.table_name || log.record_id) && (
+                            <div className="flex items-center gap-2">
+                              {log.table_name && (
+                                <span className="px-2 py-1 rounded-lg bg-white/10 border border-white/20 text-xs">{log.table_name}</span>
+                              )}
+                              {log.record_id && (
+                                <span className="px-2 py-1 rounded-lg bg-white/10 border border-white/20 text-xs">ID: {log.record_id}</span>
+                              )}
+                            </div>
+                          )}
                         </div>
-                        {log.details && (
+                        {(log.change_summary || log.details) && (
                           <p className="text-sm text-purple-300 truncate">
-                            {typeof log.details === 'string' 
+                            {log.change_summary || (typeof log.details === 'string' 
                               ? log.details 
-                              : JSON.stringify(log.details).substring(0, 100) + '...'}
+                              : JSON.stringify(log.details).substring(0, 100) + '...')}
                           </p>
                         )}
                       </div>
@@ -393,7 +414,7 @@ const AuditLogPage = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="bg-white/10 rounded-xl p-4 border border-white/20">
                     <p className="text-sm text-purple-300 mb-1">الإجراء</p>
-                    <p className="font-bold text-white">{selectedLog.action}</p>
+                    <p className="font-bold text-white">{selectedLog.action_type || selectedLog.action}</p>
                   </div>
                   <div className="bg-white/10 rounded-xl p-4 border border-white/20">
                     <p className="text-sm text-purple-300 mb-1">المستخدم</p>
@@ -416,13 +437,73 @@ const AuditLogPage = () => {
                     <p className="text-sm text-purple-300 mb-1">معرف السجل</p>
                     <p className="font-mono text-xs text-white">{selectedLog.id}</p>
                   </div>
+                  {selectedLog.table_name && (
+                    <div className="bg-white/10 rounded-xl p-4 border border-white/20">
+                      <p className="text-sm text-purple-300 mb-1">اسم الجدول</p>
+                      <p className="font-bold text-white">{selectedLog.table_name}</p>
+                    </div>
+                  )}
+                  {selectedLog.record_id && (
+                    <div className="bg-white/10 rounded-xl p-4 border border-white/20">
+                      <p className="text-sm text-purple-300 mb-1">معرّف السجل</p>
+                      <p className="font-bold text-white">{selectedLog.record_id}</p>
+                    </div>
+                  )}
+                  {selectedLog.ip_address && (
+                    <div className="bg-white/10 rounded-xl p-4 border border-white/20">
+                      <p className="text-sm text-purple-300 mb-1">عنوان الـIP</p>
+                      <p className="font-bold text-white">{selectedLog.ip_address}</p>
+                    </div>
+                  )}
+                  {selectedLog.user_agent && (
+                    <div className="bg-white/10 rounded-xl p-4 border border-white/20">
+                      <p className="text-sm text-purple-300 mb-1">المتصفح</p>
+                      <p className="font-bold text-white">{selectedLog.user_agent}</p>
+                    </div>
+                  )}
                 </div>
-                <div className="bg-white/10 rounded-xl p-4 border border-white/20">
-                  <p className="text-sm text-purple-300 mb-2">التفاصيل</p>
-                  <pre className="text-sm text-white bg-black/30 p-4 rounded-lg overflow-auto max-h-60 font-mono">
-                    {JSON.stringify(selectedLog.details || {}, null, 2)}
-                  </pre>
-                </div>
+                {selectedLog.change_summary && (
+                  <div className="bg-white/10 rounded-xl p-4 border border-white/20">
+                    <p className="text-sm text-purple-300 mb-2">ملخص التغيير</p>
+                    <p className="text-sm text-white">{selectedLog.change_summary}</p>
+                  </div>
+                )}
+                {(selectedLog.old_values || selectedLog.new_values) && (
+                  <div className="bg-white/10 rounded-xl p-4 border border-white/20 space-y-3">
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm" onClick={() => setShowDiff(s => ({...s, old: !s.old}))}>
+                        عرض القديم
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => setShowDiff(s => ({...s, new: !s.new}))}>
+                        عرض الجديد
+                      </Button>
+                    </div>
+                    {showDiff.old && (
+                      <div>
+                        <p className="text-sm text-purple-300 mb-2">القيم القديمة</p>
+                        <pre className="text-sm text-white bg-black/30 p-4 rounded-lg overflow-auto max-h-60 font-mono">
+                          {JSON.stringify(selectedLog.old_values || {}, null, 2)}
+                        </pre>
+                      </div>
+                    )}
+                    {showDiff.new && (
+                      <div>
+                        <p className="text-sm text-purple-300 mb-2">القيم الجديدة</p>
+                        <pre className="text-sm text-white bg-black/30 p-4 rounded-lg overflow-auto max-h-60 font-mono">
+                          {JSON.stringify(selectedLog.new_values || {}, null, 2)}
+                        </pre>
+                      </div>
+                    )}
+                  </div>
+                )}
+                {!selectedLog.old_values && !selectedLog.new_values && (
+                  <div className="bg-white/10 rounded-xl p-4 border border-white/20">
+                    <p className="text-sm text-purple-300 mb-2">التفاصيل</p>
+                    <pre className="text-sm text-white bg-black/30 p-4 rounded-lg overflow-auto max-h-60 font-mono">
+                      {JSON.stringify(selectedLog.details || {}, null, 2)}
+                    </pre>
+                  </div>
+                )}
               </div>
             )}
           </DialogContent>

@@ -29,6 +29,7 @@ const StoreUsersPage = React.lazy(() => import('@/pages/StoreUsersPage'));
 const AdminPanel = React.lazy(() => import('@/pages/AdminPanel'));
 const AdminSettingsPage = React.lazy(() => import('@/pages/AdminSettingsPage'));
 const AuditLogPage = React.lazy(() => import('@/pages/AuditLogPage'));
+const RBACPage = React.lazy(() => import('@/pages/RBACPage'));
 const SettingsPage = React.lazy(() => import('@/pages/SettingsPage'));
 const SubscriptionPage = React.lazy(() => import('@/pages/SubscriptionPage'));
 const SupportPage = React.lazy(() => import('@/pages/SupportPage'));
@@ -203,6 +204,7 @@ function App() {
                   <Route path="/partners" element={<PrivateRoute roles={['ANY']}><MainLayout><SubscriptionWarning /><PartnersPage /></MainLayout></PrivateRoute>} />
                   <Route path="/users" element={<PrivateRoute roles={['ANY']}><MainLayout><SubscriptionWarning /><UsersPage /></MainLayout></PrivateRoute>} />
                   <Route path="/audit-log" element={<PrivateRoute roles={['ANY']}><MainLayout><SubscriptionWarning /><AuditLogPage /></MainLayout></PrivateRoute>} />
+                  <Route path="/rbac" element={<PrivateRoute roles={['STORE_OWNER', 'SUPER_ADMIN']}><MainLayout><SubscriptionWarning /><RBACPage /></MainLayout></PrivateRoute>} />
                   <Route path="/settings" element={<PrivateRoute roles={['ANY']}><MainLayout><SubscriptionWarning /><SettingsPage /></MainLayout></PrivateRoute>} />
                   <Route path="/subscription" element={<PrivateRoute roles={['ANY']}><MainLayout><SubscriptionWarning /><SubscriptionPage /></MainLayout></PrivateRoute>} />
                   <Route path="/support" element={<PrivateRoute roles={['ANY']}><MainLayout><SubscriptionWarning /><SupportPage /></MainLayout></PrivateRoute>} />

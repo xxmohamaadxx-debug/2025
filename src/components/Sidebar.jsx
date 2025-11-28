@@ -28,20 +28,17 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
   const { user, tenant, logout } = useAuth();
   const [storeTypes, setStoreTypes] = useState([]);
   const [loadingStoreTypes, setLoadingStoreTypes] = useState(false);
-  const [sectionSettings, setSectionSettings] = useState([]);
   const [isDesktop, setIsDesktop] = useState(() => computeIsDesktop());
   const [enableEffects, setEnableEffects] = useState(() => shouldEnableEffects());
   const ambientParticles = useMemo(
-    () => {
-      if (!isDesktop) return [];
-      return Array.from({ length: 8 }).map(() => ({
+    () =>
+      Array.from({ length: 20 }).map(() => ({
         left: Math.random() * 100,
         top: Math.random() * 100,
         duration: 4 + Math.random() * 3,
         delay: Math.random() * 3,
-      }));
-    },
-    [isDesktop]
+      })),
+    []
   );
   
   const isActive = (path) => location.pathname === path;
@@ -70,16 +67,14 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         
         // جلب إعدادات الأقسام المرئية (إذا كانت متوفرة)
         try {
-          const sections = await neonService.getTenantSectionSettings?.(user.tenant_id);
-          if (Array.isArray(sections)) {
-            setSectionSettings(sections);
-          } else {
-            setSectionSettings([]);
+          const sectionSettings = await neonService.getTenantSectionSettings?.(user.tenant_id);
+          if (sectionSettings && sectionSettings.length > 0) {
+            // حفظ الإعدادات في state إذا لزم الأمر
+            // يمكن استخدامها لتصفية الأقسام
           }
         } catch (e) {
           // الدالة قد لا تكون موجودة بعد - لا مشكلة
           console.log('Section settings not available yet');
-          setSectionSettings([]);
         }
       } catch (error) {
         console.error('Load store types error:', error);
@@ -98,10 +93,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
   }, [user?.tenant_id, user?.isSuperAdmin]);
 
   const handleLinkClick = () => {
-    // إغلاق الشريط الجانبي تلقائياً على الشاشات الصغيرة بعد التنقل
-    if (!isDesktop) {
-      setIsOpen(false);
-    }
+    // Keep sidebar state controlled only via the menu button or close icon
   };
 
   // دالة للتحقق من إظهار قسم معين حسب نوع المتجر
@@ -121,36 +113,21 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
       return code.toLowerCase().trim();
     }).filter(Boolean);
     
-    // تطبيع قائمة الأقسام المستهدفة
-    const normalizedSectionCodes = Array.isArray(sectionCodes)
-      ? sectionCodes.map(c => c.toLowerCase().trim())
-      : [String(sectionCodes).toLowerCase().trim()];
-
-    // تحقق من تطابق نوع المتجر مع أحد رموز القسم
-    const hasStoreTypeMatch = normalizedSectionCodes.some(code => storeTypeCodes.includes(code));
-    if (!hasStoreTypeMatch) return false;
-
-    // إذا كانت هناك إعدادات للأقسام المرئية، طبقها كصلاحيات إضافية
-    if (sectionSettings && sectionSettings.length > 0) {
-      const visibleCodes = new Set(
-        sectionSettings
-          .map(s => (s.section_code || '').toLowerCase().trim())
-          .filter(Boolean)
-      );
-      const hasSectionPermission = normalizedSectionCodes.some(code => visibleCodes.has(code));
-      return hasSectionPermission;
+    // إذا كان القسم مطلوباً لأنواع متعددة، يجب أن يكون أحدها موجود
+    if (Array.isArray(sectionCodes)) {
+      const normalizedSectionCodes = sectionCodes.map(c => c.toLowerCase().trim());
+      const hasMatch = normalizedSectionCodes.some(code => storeTypeCodes.includes(code));
+      return hasMatch;
     }
-
-    // في حال عدم وجود إعدادات للأقسام، اعرض بناءً على نوع المتجر فقط
-    return true;
+    
+    const normalizedCode = sectionCodes.toLowerCase().trim();
+    return storeTypeCodes.includes(normalizedCode);
   };
 
   // تحديد الأقسام لكل نوع متجر - فقط إذا كان نوع المتجر يطابق
-  // دعم رموز متعددة لصالة الإنترنت لضمان التوافق
-  const isInternetCafe = shouldShowSection(['internet_cafe', 'cyber_cafe']);
+  const isInternetCafe = shouldShowSection(['internet_cafe']);
   const isMobileAccessories = shouldShowSection(['internet_cafe_accessories', 'mobile_accessories']);
-  // تضمين fuel_station كرمز محتمل
-  const isFuelStation = shouldShowSection(['fuel', 'general_with_fuel', 'fuel_station']);
+  const isFuelStation = shouldShowSection(['fuel', 'general_with_fuel']);
   const isContractor = shouldShowSection(['contractor']);
 
   useEffect(() => {
@@ -350,14 +327,6 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                onClick={handleLinkClick}
                delay={0.1}
              />
-             <RenderNavItem
-               to="/admin"
-               icon={Store}
-               label="إنشاء متجر جديد"
-               isActive={isActive('/admin')}
-               onClick={handleLinkClick}
-               delay={0.12}
-             />
           </>
         )}
 
@@ -438,6 +407,16 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
             isActive={isActive('/store-users')}
             onClick={handleLinkClick}
             delay={0.55}
+          />
+        )}
+        {(user?.isStoreOwner || user?.isSuperAdmin) && (
+          <RenderNavItem
+            to="/rbac"
+            icon={Shield}
+            label={t('rbac.title')}
+            isActive={isActive('/rbac')}
+            onClick={handleLinkClick}
+            delay={0.575}
           />
         )}
         <RenderNavItem

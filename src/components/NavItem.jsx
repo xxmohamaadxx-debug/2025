@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { LucideIcon } from 'lucide-react';
 
 const NavItem = ({ to, icon: Icon, label, isActive, onClick, delay = 0, disableMotion = false }) => {
   if (disableMotion) {

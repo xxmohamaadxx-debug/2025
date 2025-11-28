@@ -150,6 +150,16 @@ export const translations = {
       warehouse_manager: "Warehouse Manager",
       employee: "Employee"
     },
+    rbac: {
+      title: "RBAC Management",
+      loading: "Loading...",
+      error_loading: "An error occurred while loading data.",
+      assign_success: "Role assigned successfully",
+      revoke_success: "Role revoked successfully",
+      users: "Users",
+      roles: "Available Roles",
+      select_role: "Select a role"
+    },
     status: {
       active: "Active",
       inactive: "Inactive",
@@ -428,6 +438,16 @@ export const translations = {
       accountant: "محاسب",
       warehouse_manager: "مدير مستودع",
       employee: "موظف"
+    },
+    rbac: {
+      title: "إدارة الأدوار والصلاحيات (RBAC)",
+      loading: "جاري التحميل...",
+      error_loading: "حدث خطأ أثناء تحميل البيانات.",
+      assign_success: "تم تعيين الدور بنجاح",
+      revoke_success: "تم إلغاء الدور بنجاح",
+      users: "المستخدمون",
+      roles: "الأدوار المتاحة",
+      select_role: "اختر دورًا"
     },
     status: {
       active: "نشط",

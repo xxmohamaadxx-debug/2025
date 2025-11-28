@@ -241,21 +241,36 @@ export const AuthProvider = ({ children }) => {
 
   const register = async ({ name, storeName, email, password }) => {
     try {
-      // إرسال طلب تجربة: إنشاء متجر مع حالة اشتراك "pending" ومستخدم غير نشط
-      const { tenant, user: userData } = await neonService.requestTrialTenant({
-        storeName,
-        ownerName: name,
+      // إنشاء Tenant أولاً
+      const tenant = await neonService.createTenant(storeName, null);
+      
+      // إنشاء المستخدم
+      const userData = await neonService.createUser({
         email,
-        password
+        password,
+        name,
+        tenant_id: tenant.id,
+        role: ROLES.STORE_OWNER,
+        can_delete_data: true,
+        can_edit_data: true,
+        can_create_users: true,
       });
+
+      // تحديث Tenant بالمالك
+      await neonService.updateTenant(tenant.id, { owner_user_id: userData.id });
+
+      // حفظ في localStorage
+      localStorage.setItem('userId', userData.id);
+      localStorage.setItem('userEmail', userData.email);
+      localStorage.setItem('userName', userData.name);
 
       toast({ 
-        title: 'تم إرسال طلب التجربة بنجاح!', 
-        description: 'سيتم مراجعة طلبك من قبل الإدارة خلال وقت قصير. سيتم تفعيل حسابك بعد الموافقة.' 
+        title: 'تم إنشاء الحساب بنجاح!', 
+        description: 'مرحباً بك في نظام إبراهيم للمحاسبة. جاري تسجيل الدخول...' 
       });
-
-      // لا نقوم بتسجيل الدخول تلقائياً لأن الحساب غير نشط حتى الموافقة
-      return { user: userData, tenant };
+      
+      await fetchProfile(userData);
+      return { user: userData };
     } catch (error) {
       console.error('Registration error:', error);
       toast({ 
@@ -281,10 +296,32 @@ export const AuthProvider = ({ children }) => {
   const isExpired = tenant?.isExpired && !user?.isSuperAdmin;
   const isSubscriptionValid = !isExpired && (user?.isSuperAdmin || (tenant && !tenant.isExpired));
   
+  // صلاحيات المستخدم: دعم RBAC
+  // إذا كانت جداول RBAC موجودة، نحمل صلاحيات المستخدم منها، وإلا نFallback إلى حقول المستخدم
+  const [rbacPermissions, setRbacPermissions] = useState(null);
+
+  useEffect(() => {
+    const loadRBAC = async () => {
+      try {
+        if (!user?.tenant_id || !user?.id) return;
+        const { neonService } = await import('@/lib/neonService');
+        // إنشاء مخطط RBAC إن لم يكن موجوداً
+        await neonService.ensureRBACSchema(user.tenant_id);
+        const perms = await neonService.getUserPermissions(user.id, user.tenant_id);
+        setRbacPermissions(perms);
+      } catch (error) {
+        console.warn('RBAC loading skipped:', error?.message || error);
+        setRbacPermissions(null);
+      }
+    };
+    loadRBAC();
+  }, [user?.id, user?.tenant_id]);
+
   // صلاحيات المستخدم مرتبطة بصلاحية المتجر
-  const canDelete = user?.isSuperAdmin || (isSubscriptionValid && ((user?.isStoreOwner && !tenant?.isExpired) || user?.can_delete_data));
-  const canEdit = user?.isSuperAdmin || (isSubscriptionValid && ((user?.isStoreOwner && !tenant?.isExpired) || user?.can_edit_data));
-  const canCreateUsers = user?.isSuperAdmin || (isSubscriptionValid && ((user?.isStoreOwner && !tenant?.isExpired) || user?.can_create_users));
+  const isOwnerActive = user?.isStoreOwner && !tenant?.isExpired;
+  const canDelete = user?.isSuperAdmin || (isSubscriptionValid && (isOwnerActive || (rbacPermissions?.canDelete ?? user?.can_delete_data))));
+  const canEdit = user?.isSuperAdmin || (isSubscriptionValid && (isOwnerActive || (rbacPermissions?.canEdit ?? user?.can_edit_data))));
+  const canCreateUsers = user?.isSuperAdmin || (isSubscriptionValid && (isOwnerActive || (rbacPermissions?.canCreateUsers ?? user?.can_create_users))));
   
   // صلاحيات إضافية مرتبطة بالاشتراك
   const canAccessData = user?.isSuperAdmin || isSubscriptionValid;
@@ -311,8 +348,8 @@ export const AuthProvider = ({ children }) => {
         canEdit, 
         canCreateUsers, 
         isExpired,
-        canAccessData,
-        canModifyData,
+        canAccessData: rbacPermissions?.canAccessData ?? canAccessData,
+        canModifyData: rbacPermissions?.canModifyData ?? canModifyData,
         isSubscriptionValid
       }
     }}>

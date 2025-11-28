@@ -10,7 +10,7 @@ import {
   Shield, Database, Smartphone, TrendingUp, Users, Store, 
   Wifi, Fuel, Building2, CheckCircle, Download, LogIn, 
   MessageCircle, Star, Lock, Zap, BarChart, CreditCard,
-  Phone, Mail, Clock, Headphones, Rocket, Sparkles, Globe, ChevronDown, Laptop,
+  Phone, Mail, Clock, Headphones, Rocket, Sparkles, Globe, ChevronDown,
   Package, FileText, Activity, ShoppingCart
 } from 'lucide-react';
 import Logo from '@/components/Logo';
@@ -408,16 +408,6 @@ const LandingPage = () => {
               <LogIn className="h-5 w-5 ml-2 rtl:mr-2 rtl:ml-0" />
               {t('landing.loginButton')}
             </Button>
-            <Button
-              onClick={() => document.getElementById('download-app')?.scrollIntoView({ behavior: 'smooth' })}
-              size="lg"
-              className="bg-gradient-to-r from-green-500 via-teal-500 to-emerald-600 text-white text-lg px-8 py-6 hover:scale-110 transition-all shadow-2xl hover:shadow-emerald-500/50 group relative overflow-hidden"
-            >
-              <span className="relative z-10 flex items-center gap-2">
-                <Download className="h-5 w-5" />
-                حمل التطبيق الآن
-              </span>
-            </Button>
           </motion.div>
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
@@ -527,87 +517,6 @@ const LandingPage = () => {
                 </p>
               </motion.div>
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Download App Now Section */}
-      <section id="download-app" className="py-20 glass-dark relative z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.h2 
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-5xl font-black text-center text-white mb-6 drop-shadow-lg"
-          >
-            حمل التطبيق الآن
-          </motion.h2>
-          <motion.p 
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.2 }}
-            className="text-center text-purple-200 mb-6 max-w-3xl mx-auto text-lg"
-          >
-            استمتع بتجربة أفضل على هاتفك المحمول أو جهاز الكمبيوتر
-          </motion.p>
-          <motion.p 
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.3 }}
-            className="text-center text-orange-300 mb-12 max-w-3xl mx-auto text-lg font-semibold"
-          >
-            تطبيق سريع، آمن، وسهل الاستخدام - متوفر الآن على جميع المنصات
-          </motion.p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
-              className="group p-8 rounded-2xl glass border-2 border-white/20 hover:border-green-500/50 hover:shadow-2xl hover:shadow-green-500/20 transition-all"
-            >
-              <div className="flex items-center gap-3 mb-4">
-                <Smartphone className="h-7 w-7 text-green-400" />
-                <h3 className="text-xl font-bold text-white">تطبيق الجوال — للأندرويد</h3>
-              </div>
-              <p className="text-purple-200 mb-6">حمّل تطبيق الأندرويد واحصل على تجربة سريعة وسهلة.</p>
-              <a
-                href={appSettings.mobile_app_android_url || '#'}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`inline-flex items-center gap-2 px-6 py-3 rounded-lg text-white ${appSettings.mobile_app_android_url ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-600 cursor-not-allowed'} transition-colors`}
-                onClick={(e) => { if (!appSettings.mobile_app_android_url) e.preventDefault(); }}
-              >
-                <Download className="h-5 w-5" />
-                تنزيل للأندرويد
-              </a>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              className="group p-8 rounded-2xl glass border-2 border-white/20 hover:border-blue-500/50 hover:shadow-2xl hover:shadow-blue-500/20 transition-all"
-            >
-              <div className="flex items-center gap-3 mb-4">
-                <Laptop className="h-7 w-7 text-blue-400" />
-                <h3 className="text-xl font-bold text-white">تطبيق الحاسوب — للوندوز</h3>
-              </div>
-              <p className="text-purple-200 mb-6">حمّل تطبيق ويندوز واستفد من كل المزايا على جهازك.</p>
-              <a
-                href={appSettings.mobile_app_windows_url || '#'}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`inline-flex items-center gap-2 px-6 py-3 rounded-lg text-white ${appSettings.mobile_app_windows_url ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-600 cursor-not-allowed'} transition-colors`}
-                onClick={(e) => { if (!appSettings.mobile_app_windows_url) e.preventDefault(); }}
-              >
-                <Download className="h-5 w-5" />
-                تنزيل للوندوز
-              </a>
-            </motion.div>
           </div>
         </div>
       </section>

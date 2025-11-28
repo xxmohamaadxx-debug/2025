@@ -100,6 +100,177 @@ export const neonService = {
   hashPassword,
   verifyPassword,
 
+  // =========================
+  // RBAC Schema & Management
+  // =========================
+  ensureRBACSchema: async (tenantId) => {
+    try {
+      // Create roles table
+      await sql`
+        CREATE TABLE IF NOT EXISTS roles (
+          id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+          tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE,
+          code TEXT NOT NULL,
+          name TEXT NOT NULL,
+          is_system BOOLEAN DEFAULT false,
+          created_at TIMESTAMPTZ DEFAULT NOW(),
+          UNIQUE(tenant_id, code)
+        )
+      `;
+      // Create permissions table (global)
+      await sql`
+        CREATE TABLE IF NOT EXISTS permissions (
+          code TEXT PRIMARY KEY,
+          name TEXT NOT NULL,
+          description TEXT
+        )
+      `;
+      // Create role_permissions mapping
+      await sql`
+        CREATE TABLE IF NOT EXISTS role_permissions (
+          role_id UUID REFERENCES roles(id) ON DELETE CASCADE,
+          permission_code TEXT REFERENCES permissions(code) ON DELETE CASCADE,
+          PRIMARY KEY (role_id, permission_code)
+        )
+      `;
+      // Create user_roles mapping
+      await sql`
+        CREATE TABLE IF NOT EXISTS user_roles (
+          user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+          role_id UUID REFERENCES roles(id) ON DELETE CASCADE,
+          tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE,
+          PRIMARY KEY (user_id, role_id)
+        )
+      `;
+
+      // Seed permissions if empty
+      const existingPerms = await sql`SELECT COUNT(*)::INT as count FROM permissions`;
+      if ((existingPerms[0]?.count || 0) === 0) {
+        await sql`
+          INSERT INTO permissions (code, name, description) VALUES
+            ('CAN_EDIT', 'Edit Data', 'Ability to edit records'),
+            ('CAN_DELETE', 'Delete Data', 'Ability to delete records'),
+            ('CAN_CREATE_USERS', 'Create Users', 'Ability to create and manage users'),
+            ('VIEW_REPORTS', 'View Reports', 'Access to reports pages'),
+            ('MANAGE_INVENTORY', 'Manage Inventory', 'Access to inventory operations'),
+            ('MANAGE_PAYROLL', 'Manage Payroll', 'Access to payroll operations')
+        `;
+      }
+
+      // Ensure default roles for tenant
+      const defaultRoles = [
+        { code: 'SUPER_ADMIN', name: 'Super Admin', is_system: true },
+        { code: 'STORE_OWNER', name: 'Store Owner', is_system: true },
+        { code: 'ACCOUNTANT', name: 'Accountant', is_system: true },
+        { code: 'WAREHOUSE_MANAGER', name: 'Warehouse Manager', is_system: true },
+        { code: 'EMPLOYEE', name: 'Employee', is_system: true }
+      ];
+
+      for (const r of defaultRoles) {
+        const roleExists = await sql`
+          SELECT id FROM roles WHERE tenant_id = ${tenantId} AND code = ${r.code} LIMIT 1
+        `;
+        if (!roleExists || roleExists.length === 0) {
+          await sql`
+            INSERT INTO roles (tenant_id, code, name, is_system)
+            VALUES (${tenantId}, ${r.code}, ${r.name}, ${r.is_system})
+          `;
+        }
+      }
+
+      // Grant default permissions for roles
+      const roleRows = await sql`SELECT id, code FROM roles WHERE tenant_id = ${tenantId}`;
+      const roleIdByCode = Object.fromEntries((roleRows || []).map(r => [r.code, r.id]));
+      const grants = [
+        { role: 'SUPER_ADMIN', perms: ['CAN_EDIT','CAN_DELETE','CAN_CREATE_USERS','VIEW_REPORTS','MANAGE_INVENTORY','MANAGE_PAYROLL'] },
+        { role: 'STORE_OWNER', perms: ['CAN_EDIT','CAN_DELETE','CAN_CREATE_USERS','VIEW_REPORTS','MANAGE_INVENTORY','MANAGE_PAYROLL'] },
+        { role: 'ACCOUNTANT', perms: ['CAN_EDIT','VIEW_REPORTS','MANAGE_PAYROLL'] },
+        { role: 'WAREHOUSE_MANAGER', perms: ['CAN_EDIT','VIEW_REPORTS','MANAGE_INVENTORY'] },
+        { role: 'EMPLOYEE', perms: ['VIEW_REPORTS'] }
+      ];
+
+      for (const g of grants) {
+        const roleId = roleIdByCode[g.role];
+        if (!roleId) continue;
+        for (const p of g.perms) {
+          await sql`
+            INSERT INTO role_permissions (role_id, permission_code)
+            VALUES (${roleId}, ${p})
+            ON CONFLICT DO NOTHING
+          `;
+        }
+      }
+    } catch (error) {
+      console.error('ensureRBACSchema error:', error);
+      throw error;
+    }
+  },
+
+  getRoles: async (tenantId) => {
+    try {
+      return await sql`SELECT * FROM roles WHERE tenant_id = ${tenantId} ORDER BY name`;
+    } catch (error) {
+      console.error('getRoles error:', error);
+      return [];
+    }
+  },
+
+  getPermissions: async () => {
+    try {
+      return await sql`SELECT * FROM permissions ORDER BY code`;
+    } catch (error) {
+      console.error('getPermissions error:', error);
+      return [];
+    }
+  },
+
+  assignRoleToUser: async (userId, roleId, tenantId) => {
+    try {
+      await sql`
+        INSERT INTO user_roles (user_id, role_id, tenant_id)
+        VALUES (${userId}, ${roleId}, ${tenantId})
+        ON CONFLICT DO NOTHING
+      `;
+      return true;
+    } catch (error) {
+      console.error('assignRoleToUser error:', error);
+      throw error;
+    }
+  },
+
+  revokeRoleFromUser: async (userId, roleId) => {
+    try {
+      await sql`DELETE FROM user_roles WHERE user_id = ${userId} AND role_id = ${roleId}`;
+      return true;
+    } catch (error) {
+      console.error('revokeRoleFromUser error:', error);
+      throw error;
+    }
+  },
+
+  getUserPermissions: async (userId, tenantId) => {
+    try {
+      const perms = await sql`
+        SELECT DISTINCT rp.permission_code as code
+        FROM user_roles ur
+        JOIN roles r ON ur.role_id = r.id
+        JOIN role_permissions rp ON rp.role_id = r.id
+        WHERE ur.user_id = ${userId} AND ur.tenant_id = ${tenantId}
+      `;
+      const codes = (perms || []).map(p => p.code);
+      return {
+        canEdit: codes.includes('CAN_EDIT'),
+        canDelete: codes.includes('CAN_DELETE'),
+        canCreateUsers: codes.includes('CAN_CREATE_USERS'),
+        canAccessData: true,
+        canModifyData: codes.includes('CAN_EDIT') || codes.includes('CAN_DELETE'),
+      };
+    } catch (error) {
+      console.error('getUserPermissions error:', error);
+      return { canEdit: false, canDelete: false, canCreateUsers: false, canAccessData: true, canModifyData: false };
+    }
+  },
+
   // Auth & User
   getUserByEmail: async (email) => {
     try {
@@ -198,72 +369,6 @@ export const neonService = {
     }
   },
 
-  // Check user access based on activity and subscription status
-  checkUserAccess: async (userId) => {
-    try {
-      const user = await neonService.getUserById(userId);
-      if (!user) return { allowed: false, reason: 'user_not_found' };
-
-      // Block inactive users
-      if (user.is_active === false) {
-        return { allowed: false, reason: 'user_inactive' };
-      }
-
-      // Super Admins bypass subscription checks
-      if (user.role === 'SUPER_ADMIN' || user.email?.toLowerCase() === 'admin@ibrahim.com') {
-        return { allowed: true };
-      }
-
-      // If no tenant, allow minimal access (e.g., before assignment)
-      if (!user.tenant_id) {
-        return { allowed: true };
-      }
-
-      const tenantResult = await sql`SELECT * FROM tenants WHERE id = ${user.tenant_id} LIMIT 1`;
-      const tenant = tenantResult[0] || null;
-      if (!tenant) {
-        return { allowed: false, reason: 'tenant_not_found' };
-      }
-
-      // Data suspension blocks access regardless of status
-      if (tenant.data_suspended === true) {
-        return { allowed: false, reason: 'data_suspended' };
-      }
-
-      // Handle subscription status and expiry
-      const status = tenant.subscription_status || 'active';
-      const expiresAt = tenant.subscription_expires_at ? new Date(tenant.subscription_expires_at) : null;
-      const now = new Date();
-
-      // Pending requests should not allow login
-      if (status === 'pending') {
-        return { allowed: false, reason: 'pending_approval' };
-      }
-
-      // Trial or active require expiry in the future (if defined)
-      if (status === 'trial' || status === 'active') {
-        if (expiresAt && !isNaN(expiresAt.getTime())) {
-          if (expiresAt <= now) {
-            return { allowed: false, reason: 'subscription_expired' };
-          }
-        }
-        return { allowed: true };
-      }
-
-      // Explicit expired or unknown states
-      if (status === 'expired' || status === 'suspended') {
-        return { allowed: false, reason: status };
-      }
-
-      // Fallback: allow if no explicit block
-      return { allowed: true };
-    } catch (error) {
-      console.error('checkUserAccess error:', error);
-      // Fail open unless clearly blocked
-      return { allowed: true };
-    }
-  },
-
   createTenant: async (tenantName, ownerUserId) => {
     try {
       const result = await sql`
@@ -274,53 +379,6 @@ export const neonService = {
       return result[0];
     } catch (error) {
       console.error('createTenant error:', error);
-      throw error;
-    }
-  },
-
-  // Request a trial tenant: creates inactive owner and pending tenant
-  requestTrialTenant: async ({ storeName, ownerName, email, password }) => {
-    try {
-      // 1) Create tenant without owner initially
-      const tenant = await neonService.createTenant(storeName, null);
-
-      // 2) Create inactive store owner user linked to tenant
-      const user = await neonService.createUserProfile({
-        email,
-        password,
-        name: ownerName,
-        role: 'STORE_OWNER',
-        tenant_id: tenant.id,
-        can_delete_data: true,
-        can_edit_data: true,
-        can_create_users: true,
-        is_active: false
-      });
-
-      // 3) Set owner and mark subscription as pending trial
-      await neonService.updateTenant(tenant.id, {
-        owner_user_id: user.id,
-        subscription_plan: 'trial',
-        subscription_status: 'pending',
-        subscription_expires_at: null
-      });
-
-      // 4) Notify admins of the new trial request
-      try {
-        await neonService.createNotification({
-          tenant_id: tenant.id,
-          user_id: user.id,
-          type: 'subscription',
-          title: 'طلب تجربة جديد',
-          message: `طلب تجربة لمتجر "${storeName}" من ${ownerName} (${email}).`
-        });
-      } catch (notifyErr) {
-        console.warn('Admin notification for trial request failed:', notifyErr);
-      }
-
-      return { tenant, user };
-    } catch (error) {
-      console.error('requestTrialTenant error:', error);
       throw error;
     }
   },
