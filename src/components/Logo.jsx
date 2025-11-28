@@ -17,6 +17,12 @@ const Logo = ({ size = 'md', showText = true, className = '', noLink = false }) 
     xl: 'text-2xl'
   };
 
+  const prefersReduceMotion = typeof window !== 'undefined' && window.matchMedia
+    ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    : false;
+  const isDesktop = typeof window !== 'undefined' ? window.innerWidth >= 1024 : true;
+  const shouldAnimate = !prefersReduceMotion && isDesktop;
+
   const logoContent = (
     <motion.div 
       className={`flex items-center gap-2 ${className}`}
@@ -31,47 +37,34 @@ const Logo = ({ size = 'md', showText = true, className = '', noLink = false }) 
           background: 'linear-gradient(135deg, #FF8C00 0%, #EC4899 50%, #A855F7 100%)',
           filter: 'drop-shadow(0 0 10px rgba(255, 255, 255, 0.5)) drop-shadow(0 0 20px rgba(255, 140, 0, 0.3))'
         }}
-        whileHover={{ rotateY: 15, rotateX: 5 }}
-        animate={{
+        whileHover={shouldAnimate ? { rotateY: 15, rotateX: 5 } : undefined}
+        animate={shouldAnimate ? {
           boxShadow: [
             '0 10px 30px rgba(255, 140, 0, 0.5), 0 0 0 3px rgba(255, 255, 255, 0.2)',
             '0 10px 40px rgba(236, 72, 153, 0.7), 0 0 0 3px rgba(255, 255, 255, 0.3)',
             '0 10px 30px rgba(255, 140, 0, 0.5), 0 0 0 3px rgba(255, 255, 255, 0.2)',
           ],
-        }}
-        transition={{
+        } : undefined}
+        transition={shouldAnimate ? {
           boxShadow: {
             duration: 3,
             repeat: Infinity,
             ease: 'easeInOut',
           },
-        }}
+        } : undefined}
       >
         {/* Animated Background Gradient */}
         <motion.div
           className="absolute inset-0 bg-gradient-to-br from-orange-400 via-pink-400 to-purple-400"
-          animate={{
-            rotate: [0, 360],
-          }}
-          transition={{
-            duration: 20,
-            repeat: Infinity,
-            ease: 'linear',
-          }}
+          animate={shouldAnimate ? { rotate: [0, 360] } : undefined}
+          transition={shouldAnimate ? { duration: 20, repeat: Infinity, ease: 'linear' } : undefined}
         />
         
         {/* Glow Effect */}
         <motion.div
           className="absolute inset-0 bg-white/20 blur-xl"
-          animate={{
-            opacity: [0.3, 0.6, 0.3],
-            scale: [1, 1.2, 1],
-          }}
-          transition={{
-            duration: 2,
-            repeat: Infinity,
-            ease: 'easeInOut',
-          }}
+          animate={shouldAnimate ? { opacity: [0.3, 0.6, 0.3], scale: [1, 1.2, 1] } : undefined}
+          transition={shouldAnimate ? { duration: 2, repeat: Infinity, ease: 'easeInOut' } : undefined}
         />
         
         {/* Dark overlay for contrast */}
@@ -111,14 +104,8 @@ const Logo = ({ size = 'md', showText = true, className = '', noLink = false }) 
         >
           <motion.span 
             className={`${textSizes[size]} font-black bg-gradient-to-r from-orange-600 via-pink-600 to-purple-600 bg-clip-text text-transparent leading-tight`}
-            animate={{
-              backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
-            }}
-            transition={{
-              duration: 5,
-              repeat: Infinity,
-              ease: 'linear',
-            }}
+            animate={shouldAnimate ? { backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'] } : undefined}
+            transition={shouldAnimate ? { duration: 5, repeat: Infinity, ease: 'linear' } : undefined}
             style={{
               backgroundSize: '200% 200%',
             }}

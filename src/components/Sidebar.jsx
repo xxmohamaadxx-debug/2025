@@ -32,7 +32,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
   const [enableEffects, setEnableEffects] = useState(() => shouldEnableEffects());
   const ambientParticles = useMemo(
     () =>
-      Array.from({ length: 20 }).map(() => ({
+      Array.from({ length: 6 }).map(() => ({
         left: Math.random() * 100,
         top: Math.random() * 100,
         duration: 4 + Math.random() * 3,
