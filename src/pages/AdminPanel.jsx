@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { neonService } from '@/lib/neonService';
 import { Button } from '@/components/ui/button';
-import { Loader2, Plus, Store, Edit, Trash2, MessageCircle, Download, FileDown, Package, Users, ShoppingCart, FolderPlus, Clock, CheckCircle } from 'lucide-react';
+import { Loader2, Plus, Store, Edit, Trash2, MessageCircle, Download, FileDown, Package, Users, ShoppingCart, FolderPlus, Clock, CheckCircle, Send } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from '@/components/ui/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
@@ -26,6 +26,12 @@ const AdminPanel = () => {
   const [selectedStore, setSelectedStore] = useState(null);
   const [supportTickets, setSupportTickets] = useState([]);
   const [loadingTickets, setLoadingTickets] = useState(false);
+  const [messageDialogOpen, setMessageDialogOpen] = useState(false);
+  const [selectedTicket, setSelectedTicket] = useState(null);
+  const [ticketMessages, setTicketMessages] = useState([]);
+  const [loadingMessages, setLoadingMessages] = useState(false);
+  const [replyText, setReplyText] = useState('');
+  const [sendingReply, setSendingReply] = useState(false);
   
   // New Store Form
   const [formData, setFormData] = useState({
@@ -116,6 +122,55 @@ const AdminPanel = () => {
       });
     } finally {
       setLoadingTickets(false);
+    }
+  };
+
+  const openTicketMessages = async (ticket) => {
+    setSelectedTicket(ticket);
+    setMessageDialogOpen(true);
+    setLoadingMessages(true);
+    try {
+      const msgs = await neonService.getSupportTicketMessages(ticket.id);
+      setTicketMessages(msgs || []);
+    } catch (error) {
+      console.error('Load messages error:', error);
+      toast({
+        title: 'خطأ',
+        description: error.message || 'حدث خطأ أثناء تحميل رسائل التذكرة',
+        variant: 'destructive'
+      });
+    } finally {
+      setLoadingMessages(false);
+    }
+  };
+
+  const sendTicketReply = async () => {
+    if (!selectedTicket || !replyText.trim()) return;
+    setSendingReply(true);
+    try {
+      const newMsg = await neonService.addSupportTicketMessage({
+        ticket_id: selectedTicket.id,
+        user_id: user?.id || null,
+        message: replyText.trim(),
+        is_from_admin: true
+      });
+      setTicketMessages((prev) => [...prev, newMsg]);
+      setReplyText('');
+      // Optionally set status to in_progress
+      if (selectedTicket.status === 'open') {
+        await neonService.updateSupportTicketStatus(selectedTicket.id, 'in_progress', user?.id || null);
+        fetchSupportTickets();
+      }
+      toast({ title: 'تم الإرسال', description: 'تم إرسال الرد بنجاح' });
+    } catch (error) {
+      console.error('Send reply error:', error);
+      toast({
+        title: 'خطأ',
+        description: error.message || 'حدث خطأ أثناء إرسال الرد',
+        variant: 'destructive'
+      });
+    } finally {
+      setSendingReply(false);
     }
   };
 
@@ -1377,6 +1432,15 @@ const AdminPanel = () => {
                     </td>
                     <td className="px-4 py-3 text-sm">
                       <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => openTicketMessages(ticket)}
+                          className="text-blue-600 hover:text-blue-700"
+                          title="عرض الرسائل والرد"
+                        >
+                          <MessageCircle className="h-4 w-4" />
+                        </Button>
                         {ticket.status !== 'resolved' && (
                           <Button
                             size="sm"
@@ -1406,6 +1470,77 @@ const AdminPanel = () => {
           </div>
         )}
       </div>
+
+      {/* Ticket Messages Dialog */}
+      <Dialog open={messageDialogOpen} onOpenChange={setMessageDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>رسائل التذكرة</DialogTitle>
+            <DialogDescription>
+              {selectedTicket ? `${selectedTicket.tenant_name || ''} - ${selectedTicket.subject || ''}` : ''}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            {loadingMessages ? (
+              <div className="flex justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
+              </div>
+            ) : ticketMessages.length === 0 ? (
+              <p className="text-center text-gray-500 dark:text-gray-400">لا توجد رسائل بعد</p>
+            ) : (
+              <div className="space-y-3">
+                {ticketMessages.map((msg) => (
+                  <div
+                    key={msg.id}
+                    className={`p-3 rounded-lg border ${msg.is_from_admin ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800' : 'bg-gray-50 dark:bg-gray-700/30 border-gray-200 dark:border-gray-700'}`}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="text-sm font-medium">
+                        {msg.is_from_admin ? 'المدير' : (msg.user_name || msg.user_email || 'مستخدم')}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {formatDateAR(msg.created_at)}
+                      </div>
+                    </div>
+                    <div className="text-sm whitespace-pre-wrap">{msg.message}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Reply box */}
+            <div className="mt-4">
+              <label className="block text-sm font-medium mb-1 rtl:text-right">اكتب ردك</label>
+              <textarea
+                value={replyText}
+                onChange={(e) => setReplyText(e.target.value)}
+                rows={3}
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
+                placeholder="اكتب رسالة للرد على التذكرة..."
+              />
+              <div className="flex justify-end mt-2">
+                <Button
+                  onClick={sendTicketReply}
+                  disabled={sendingReply || !replyText.trim()}
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  {sendingReply ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin ml-2 rtl:mr-2 rtl:ml-0" />
+                      جاري الإرسال...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="h-4 w-4 ml-2 rtl:mr-2 rtl:ml-0" />
+                      إرسال الرد
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

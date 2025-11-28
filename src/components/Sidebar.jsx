@@ -281,7 +281,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                   ease: 'easeInOut',
                 }}
               />
-              <Logo size="md" showText={true} className="flex-shrink-0 relative z-10" />
+              <Logo noLink size="md" showText={true} className="flex-shrink-0 relative z-10" />
             </Link>
           </motion.div>
           <motion.button 
@@ -409,7 +409,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
             delay={0.55}
           />
         )}
-        {(user?.isStoreOwner || user?.isSuperAdmin) && (
+        {user?.isSuperAdmin && (
           <RenderNavItem
             to="/rbac"
             icon={Shield}

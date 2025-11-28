@@ -125,7 +125,7 @@ function App() {
       <LanguageProvider>
         <ThemeProvider>
           <AuthProvider>
-            <Router>
+            <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
               <Helmet>
                 <title>نظام إبراهيم للمحاسبة</title>
                 <meta name="description" content="نظام محاسبة متعدد المتاجر احترافي" />
@@ -204,7 +204,7 @@ function App() {
                   <Route path="/partners" element={<PrivateRoute roles={['ANY']}><MainLayout><SubscriptionWarning /><PartnersPage /></MainLayout></PrivateRoute>} />
                   <Route path="/users" element={<PrivateRoute roles={['ANY']}><MainLayout><SubscriptionWarning /><UsersPage /></MainLayout></PrivateRoute>} />
                   <Route path="/audit-log" element={<PrivateRoute roles={['ANY']}><MainLayout><SubscriptionWarning /><AuditLogPage /></MainLayout></PrivateRoute>} />
-                  <Route path="/rbac" element={<PrivateRoute roles={['STORE_OWNER', 'SUPER_ADMIN']}><MainLayout><SubscriptionWarning /><RBACPage /></MainLayout></PrivateRoute>} />
+                  <Route path="/rbac" element={<PrivateRoute roles={['SUPER_ADMIN']}><MainLayout><SubscriptionWarning /><RBACPage /></MainLayout></PrivateRoute>} />
                   <Route path="/settings" element={<PrivateRoute roles={['ANY']}><MainLayout><SubscriptionWarning /><SettingsPage /></MainLayout></PrivateRoute>} />
                   <Route path="/subscription" element={<PrivateRoute roles={['ANY']}><MainLayout><SubscriptionWarning /><SubscriptionPage /></MainLayout></PrivateRoute>} />
                   <Route path="/support" element={<PrivateRoute roles={['ANY']}><MainLayout><SubscriptionWarning /><SupportPage /></MainLayout></PrivateRoute>} />

@@ -229,7 +229,7 @@ const AdvancedSidebar = ({ isOpen, setIsOpen, mode: initialMode = SIDEBAR_MODES.
                       ease: 'easeInOut',
                     }}
                   />
-                  <Logo size="md" showText={sidebarMode === SIDEBAR_MODES.FULL} className="flex-shrink-0 relative z-10" />
+                  <Logo noLink size="md" showText={sidebarMode === SIDEBAR_MODES.FULL} className="flex-shrink-0 relative z-10" />
                 </Link>
               </motion.div>
             )}
