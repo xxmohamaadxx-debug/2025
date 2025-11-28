@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -14,12 +14,32 @@ import {
 import Logo from '@/components/Logo';
 import NavItem from './NavItem';
 
+const prefersReducedMotion = () =>
+  typeof window !== 'undefined' && window.matchMedia
+    ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    : false;
+
+const computeIsDesktop = () => (typeof window !== 'undefined' ? window.innerWidth >= 1024 : true);
+const shouldEnableEffects = () => computeIsDesktop() && !prefersReducedMotion();
+
 const Sidebar = ({ isOpen, setIsOpen }) => {
   const location = useLocation();
   const { t, locale } = useLanguage();
   const { user, tenant, logout } = useAuth();
   const [storeTypes, setStoreTypes] = useState([]);
   const [loadingStoreTypes, setLoadingStoreTypes] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(() => computeIsDesktop());
+  const [enableEffects, setEnableEffects] = useState(() => shouldEnableEffects());
+  const ambientParticles = useMemo(
+    () =>
+      Array.from({ length: 20 }).map(() => ({
+        left: Math.random() * 100,
+        top: Math.random() * 100,
+        duration: 4 + Math.random() * 3,
+        delay: Math.random() * 3,
+      })),
+    []
+  );
   
   const isActive = (path) => location.pathname === path;
   
@@ -110,20 +130,43 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
   const isFuelStation = shouldShowSection(['fuel', 'general_with_fuel']);
   const isContractor = shouldShowSection(['contractor']);
 
+  useEffect(() => {
+    const handleResize = () => {
+      const desktop = computeIsDesktop();
+      setIsDesktop(desktop);
+      setEnableEffects(shouldEnableEffects());
+      if (desktop) {
+        setIsOpen(true);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [setIsOpen]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return;
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const handleChange = () => setEnableEffects(shouldEnableEffects());
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, []);
+
   const getSidebarVariants = () => {
     if (typeof window === 'undefined') return { open: { x: 0 }, closed: { x: 0 } };
-    const isDesktop = window.innerWidth >= 1024;
+    const baseTransition = isDesktop
+      ? { type: 'spring', stiffness: 300, damping: 30 }
+      : { type: 'tween', duration: 0.25 };
     const isRTL = document.documentElement.dir === 'rtl';
     return {
       open: { 
         x: 0, 
         opacity: 1,
-        transition: { type: "spring", stiffness: 300, damping: 30 }
+        transition: baseTransition
       },
       closed: { 
         x: isDesktop ? 0 : (isRTL ? 256 : -256), 
         opacity: isDesktop ? 1 : 0,
-        transition: { type: "spring", stiffness: 300, damping: 30 }
+        transition: baseTransition
       }
     };
   };
@@ -148,62 +191,72 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
       <div 
         className="relative h-full w-full overflow-hidden"
         style={{
-          background: 'linear-gradient(180deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 27, 75, 0.95) 50%, rgba(15, 23, 42, 0.95) 100%)',
-          backdropFilter: 'blur(20px) saturate(180%)',
-          WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-          borderRight: '1px solid rgba(255, 140, 0, 0.2)',
-          boxShadow: 'inset -10px 0 30px -15px rgba(255, 140, 0, 0.2), 10px 0 60px rgba(0, 0, 0, 0.5), 0 0 100px rgba(255, 140, 0, 0.05)',
+          background: isDesktop
+            ? 'linear-gradient(180deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 27, 75, 0.95) 50%, rgba(15, 23, 42, 0.95) 100%)'
+            : '#0f172a',
+          backdropFilter: isDesktop ? 'blur(20px) saturate(180%)' : 'none',
+          WebkitBackdropFilter: isDesktop ? 'blur(20px) saturate(180%)' : 'none',
+          borderRight: '1px solid rgba(255, 140, 0, 0.15)',
+          boxShadow: isDesktop
+            ? 'inset -10px 0 30px -15px rgba(255, 140, 0, 0.2), 10px 0 60px rgba(0, 0, 0, 0.5), 0 0 100px rgba(255, 140, 0, 0.05)'
+            : '4px 0 20px rgba(0,0,0,0.4)',
         }}
       >
         {/* Animated Neon Border Sweep */}
-        <motion.div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background: 'linear-gradient(90deg, transparent, rgba(255, 140, 0, 0.4), rgba(236, 72, 153, 0.4), transparent)',
-            opacity: 0.6,
-          }}
-          animate={{
-            x: ['-100%', '200%'],
-          }}
-          transition={{
-            duration: 4,
-            repeat: Infinity,
-            ease: 'linear',
-          }}
-        />
+        {enableEffects && (
+          <motion.div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background: 'linear-gradient(90deg, transparent, rgba(255, 140, 0, 0.4), rgba(236, 72, 153, 0.4), transparent)',
+              opacity: 0.6,
+            }}
+            animate={{
+              x: ['-100%', '200%'],
+            }}
+            transition={{
+              duration: 4,
+              repeat: Infinity,
+              ease: 'linear',
+            }}
+          />
+        )}
         
         {/* Glowing Particles Background */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          {[...Array(25)].map((_, i) => (
-            <motion.div
-              key={i}
-              className="absolute w-1.5 h-1.5 rounded-full"
-              style={{
-                background: 'radial-gradient(circle, rgba(255, 140, 0, 1), transparent)',
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                boxShadow: '0 0 15px rgba(255, 140, 0, 0.8), 0 0 30px rgba(255, 140, 0, 0.4)',
-              }}
-              animate={{
-                y: [0, -40, 0],
-                opacity: [0.1, 1, 0.1],
-                scale: [1, 2, 1],
-              }}
-              transition={{
-                duration: 4 + Math.random() * 3,
-                repeat: Infinity,
-                delay: Math.random() * 3,
-                ease: 'easeInOut',
-              }}
-            />
-          ))}
-        </div>
+        {enableEffects && (
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            {ambientParticles.map((particle, i) => (
+              <motion.div
+                key={i}
+                className="absolute w-1.5 h-1.5 rounded-full"
+                style={{
+                  background: 'radial-gradient(circle, rgba(255, 140, 0, 1), transparent)',
+                  left: `${particle.left}%`,
+                  top: `${particle.top}%`,
+                  boxShadow: '0 0 15px rgba(255, 140, 0, 0.8), 0 0 30px rgba(255, 140, 0, 0.4)',
+                }}
+                animate={{
+                  y: [0, -30, 0],
+                  opacity: [0.1, 0.8, 0.1],
+                  scale: [1, 1.8, 1],
+                }}
+                transition={{
+                  duration: particle.duration,
+                  repeat: Infinity,
+                  delay: particle.delay,
+                  ease: 'easeInOut',
+                }}
+              />
+            ))}
+          </div>
+        )}
         {/* Header with 3D Effect */}
         <motion.div 
           className="p-4 md:p-6 flex justify-between items-center border-b border-orange-500/20 relative z-10"
           style={{
-            background: 'linear-gradient(135deg, rgba(255, 140, 0, 0.1) 0%, rgba(236, 72, 153, 0.05) 100%)',
-            backdropFilter: 'blur(10px)',
+            background: isDesktop
+              ? 'linear-gradient(135deg, rgba(255, 140, 0, 0.12) 0%, rgba(236, 72, 153, 0.08) 100%)'
+              : '#111827',
+            backdropFilter: isDesktop ? 'blur(10px)' : 'none',
           }}
         >
           <motion.div
@@ -250,7 +303,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           </motion.button>
         </motion.div>
 
-      <nav className="flex-1 px-2 sm:px-4 overflow-y-auto h-[calc(100vh-80px)] pb-4 custom-scrollbar overscroll-contain">
+      <nav className="flex-1 px-2 sm:px-4 overflow-y-auto h-[calc(100vh-80px)] pb-4 custom-scrollbar overscroll-contain bg-transparent">
         {/* Admin Panel - فقط للمشرفين */}
         {user?.isSuperAdmin && (
           <>
