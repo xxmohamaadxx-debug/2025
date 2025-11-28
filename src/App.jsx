@@ -71,6 +71,12 @@ const DailyExpensesPage = React.lazy(() => import('@/pages/DailyExpensesPage'));
 // Journal
 const JournalPage = React.lazy(() => import('@/pages/JournalPage'));
 
+// Inventory Management Pages
+const FuelCountersManagementPage = React.lazy(() => import('@/pages/FuelCountersManagementPage'));
+const InventoryCategoriesPage = React.lazy(() => import('@/pages/InventoryCategoriesPage'));
+const LowStockThresholdsPage = React.lazy(() => import('@/pages/LowStockThresholdsPage'));
+const InventoryAuditTrailPage = React.lazy(() => import('@/pages/InventoryAuditTrailPage'));
+
 const LoadingSpinner = () => (
   <div className="flex h-screen items-center justify-center bg-gray-50 dark:bg-gray-900">
     <Loader2 className="h-10 w-10 animate-spin text-orange-500" />
@@ -233,6 +239,10 @@ function App() {
                   <Route path="/comprehensive-reports" element={<PrivateRoute roles={['ANY']}><MainLayout><SubscriptionWarning /><ComprehensiveReportsPage /></MainLayout></PrivateRoute>} />
                   
                   <Route path="/fuel-station" element={<PrivateRoute roles={['ANY']}><MainLayout><SubscriptionWarning /><FuelStationPage /></MainLayout></PrivateRoute>} />
+                  <Route path="/fuel-counters" element={<PrivateRoute roles={['ANY']}><MainLayout><SubscriptionWarning /><FuelCountersManagementPage /></MainLayout></PrivateRoute>} />
+                  <Route path="/inventory-categories" element={<PrivateRoute roles={['ANY']}><MainLayout><SubscriptionWarning /><InventoryCategoriesPage /></MainLayout></PrivateRoute>} />
+                  <Route path="/inventory-thresholds" element={<PrivateRoute roles={['ANY']}><MainLayout><SubscriptionWarning /><LowStockThresholdsPage /></MainLayout></PrivateRoute>} />
+                  <Route path="/inventory-audit" element={<PrivateRoute roles={['ANY']}><MainLayout><SubscriptionWarning /><InventoryAuditTrailPage /></MainLayout></PrivateRoute>} />
                   <Route path="/contractor-projects" element={<PrivateRoute roles={['ANY']}><MainLayout><SubscriptionWarning /><ContractorProjectsPage /></MainLayout></PrivateRoute>} />
                   <Route path="/contractor-project-items" element={<PrivateRoute roles={['ANY']}><MainLayout><SubscriptionWarning /><ContractorProjectItemsPage /></MainLayout></PrivateRoute>} />
                   <Route path="/store-types" element={<PrivateRoute roles={['SUPER_ADMIN']}><MainLayout><StoreTypesPage /></MainLayout></PrivateRoute>} />

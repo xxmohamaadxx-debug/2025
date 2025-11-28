@@ -9,7 +9,7 @@ import {
   LayoutDashboard, FileText, ShoppingCart, Package, 
   Users, Settings, LogOut, Shield, BarChart, 
   CreditCard, Briefcase, X, MessageCircle, Database, Activity,
-  Wifi, Fuel, Store, Building2, Bell, Receipt
+  Wifi, Fuel, Store, Building2, Bell, Receipt, Layers, AlertTriangle, History
 } from 'lucide-react';
 import Logo from '@/components/Logo';
 import NavItem from './NavItem';
@@ -489,8 +489,46 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
               onClick={handleLinkClick}
               delay={0.75}
             />
+            <RenderNavItem
+              to="/fuel-counters"
+              icon={Fuel}
+              label="إدارة العدادات"
+              isActive={isActive('/fuel-counters')}
+              onClick={handleLinkClick}
+              delay={0.76}
+            />
           </>
         )}
+
+        {/* إدارة المخزون الإضافية */}
+        <>
+          <div className="px-4 mb-2 mt-6 text-xs font-semibold text-gray-400 uppercase tracking-wider">إدارة المخزون</div>
+          
+          <RenderNavItem
+            to="/inventory-categories"
+            icon={Layers}
+            label="الأقسام والفئات"
+            isActive={isActive('/inventory-categories')}
+            onClick={handleLinkClick}
+            delay={0.77}
+          />
+          <RenderNavItem
+            to="/inventory-thresholds"
+            icon={AlertTriangle}
+            label="تنبيهات المخزون"
+            isActive={isActive('/inventory-thresholds')}
+            onClick={handleLinkClick}
+            delay={0.78}
+          />
+          <RenderNavItem
+            to="/inventory-audit"
+            icon={History}
+            label="سجل التغييرات"
+            isActive={isActive('/inventory-audit')}
+            onClick={handleLinkClick}
+            delay={0.79}
+          />
+        </>
 
         {/* متجر المقاولين - يظهر فقط إذا كان نوع المتجر يدعمه */}
         {(isContractor || user?.isSuperAdmin) && (
