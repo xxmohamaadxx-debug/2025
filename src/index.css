@@ -397,6 +397,16 @@
     background-size: 1000px 100%;
   }
 
+  /* Disable animations when body has .no-animations (useful for Admin page performance) */
+  .no-animations *,
+  .no-animations *::before,
+  .no-animations *::after {
+    animation: none !important;
+    transition: none !important;
+    transition-duration: 0s !important;
+    will-change: auto !important;
+  }
+
   /* 3D card float effect */
   @keyframes card-float {
     0%, 100% {

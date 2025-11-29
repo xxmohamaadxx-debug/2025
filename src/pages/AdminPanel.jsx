@@ -176,6 +176,19 @@ const AdminPanel = () => {
       fetchStoreTypes();
       fetchSupportTickets();
     }
+    // Disable animated backgrounds and transitions on Admin page for performance
+    if (typeof document !== 'undefined') {
+      document.body.classList.add('no-animations');
+      // also set a runtime flag other components can check
+      try { window.__DISABLE_ANIMATIONS__ = true; } catch (e) {}
+    }
+
+    return () => {
+      if (typeof document !== 'undefined') {
+        document.body.classList.remove('no-animations');
+        try { window.__DISABLE_ANIMATIONS__ = false; } catch (e) {}
+      }
+    };
   }, [user]);
 
   if (!user?.isSuperAdmin) {
