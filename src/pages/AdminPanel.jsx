@@ -655,45 +655,45 @@ const AdminPanel = () => {
     const set = new Set(core);
     
     // 1. صالة إنترنت
-    if (previewIsInternetCafe && !previewIsMobileAccessories) {
+    if (isInternetCafe && !isMobileAccessories) {
       ['internet_cafe_subscribers','internet_cafe_subscription_types','internet_cafe_sessions','internet_cafe_devices'].forEach(c => set.add(c));
     }
     
     // 2. متجر إكسسوارات جوال
-    if (previewIsMobileAccessories && !previewIsInternetCafe) {
+    if (isMobileAccessories && !isInternetCafe) {
       ['store_products','store_pos','store_sales_invoices','store_purchase_invoices','store_bundles','inventory','inventory_categories','inventory_thresholds','inventory_audit','invoices_in','invoices_out'].forEach(c => set.add(c));
     }
     
     // 3. مستودع
-    if (previewIsWarehouseOnly) {
+    if (isWarehouseOnly) {
       ['inventory','inventory_categories','inventory_thresholds','inventory_audit','warehouse_transactions','invoices_in','invoices_out'].forEach(c => set.add(c));
     }
     
     // 4. متجر محروقات
-    if (previewIsFuelOnly && !previewIsGeneralWithFuel) {
+    if (isFuelOnly && !isGeneralWithFuel) {
       ['fuel_station','fuel_counters','inventory','inventory_categories','inventory_thresholds','inventory_audit','invoices_in','invoices_out','customers','partners'].forEach(c => set.add(c));
     }
     
     // 5. صالة إنترنت + إكسسوارات جوال
-    if (previewIsInternetCafeAccessories) {
+    if (isInternetCafeAccessories) {
       ['internet_cafe_subscribers','internet_cafe_subscription_types','internet_cafe_sessions','internet_cafe_devices','store_products','store_pos','store_sales_invoices','store_purchase_invoices','store_bundles','inventory','inventory_categories','inventory_thresholds','inventory_audit'].forEach(c => set.add(c));
     }
     
     // 6. متجر مقاولين ومواد بناء
-    if (previewIsContractorOnly) {
+    if (isContractorOnly) {
       ['contractor_projects','contractor_project_items','invoices_in','invoices_out','inventory','inventory_categories','inventory_thresholds','inventory_audit','customers','partners'].forEach(c => set.add(c));
     }
     
     // 7. متجر عادي مع محروقات
-    if (previewIsGeneralWithFuel) {
+    if (isGeneralWithFuel) {
       ['fuel_station','fuel_counters','invoices_in','invoices_out','inventory','inventory_categories','inventory_thresholds','inventory_audit','customers','partners','employees','store_users'].forEach(c => set.add(c));
     }
     
     // إضافة الأقسام الأساسية المشتركة
-    if (!previewIsWarehouseOnly) {
+    if (!isWarehouseOnly) {
       ['customers','partners','employees','store_users'].forEach(c => set.add(c));
     }
-    if (!previewIsWarehouseOnly && !previewIsInternetCafe) {
+    if (!isWarehouseOnly && !isInternetCafe) {
       ['invoices_in','invoices_out'].forEach(c => set.add(c));
     }
 
